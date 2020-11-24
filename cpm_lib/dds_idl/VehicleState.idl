@@ -40,7 +40,7 @@ struct VehicleState {
     octet vehicle_id; //@key
 
     //! Header information
-    Header header;
+    Header _header;
 
     /**
      * \brief The pose combines data from the IMU, odometer and the IPS

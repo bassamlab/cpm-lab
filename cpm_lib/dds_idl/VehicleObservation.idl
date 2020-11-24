@@ -41,7 +41,7 @@ struct VehicleObservation
     octet vehicle_id; //@key
 
     //! Header data
-    Header header;
+    Header _header;
 
     //! Position of the vehicle
     Pose2D pose;

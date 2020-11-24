@@ -52,9 +52,9 @@ struct VehicleCommandDirect
 {
     //! ID of the vehicle to control
     octet vehicle_id; //@key
-
+    
     //! Header information, e.g. to see if the msg is still valid
-    Header header;
+    Header _header;
 
     double motor_throttle;  //!< dimensionless, in [-1, 1]
     double steering_servo;  //!< dimensionless, in [-1, 1]

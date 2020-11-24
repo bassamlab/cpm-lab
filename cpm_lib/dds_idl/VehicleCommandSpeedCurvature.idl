@@ -48,7 +48,7 @@ struct VehicleCommandSpeedCurvature
     octet vehicle_id; //@key
 
     //! Header information, e.g. to see if the msg is still valid
-    Header header;
+    Header _header;
 
     double speed;       //!<    m/s
     double curvature;   //!<    1/meter

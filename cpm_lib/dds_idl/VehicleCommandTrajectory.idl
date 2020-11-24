@@ -76,9 +76,9 @@ struct VehicleCommandTrajectory
 {
     //! ID of the vehicle that should follow the trajectory
     octet vehicle_id; //@key
-
+    
     //! Header info, e.g. to determine if the trajectory is still / already valid
-    Header header;
+    Header _header;
 
     //! Trajectory points to follow
     sequence<TrajectoryPoint> trajectory_points;

@@ -36,12 +36,12 @@
  */
 enum ParameterType 
 {
-    Invalid = 0,
+    Invalid,
     Bool,
     Int32,
     UInt64,
-    Double,
-    String,
+    _Double,
+    _String,
     Vector_Int32,
     Vector_Double
 };

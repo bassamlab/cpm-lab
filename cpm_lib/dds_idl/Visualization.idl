@@ -37,7 +37,7 @@
  */
 enum VisualizationType 
 {
-    LineStrips=0,
+    LineStrips,
     Polygon,
     StringMessage,
     FilledCircle //Center at points[0]
@@ -50,7 +50,7 @@ enum VisualizationType
  */
 enum StringMessageAnchor
 {
-    BottomLeft=0,
+    BottomLeft,
     BottomCenter,
     BottomRight,
     CenterLeft,
@@ -90,6 +90,6 @@ struct Visualization
     StringMessageAnchor string_message_anchor; //Align
 
     //!Color of the drawing
-    Color color;
+    Color _color;
 };
 #endif

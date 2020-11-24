@@ -38,8 +38,8 @@
  */
 enum ObstacleType 
 {
-    Unknown=0,
     //Dynamic
+    Unknown,
     Car, 
     Truck, 
     Bus, 
@@ -80,7 +80,7 @@ struct CommonroadObstacle {
     //! An ID can be set for each obstacle
     octet vehicle_id; //@key
 
-    Header header; //!< There is no need to distinguish between create and valid after stamp in this case
+    Header _header; //!< There is no need to distinguish between create and valid after stamp in this case
 
     boolean is_moving; //!< Shows whether the obstacle is moving or not (moving /= dynamic or static obstacle, some obstacles are defined as dynamic but do not move)
 
