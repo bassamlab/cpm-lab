@@ -54,12 +54,13 @@ namespace cpm {
     :period_nanoseconds(_period_nanoseconds)
     ,offset_nanoseconds(_offset_nanoseconds)
     ,node_id(_node_id)
-    ,reader_system_trigger(dds::sub::Subscriber(cpm::ParticipantSingleton::Instance()), cpm::get_topic<SystemTrigger>("systemTrigger"), (dds::sub::qos::DataReaderQos() << dds::core::policy::Reliability::Reliable()))
-    ,readCondition(reader_system_trigger, dds::sub::status::DataState::any())
-    ,writer_ready_status("readyStatus", true)
     ,wait_for_start(_wait_for_start)
     ,stop_signal(_stop_signal)
     {
+
+        writer_ready_status = new cpm::Writer<ReadyStatusPubSubType>("readyStatus", true);
+        reader_system_trigger = new cpm::AsyncReader<SystemTriggerPubSubType>(&TimerFD::dummyCallback,"systemTrigger",true,false, this);
+
         //Offset must be smaller than period
         if (offset_nanoseconds >= period_nanoseconds) {
             Logging::Instance().write(
@@ -71,9 +72,6 @@ namespace cpm {
             fflush(stderr); 
             exit(EXIT_FAILURE);
         }
-
-        //Add Waitset for reader_system_trigger
-        waitset += readCondition;
 
         active.store(false);
         cancelled.store(false);
@@ -137,20 +135,25 @@ namespace cpm {
     uint64_t TimerFD::receiveStartTime() {
         //Create ready signal
         ReadyStatus ready_status;
-        ready_status.next_start_stamp(TimeStamp(0));
+        TimeStamp timestamp;
+        timestamp.nanoseconds(0);
+
+        ready_status.next_start_stamp(timestamp);
         ready_status.source_id(node_id);
         
         //Poll for start signal, send ready signal every 2 seconds until the start signal has been received or the thread has been killed
         //Break if stop signal was received
         while(active.load()) {
-            writer_ready_status.write(ready_status);
+            writer_ready_status->write(ready_status);
 
-            waitset.wait(dds::core::Duration::from_millisecs(2000));
-
-            for (auto sample : reader_system_trigger.take()) {
-                if (sample.info().valid()) {
-                    return sample.data().next_start().nanoseconds();
-                }
+            sleep(2);
+            eprosima::fastdds::dds::SampleInfo info;
+            SystemTrigger data;
+            while(reader_system_trigger->get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
+              if (info.instance_state == eprosima::fastdds::dds::ALIVE)
+              {
+                    return data.next_start().nanoseconds();
+              }
             }
         }
 
@@ -323,20 +326,21 @@ namespace cpm {
 
     bool TimerFD::received_stop_signal() 
     {
-        dds::sub::LoanedSamples<SystemTrigger> samples = reader_system_trigger.take();
 
-        for (auto sample : samples) 
+                  
+      eprosima::fastdds::dds::SampleInfo info;
+      SystemTrigger data;
+      while(reader_system_trigger->get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
+        if (info.instance_state == eprosima::fastdds::dds::ALIVE)
         {
-            if(sample.info().valid())
-            {
-                if (sample.data().next_start().nanoseconds() == stop_signal) 
-                {
-                    return true;
-                }
+            if(data.next_start().nanoseconds() == stop_signal){
+              return true;
             }
-        }
+              return data.next_start().nanoseconds();
+        } 
+      }
 
-        return false;
+      return false;
     }
 
 }

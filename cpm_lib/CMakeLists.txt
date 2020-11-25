@@ -27,21 +27,24 @@ set(SOURCE_CPM
     
     include/cpm/CommandLineReader.hpp
     src/CommandLineReader.cpp
-    #include/cpm/get_topic.hpp
+    include/cpm/get_topic.hpp
 
     include/cpm/Reader.hpp
     include/cpm/ReaderAbstract.hpp
     include/cpm/Writer.hpp
     include/cpm/MultiVehicleReader.hpp
-    #include/cpm/Timer.hpp
+
+    include/cpm/Timer.hpp
+    src/Timer.cpp
+
     include/cpm/stamp_message.hpp
-    #src/Timer.cpp
-    #include/cpm/TimerFD.hpp
-    #src/TimerFD.cpp
-    #include/cpm/SimpleTimer.hpp
-    #src/SimpleTimer.cpp
-    #src/TimerSimulated.hpp
-    #src/TimerSimulated.cpp
+    
+    include/cpm/TimerFD.hpp
+    src/TimerFD.cpp
+    include/cpm/SimpleTimer.hpp
+    src/SimpleTimer.cpp
+    src/TimerSimulated.hpp
+    src/TimerSimulated.cpp
     include/cpm/exceptions.hpp
     src/exceptions.cpp
     

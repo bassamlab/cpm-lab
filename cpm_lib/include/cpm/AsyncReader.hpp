@@ -70,32 +70,30 @@ namespace cpm
         std::function<void(std::vector<typename MessageType::type>&)> target; 
 
 
-             void on_data_available(
-                eprosima::fastdds::dds::DataReader* reader) override {
+        void on_data_available(
+          eprosima::fastdds::dds::DataReader* reader) override {
 
-                      // TODO: Pre-allocate vector!
-                      buffer.clear();                     
+          buffer.clear();              
 
-                      eprosima::fastdds::dds::SampleInfo info;
-                      typename MessageType::type data;
-                      while(reader->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
-                      {
-                          if (info.instance_state == eprosima::fastdds::dds::ALIVE)
-                          {
-                              buffer.push_back(data);
-                          }
-                      }
+          eprosima::fastdds::dds::SampleInfo info;
+          typename MessageType::type data;
+          while(reader->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
+          {
+              if (info.instance_state == eprosima::fastdds::dds::ALIVE)
+              {
+                  buffer.push_back(data);
+              }
+          }
 
-                      if(buffer.size() > 0){
-                        target(buffer);
-                      }
-                }
+          if(buffer.size() > 0){
+            target(buffer);
+          }
+          }
 
-            void on_subscription_matched(
-                eprosima::fastdds::dds::DataReader* reader,
-                const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override{
-
-                }
+      void on_subscription_matched(
+          eprosima::fastdds::dds::DataReader* reader,
+          const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override{
+      }
 
 
         /**
@@ -151,7 +149,8 @@ namespace cpm
             std::function<void(std::vector<typename MessageType::type>&)> func, 
             std::string topic_name, 
             bool is_reliable = false,
-            bool is_transient_local = false
+            bool is_transient_local = false,
+            eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
         );
 
         /**
@@ -168,7 +167,8 @@ namespace cpm
             cpm::Participant& participant, 
             std::string topic_name, 
             bool is_reliable = false,
-            bool is_transient_local = false
+            bool is_transient_local = false,
+            eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
         );
 
         AsyncReader(
@@ -176,13 +176,18 @@ namespace cpm
             dds::domain::DomainParticipant&,
             std::string topic_name, 
             bool is_reliable,
-            bool is_transient_local
+            bool is_transient_local,
+            eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
         );
 
         /**
          * \brief Returns # of matched writers
          */
         size_t matched_publications_size();
+
+        eprosima::fastdds::dds::DataReader* get_reader(){
+          return reader;
+        }
     };
 
     template<class MessageType> 
@@ -190,7 +195,8 @@ namespace cpm
         std::function<void(std::vector<typename MessageType::type>&)> func, 
         std::string topic_name, 
         bool is_reliable,
-        bool is_transient_local
+        bool is_transient_local,
+        eprosima::fastdds::dds::DataReaderListener* custom_listener
     )
     {
       dds::domain::DomainParticipant& p = cpm::ParticipantSingleton::Instance();
@@ -203,7 +209,8 @@ namespace cpm
         cpm::Participant& participant,
         std::string topic_name, 
         bool is_reliable,
-        bool is_transient_local
+        bool is_transient_local,
+        eprosima::fastdds::dds::DataReaderListener* custom_listener
     ){
       AsyncReader(func, participant.get_participant(), topic_name, is_reliable, is_transient_local);
     }
@@ -214,7 +221,8 @@ namespace cpm
         dds::domain::DomainParticipant& participant,
         std::string topic_name, 
         bool is_reliable,
-        bool is_transient_local
+        bool is_transient_local,
+        eprosima::fastdds::dds::DataReaderListener* custom_listener
     )
     :sub(), target(func)
     {
@@ -239,35 +247,13 @@ namespace cpm
       assert(topic != nullptr);
 
       // Create Reader
-      reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local), this);
+      if(custom_listener == nullptr){
+        reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local), this);
+      }else{
+        reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local), custom_listener);
+      }
       assert(reader != nullptr);      
     }
-
-
-    /*template<class MessageType> 
-    void AsyncReader<MessageType>::handler_vec(std::function<void(std::vector<MessageType>&)> func)
-    {
-      
-        // Take all samples This will reset the StatusCondition
-        dds::sub::LoanedSamples<MessageType> samples = reader.take();
-        std::vector<MessageType> samples_vec;
-
-        for (auto sample : samples)
-        {
-            if(sample.info().valid())
-            {
-                samples_vec.push_back(sample.data());
-            }
-        }
-
-        // Release status condition in case other threads can process outstanding
-        // samples
-        waitset.unlock_condition(dds::core::cond::StatusCondition(reader));
-
-        // Process sample 
-        func(samples_vec);
-       
-    } */
 
     template<class MessageType> 
     size_t AsyncReader<MessageType>::matched_publications_size()

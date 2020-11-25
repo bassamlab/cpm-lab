@@ -40,7 +40,6 @@
 #include <string>
 
 namespace cpm {
-
     /**
      * \class TimerSimulated
      * \brief This class calls a callback function periodically 
@@ -48,7 +47,7 @@ namespace cpm {
      * and phase to the clock. Time is not 'real', but given by a central timing instance (e.g. the LCC)
      * \ingroup cpmlib
      */
-    class TimerSimulated : public cpm::Timer
+    class TimerSimulated : public cpm::Timer, public eprosima::fastdds::dds::DataReaderListener
     {
     private: 
         //! Periodicity with which the timer calls a callback function
@@ -56,9 +55,13 @@ namespace cpm {
         //! Offset from the common starting time 0 of all timers from which the periodic behaviour should start
         uint64_t offset_nanoseconds;
         //! Writer for ready status, telling the network that the timer exists and that it finished its current load and is ready for its next time step
-        cpm::Writer<ReadyStatus> writer_ready_status;
+        cpm::Writer<ReadyStatusPubSubType>* writer_ready_status;
         //! Used to receive start, stop and intermediate timing signals
-        dds::sub::DataReader<SystemTrigger> reader_system_trigger;
+        cpm::AsyncReader<SystemTriggerPubSubType>* reader_system_trigger;
+        
+        void on_data_available(eprosima::fastdds::dds::DataReader* reader) override;
+        // this is actually never called...fix Writer API
+        static void dummyCallback(std::vector<SystemTrigger> trigger){}
         //! ID of the timer, e.g. middleware, e.g. for identification in the timer tab of the LCC
         std::string node_id;
         //! Current simulated time, also used by get_time
@@ -77,9 +80,6 @@ namespace cpm {
         std::function<void(uint64_t t_now)> m_update_callback;
         //! Optional function for when a stop signal is received
         std::function<void()> m_stop_callback;
-
-        //! To set the waiting time for reading data (system trigger)
-        dds::core::cond::WaitSet waitset;
 
         /**
          * \enum Answer

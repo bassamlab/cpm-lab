@@ -57,7 +57,7 @@ namespace cpm {
      * the run (real or simulated). This could be GUI tools, periodic tasks etc... 
      * \ingroup cpmlib
      */
-    class TimerFD : public cpm::Timer
+    class TimerFD : public cpm::Timer, public eprosima::fastdds::dds::DataReaderListener
     {
     private:
     
@@ -69,15 +69,16 @@ namespace cpm {
         std::string node_id;
 
         //Cannot be substituted by other cpm classes and was not abstracted
-        //Usage here: Wait for data on 'take' up to x ms or until the read condition is fulfilled
         //! Used to receive start and stop signals
-        dds::sub::DataReader<SystemTriggerPubSubType> reader_system_trigger;
-        dds::sub::cond::ReadCondition readCondition;
-        //! To set the waiting time for the read condition
-        dds::core::cond::WaitSet waitset;
+        cpm::AsyncReader<SystemTriggerPubSubType>* reader_system_trigger;
+
+        void on_data_available(eprosima::fastdds::dds::DataReader* reader) override;
+
+        // this is actually never called...fix Writer API
+        static void dummyCallback(std::vector<SystemTrigger> trigger){}
 
         //! Writer for ready status, telling the network that the timer exists and is ready to operate
-        cpm::Writer<ReadyStatusPubSubType> writer_ready_status;
+        cpm::Writer<ReadyStatusPubSubType>* writer_ready_status;
         
         //! Timer is (in)active
         std::atomic_bool active;

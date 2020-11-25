@@ -48,16 +48,14 @@ namespace cpm {
     )
     :period_nanoseconds(_period_nanoseconds)
     ,offset_nanoseconds(_offset_nanoseconds)
-    ,writer_ready_status("readyStatus", true)
-    ,reader_system_trigger(dds::sub::Subscriber(cpm::ParticipantSingleton::Instance()), cpm::get_topic<SystemTrigger>("systemTrigger"), (dds::sub::qos::DataReaderQos() << dds::core::policy::Reliability::Reliable()))
     ,node_id(_node_id)
     ,current_time(0)
     {
+
+        writer_ready_status = new cpm::Writer<ReadyStatusPubSubType>("readyStatus", true);
+        reader_system_trigger = new cpm::AsyncReader<SystemTriggerPubSubType>(&dummyCallback, "systemTrigger", true);
+
         //Offset is allowed to be greater than period!
-
-        dds::sub::cond::ReadCondition read_cond(reader_system_trigger, dds::sub::status::DataState::any());
-        waitset += read_cond;
-
         active.store(false);
         cancelled.store(false);
     }
@@ -66,11 +64,14 @@ namespace cpm {
         bool got_valid = false;
         bool got_new_deadline = false;
 
-        for (auto sample : reader_system_trigger.take()) {
-            if (sample.info().valid()) {
+      eprosima::fastdds::dds::SampleInfo info;
+      SystemTrigger data;
+        while(reader_system_trigger->get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
+        if (info.instance_state == eprosima::fastdds::dds::ALIVE)
+        {
                 got_valid = true;
 
-                if (sample.data().next_start().nanoseconds() == deadline) {
+                if (data.next_start().nanoseconds() == deadline) {
                     current_time = deadline;
 
                     //Current deadline reached -> perform calculation, call callback, update deadline
@@ -81,11 +82,13 @@ namespace cpm {
 
                     // Current period finished -> Send next ready signal
                     ReadyStatus ready_status;
-                    ready_status.next_start_stamp(TimeStamp(deadline));
+                    TimeStamp timestamp;
+                    timestamp.nanoseconds(deadline);
+                    ready_status.next_start_stamp(timestamp);
                     ready_status.source_id(node_id);
-                    writer_ready_status.write(ready_status);
+                    writer_ready_status->write(ready_status);
                 }
-                else if (sample.data().next_start().nanoseconds() == TRIGGER_STOP_SYMBOL) {
+                else if (data.next_start().nanoseconds() == TRIGGER_STOP_SYMBOL) {
                     //Received stop signal - use the user's stop function or stop the timer if none was registered
                     if (m_stop_callback)
                     {
@@ -98,8 +101,8 @@ namespace cpm {
                     
                     return Answer::STOP;
                 }
-            }
-        }
+        } 
+      }
 
         if (got_new_deadline) {
             return Answer::DEADLINE;
@@ -141,10 +144,12 @@ namespace cpm {
         Answer system_trigger = Answer::NONE;
         while (system_trigger == Answer::NONE && active.load()) {
             ReadyStatus ready_status;
-            ready_status.next_start_stamp(TimeStamp(deadline));
+            TimeStamp timestamp;
+            timestamp.nanoseconds(deadline);
+            ready_status.next_start_stamp(timestamp);
             ready_status.source_id(node_id);
-            writer_ready_status.write(ready_status); 
-            waitset.wait(dds::core::Duration::from_millisecs(2000));
+            writer_ready_status->write(ready_status); 
+            //waitset.wait(dds::core::Duration::from_millisecs(2000));
 
             system_trigger = handle_system_trigger(deadline);
         }
@@ -152,7 +157,7 @@ namespace cpm {
         //Wait for the next relevant time step and call the callback function until the process has been stopped
         while(active.load()) {
             //Wait for the next signals until the next start signal has been received
-            dds::core::cond::WaitSet::ConditionSeq active_conditions = waitset.wait();
+            //dds::core::cond::WaitSet::ConditionSeq active_conditions = waitset.wait();
 
             //Process new messages
             system_trigger = handle_system_trigger(deadline);
