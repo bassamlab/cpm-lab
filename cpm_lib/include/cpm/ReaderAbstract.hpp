@@ -26,9 +26,7 @@
 
 #pragma once
 
-#include <dds/sub/ddssub.hpp>
-#include "cpm/ParticipantSingleton.hpp"
-#include "cpm/get_topic.hpp"
+#include "cpm/AsyncReader.hpp"
 
 namespace cpm
 {
@@ -40,45 +38,19 @@ namespace cpm
      * \ingroup cpmlib
      */
     template<typename T>
-    class ReaderAbstract
+    class ReaderAbstract : public eprosima::fastdds::dds::DataReaderListener
     {
     private:
+        AsyncReader<T>* reader;
 
         //! Internal DDS reader that is abstracted by this class
         dds::sub::DataReader<T> dds_reader;
 
-        /**
-         * \brief Returns qos for the settings s.t. the constructor becomes more readable
-         * \param is_reliable Set the QoS to best effort / reliable
-         * \param history_keep_all Set the QoS to keep the whole history / only the last message
-         * \param is_transient_local Set the QoS to (not) be transient local
-         */
-        dds::sub::qos::DataReaderQos get_qos(bool is_reliable, bool history_keep_all, bool is_transient_local)
-        {
-            auto qos = dds::sub::qos::DataReaderQos();
+        void on_data_available(eprosima::fastdds::dds::DataReader* reader) override;
 
-            if (is_reliable)
-            {
-                qos << dds::core::policy::Reliability::Reliable();
-            }
-            else
-            {
-                //Already implicitly given
-                qos << dds::core::policy::Reliability::BestEffort();
-            }
+        // this is actually never called...fix Writer API
+        static void dummyCallback(std::vector<typename T::type> trigger){}
 
-            if (history_keep_all)
-            {
-                qos << dds::core::policy::History::KeepAll();
-            }
-
-            if (is_transient_local)
-            {
-                qos << dds::core::policy::Durability::TransientLocal();
-            }
-
-            return qos;
-        }
 
     public:
         ReaderAbstract(const ReaderAbstract&) = delete;
@@ -95,9 +67,9 @@ namespace cpm
          * \param transient_local Receive messages sent before joining (true) or not (false, default)
          */
         ReaderAbstract(std::string topic, bool reliable = false, bool history_keep_all = false, bool transient_local = false)
-        :dds_reader(dds::sub::Subscriber(ParticipantSingleton::Instance()), cpm::get_topic<T>(topic), get_qos(reliable, history_keep_all, transient_local))
-        { 
-            
+        {
+            dds::domain::DomainParticipant& p = cpm::ParticipantSingleton::Instance();
+            ReaderAbstract(p, topic, reliable, history_keep_all, transient_local); 
         }
 
         /**
@@ -116,29 +88,27 @@ namespace cpm
             bool history_keep_all = false, 
             bool transient_local = false
         )
-        :dds_reader(dds::sub::Subscriber(_participant), cpm::get_topic<T>(_participant, topic), get_qos(reliable, history_keep_all, transient_local))
-        { 
-            
+        {
+          reader = new cpm::AsyncReader<T>(&dummyCallback, _participant, topic, reliable, transient_local, history_keep_all, this);
         }
         
         /**
          * \brief Get the received messages
          */
-        std::vector<T> take()
+        std::vector<typename T::type> take()
         {
             //Only take() could be a cause for not being thread-safe, but the DDS APIs should be implemented thread-safe (is the case for RTI DDS)
-            auto samples = dds_reader.take();
-            std::vector<T> samples_vec;
+            std::vector<typename T::type> samples;
 
-            for (auto sample : samples)
-            {
-                if(sample.info().valid())
-                {
-                    samples_vec.push_back(sample.data());
-                }
+            eprosima::fastdds::dds::SampleInfo info;
+            typename T::type data;
+            while(reader->get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
+              if (info.instance_state == eprosima::fastdds::dds::ALIVE)
+              {
+                samples.push_back(data);
+              }
             }
-
-            return samples_vec;
+            return samples;
         }
 
         /**
@@ -146,8 +116,9 @@ namespace cpm
          */
         size_t matched_publications_size()
         {
-            auto matched_pub = dds::sub::matched_publications(dds_reader);
-            return matched_pub.size();
+            return 0;
+            //auto matched_pub = dds::sub::matched_publications(dds_reader);
+            //return matched_pub.size();
         }
     };
 }

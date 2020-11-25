@@ -97,7 +97,7 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdparty/Fast-DDS/include)
 target_link_libraries(cpm fastrtps fastcdr)
 
 
-if(BUILD_ARM)
+if(NOT BUILD_ARM)
     add_executable(unittest 
         test/catch.cpp
         test/test_logging.cpp

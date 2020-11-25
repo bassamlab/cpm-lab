@@ -36,9 +36,9 @@
 #include <vector>
 #include <chrono>
 
-#include "Log.hpp"
-
+#include "cpm/dds/LogLevelPubSubTypes.h"
 #include "cpm/ReaderAbstract.hpp"
+
 #include "cpm/ParticipantSingleton.hpp"
 
 /**
@@ -53,7 +53,7 @@ TEST_CASE( "Logging" ) {
     cpm::Logging::Instance().set_id(id);
 
     //Create logging logs_reader
-    cpm::ReaderAbstract<Log> logs_reader("log", true, true);
+    cpm::ReaderAbstract<LogPubSubType> logs_reader("log", true, true);
 
     //It usually takes some time for all instances to see each other - wait until then
     std::cout << "Waiting for DDS entity match in Logging test" << std::endl << "\t";

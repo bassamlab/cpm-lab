@@ -101,25 +101,26 @@ namespace cpm
          * \param is_reliable If the QoS for DDS messages should be set to reliable (true) or best effort (false) messaging
          * \param is_transient_local If true, and if the Writer is still present, the Reader receives data that was sent before it went online
          */
-        dds::sub::qos::DataReaderQos get_qos(bool is_reliable, bool is_transient_local)
+        dds::sub::qos::DataReaderQos get_qos(bool is_reliable, bool is_transient_local, bool history_keep_all)
         {
             dds::sub::qos::DataReaderQos data_reader_qos;
             //Initialize reader
             if (is_transient_local)
             {
                 data_reader_qos.reliability(dds::core::policy::Reliability::Reliable());
-                data_reader_qos.history(dds::core::policy::History::KeepAll());
                 data_reader_qos.durability(dds::core::policy::Durability::TransientLocal());
             }
             else if (is_reliable)
             {
                 data_reader_qos.reliability(dds::core::policy::Reliability::Reliable());
-                data_reader_qos.history(dds::core::policy::History::KeepAll());
             }
             else
             {
                 data_reader_qos.reliability(dds::core::policy::Reliability::BestEffort());
-                data_reader_qos.history(dds::core::policy::History::KeepAll());
+            }
+
+            if(history_keep_all){
+              data_reader_qos.history(dds::core::policy::History::KeepAll());
             }
 
             return data_reader_qos;
@@ -177,6 +178,7 @@ namespace cpm
             std::string topic_name, 
             bool is_reliable,
             bool is_transient_local,
+            bool history_keep_all = true,
             eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
         );
 
@@ -222,15 +224,19 @@ namespace cpm
         std::string topic_name, 
         bool is_reliable,
         bool is_transient_local,
+        bool history_keep_all,
         eprosima::fastdds::dds::DataReaderListener* custom_listener
     )
     :sub(), target(func)
     {
 
-      assert(sub != nullptr);
       buffer.reserve(100);
 
       eprosima::fastdds::dds::DomainParticipant& p_impl = dynamic_cast<eprosima::fastdds::dds::DomainParticipant&>(participant);
+      sub = p_impl.create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT);
+      assert(sub != nullptr);
+
+
       // Register Type      
       // Check if Type Name already registered
       auto find_type_ret = p_impl.find_type(topic_data_type.getName());
@@ -248,9 +254,9 @@ namespace cpm
 
       // Create Reader
       if(custom_listener == nullptr){
-        reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local), this);
+        reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local, history_keep_all), this);
       }else{
-        reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local), custom_listener);
+        reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local, history_keep_all), custom_listener);
       }
       assert(reader != nullptr);      
     }

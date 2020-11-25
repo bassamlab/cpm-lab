@@ -25,7 +25,7 @@
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 #include "catch.hpp"
-#include "cpm/dds/RoundTripTime.hpp"
+#include "cpm/dds/RoundTripTimePubSubTypes.h"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Reader.hpp"
 #include "cpm/Logging.hpp"

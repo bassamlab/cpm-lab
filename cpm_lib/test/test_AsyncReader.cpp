@@ -28,7 +28,8 @@
 #include "cpm/Logging.hpp"
 #include "cpm/get_topic.hpp"
 
-#include "HLCHello.hpp"
+#include <unistd.h>
+#include "cpm/dds/HLCHelloPubSubTypes.h"
 
 #include <mutex>
 
@@ -47,7 +48,7 @@ TEST_CASE( "AsyncReader" ) {
     //Create a reliable async reader to test
     std::vector<std::string> received_ids;
     std::mutex receive_mutex;
-    cpm::AsyncReader<HLCHello> async_reader([&](std::vector<HLCHello>& samples){
+    cpm::AsyncReader<HLCHelloPubSubType> async_reader([&](std::vector<HLCHello>& samples){
         std::lock_guard<std::mutex> lock(receive_mutex);
         for(auto& data: samples)
         {
@@ -57,7 +58,7 @@ TEST_CASE( "AsyncReader" ) {
     "async_reader_test", true, true);
 
     //Create a reliable writer to write test msgs to the reader
-    cpm::Writer<HLCHello> test_writer("async_reader_test", true, true, true);
+    cpm::Writer<HLCHelloPubSubType> test_writer("async_reader_test", true, true, true);
 
     //It usually takes some time for all instances to see each other - wait until then
     std::cout << "Waiting for DDS entity match in AsyncReader test" << std::endl << "\t";
