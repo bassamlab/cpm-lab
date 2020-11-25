@@ -35,10 +35,13 @@
 
 #include <unistd.h> //For usleep; Change to sleep_for is possible as soon as the ARM Build supports C++11
 
-#include "dds/Parameter.hpp"
-#include "dds/ParameterRequest.hpp"
-#include "cpm/Logging.hpp"
+#include "dds/Parameter.h"
+#include "dds/ParameterRequest.h"
 
+#include "dds/ParameterRequestPubSubTypes.h"
+#include "dds/ParameterPubSubTypes.h"
+
+#include "cpm/Logging.hpp"
 #include "cpm/AsyncReader.hpp"
 #include "cpm/Writer.hpp"
 
@@ -158,11 +161,12 @@ namespace cpm
          * \param samples Samples to be processed by the callback function (received messages)
          */
         void callback(std::vector<Parameter>& samples);
-        
+
+    private:
         //! Internal writer to requrest parameter values
-        cpm::Writer<ParameterRequest> writer;
+        cpm::Writer<ParameterRequestPubSubType> writer;
         //! Internal async reader to receive any parameter values that are sent in the network
-        cpm::AsyncReader<Parameter> subscriber;
+        cpm::AsyncReader<ParameterPubSubType> subscriber;
     };
 
 }

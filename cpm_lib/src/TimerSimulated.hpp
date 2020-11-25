@@ -29,8 +29,8 @@
 #include "cpm/Timer.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Logging.hpp"
-#include "ReadyStatus.hpp"
-#include "SystemTrigger.hpp"
+#include "cpm/dds/ReadyStatusPubSubTypes.h"
+#include "cpm/dds/SystemTriggerPubSubTypes.h"
 
 #include "cpm/exceptions.hpp"
 #include "cpm/get_topic.hpp"
@@ -38,10 +38,6 @@
 
 #include <thread>
 #include <string>
-
-#include <dds/pub/ddspub.hpp>
-#include <dds/sub/ddssub.hpp>
-#include <dds/core/ddscore.hpp>
 
 namespace cpm {
 

@@ -24,10 +24,9 @@
 // 
 // Author: i11 - Embedded Software, RWTH Aachen University
 
+
 #include "cpm/ParticipantSingleton.hpp"
-#include "InternalConfiguration.hpp"
-#include <dds/core/QosProvider.hpp>
-#include <dds/domain/qos/DomainParticipantQos.hpp>
+#include "cpm/InternalConfiguration.hpp"
 #include <memory>
 
 /**
@@ -46,28 +45,7 @@ namespace cpm
         //the object was not yet created
         if(!myInstance)
         {
-            std::lock_guard<std::mutex> lock(creation_mutex);
-            //In the rare case that multiple programs get here, as the instance creation is not atomic:
-            //Only allow creation once by atomically getting and setting the instance variable again
-            if (!myInstance)
-            {
-                dds::domain::qos::DomainParticipantQos domainParticipantQos;
-
-                auto &property = domainParticipantQos.policy<rti::core::policy::Property>();
-                property.set(std::make_pair<std::string, std::string>
-                    ("dds.transport.UDPv4.builtin.multicast_enabled", "0"));
-
-                std::vector<std::string> initial_peer_list { "builtin.udpv4://127.0.0.1" };
-
-                const std::string initial_peer_cfg = cpm::InternalConfiguration::Instance().get_dds_initial_peer();
-                if(!initial_peer_cfg.empty())
-                {
-                    initial_peer_list.push_back(initial_peer_cfg);
-                }
-
-                auto &discovery = domainParticipantQos.policy<rti::core::policy::Discovery>();
-                discovery.initial_peers(initial_peer_list);
-                discovery.multicast_receive_addresses(std::vector<std::string>{});
+            dds::domain::qos::DomainParticipantQos domainParticipantQos = dds::domain::DomainParticipant::default_participant_qos();
 
                 myInstance = std::make_shared<dds::domain::DomainParticipant>(
                     cpm::InternalConfiguration::Instance().get_dds_domain(),

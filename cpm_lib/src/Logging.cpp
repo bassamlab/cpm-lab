@@ -37,7 +37,7 @@ namespace cpm {
         logger("log", true)
     {
         //Get log level / logging verbosity
-        log_level_reader = std::make_shared<cpm::AsyncReader<LogLevel>>(
+        log_level_reader = std::make_shared<cpm::AsyncReader<LogLevelPubSubType>>(
             [this](std::vector<LogLevel>& samples){
                 for(auto& data : samples)
                 {

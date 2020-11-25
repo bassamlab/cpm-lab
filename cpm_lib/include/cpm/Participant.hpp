@@ -26,12 +26,7 @@
 
 #pragma once
 
-#include <dds/core/QosProvider.hpp>
-#include <dds/dds.hpp>
-#include <dds/core/ddscore.hpp>
-
-#include "cpm/ParticipantSingleton.hpp"
-#include "cpm/get_topic.hpp"
+#include <dds/domain/DomainParticipant.hpp>
 
 namespace cpm
 {
@@ -68,13 +63,14 @@ namespace cpm
          * \brief Constructor for a participant 
          * \param domain_number Set the domain ID of the domain within which the communication takes place
          * \param qos_file QoS settings to be imported from an .xml file
-         */
+         
         Participant(int domain_number, std::string qos_file)
         :
             dds_participant(domain_number, dds::core::QosProvider(qos_file).participant_qos())
         { 
             
         }
+        */
 
         /**
          * \brief Constructor for a participant 

@@ -38,7 +38,7 @@
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Writer.hpp"
 
-#include "RoundTripTime.hpp"
+#include "cpm/dds/RoundTripTimePubSubTypes.h"
 
 namespace cpm
 {
@@ -53,9 +53,9 @@ namespace cpm
     {
     private:
         //! DDS Writer to send an RTT request or an answer to a request
-        cpm::Writer<RoundTripTime> rtt_writer;
+        cpm::Writer<RoundTripTimePubSubType> rtt_writer;
         //! DDS Reader to receive an RTT request or answer
-        std::shared_ptr<cpm::AsyncReader<RoundTripTime>> rtt_reader;
+        std::shared_ptr<cpm::AsyncReader<RoundTripTimePubSubType>> rtt_reader;
         //! ID of the program using or responding to an RTT request, e.g. "LCC", "middleware", ...
         std::string program_id = "no_prog_id_set";
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-
+project(cpmlib)
 option(BUILD_ARM OFF)
 
 set (CMAKE_CXX_STANDARD 11)
@@ -10,36 +10,45 @@ include_directories(include)
 file(GLOB SOURCE_DDS "dds_idl_cpp/*")
 
 set(SOURCE_CPM
-    include/cpm/CommandLineReader.hpp
-    src/CommandLineReader.cpp
-    include/cpm/get_topic.hpp
-    include/cpm/Parameter.hpp
-    include/cpm/ParameterReceiver.hpp
-    src/ParameterReceiver.cpp
+    src/ParticipantSingleton.cpp
+    include/cpm/ParticipantSingleton.hpp
+
+        
     include/cpm/ParticipantSingleton.hpp
     src/ParticipantSingleton.cpp
     include/cpm/Participant.hpp
+
+    include/cpm/AsyncReader.hpp
+
+    include/cpm/Parameter.hpp
+    include/cpm/ParameterReceiver.hpp
+    src/ParameterReceiver.cpp
+
+    
+    include/cpm/CommandLineReader.hpp
+    src/CommandLineReader.cpp
+    #include/cpm/get_topic.hpp
+
     include/cpm/Reader.hpp
     include/cpm/ReaderAbstract.hpp
     include/cpm/Writer.hpp
     include/cpm/MultiVehicleReader.hpp
-    include/cpm/Timer.hpp
+    #include/cpm/Timer.hpp
     include/cpm/stamp_message.hpp
-    src/Timer.cpp
-    include/cpm/TimerFD.hpp
-    src/TimerFD.cpp
-    include/cpm/SimpleTimer.hpp
-    src/SimpleTimer.cpp
-    src/TimerSimulated.hpp
-    src/TimerSimulated.cpp
+    #src/Timer.cpp
+    #include/cpm/TimerFD.hpp
+    #src/TimerFD.cpp
+    #include/cpm/SimpleTimer.hpp
+    #src/SimpleTimer.cpp
+    #src/TimerSimulated.hpp
+    #src/TimerSimulated.cpp
     include/cpm/exceptions.hpp
     src/exceptions.cpp
-    include/cpm/AsyncReader.hpp
-    src/ParticipantSingleton.cpp
-    include/cpm/ParticipantSingleton.hpp
+    
+
     src/Logging.cpp
     include/cpm/Logging.hpp
-    src/InternalConfiguration.hpp
+    include/cpm/InternalConfiguration.hpp
     src/InternalConfiguration.cpp
     include/cpm/init.hpp
     include/cpm/get_time_ns.hpp
@@ -52,20 +61,24 @@ set(SOURCE_CPM
 
 
 
-# Configuration for RTI Connext
-include_directories(SYSTEM $ENV{NDDSHOME}/include)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
-link_libraries(dl nsl m pthread rt)
-link_libraries(nddscpp2 nddsc nddscore)
+# Configuration for eProsima Fast-DDS 
+option(THIRDPARTY "" ON)
+option(BUILD_TESTING "" OFF)
+add_subdirectory(thirdparty/Fast-DDS/)
+
+#include_directories(SYSTEM $ENV{NDDSHOME}/include)
+#include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
+#include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
+#link_libraries(dl nsl m pthread rt)
+#link_libraries(nddscpp2 nddsc nddscore)
 include_directories(dds_idl_cpp)
 
 if(BUILD_ARM)
     link_directories($ENV{NDDSHOME}/lib/armv6vfphLinux3.xgcc4.7.2)
     add_definitions(-fpic -DRTI_UNIX -DRTI_LINUX -march=armv6 -mfpu=vfp -mfloat-abi=hard -mlong-calls)
 else()
-    link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
-    add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
+ #   link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
+#    add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
 endif()
 
@@ -75,8 +88,13 @@ add_library(cpm SHARED
     ${SOURCE_CPM}
 )
 
+include_directories(${CMAKE_SOURCE_DIR}/build/thirdparty/Fast-DDS/include)
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/Fast-DDS/include)
 
-if(NOT BUILD_ARM)
+target_link_libraries(cpm fastrtps fastcdr)
+
+
+if(BUILD_ARM)
     add_executable(unittest 
         test/catch.cpp
         test/test_logging.cpp

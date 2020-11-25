@@ -36,8 +36,8 @@
 #include <algorithm>
 #include <atomic>
 
-#include "Log.hpp"
-#include "LogLevel.hpp"
+#include "LogPubSubTypes.h"
+#include "LogLevelPubSubTypes.h"
 
 #include "cpm/AsyncReader.hpp"
 #include "cpm/ParticipantSingleton.hpp"
@@ -55,7 +55,7 @@ namespace cpm {
     class Logging {
         private:
             //! DDS Writer for Logging
-            cpm::Writer<Log> logger;
+            cpm::Writer<LogPubSubType> logger;
 
             //! File for logging
             std::ofstream file;
@@ -74,7 +74,7 @@ namespace cpm {
              */
             std::atomic_ushort log_level;
             //! Reader to receive the currently set log level in the system
-            std::shared_ptr<cpm::AsyncReader<LogLevel>> log_level_reader;
+            std::shared_ptr<cpm::AsyncReader<LogLevelPubSubType>> log_level_reader;
 
             /**
              * \brief Private Logging constructor to set up the Logging Singleton
@@ -157,7 +157,13 @@ namespace cpm {
                     file.close();
 
                     //Send the log message via RTI
-                    Log log(id, str, TimeStamp(time_now), message_log_level);
+                    TimeStamp timestamp;
+                    timestamp.nanoseconds(time_now);
+                    Log log;
+                    log.id(id);
+                    log.content(str);
+                    log.stamp(timestamp);
+                    log.log_level(message_log_level);
                     logger.write(log);
 
                     //Show the log message on the console

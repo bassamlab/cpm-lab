@@ -24,7 +24,7 @@
 // 
 // Author: i11 - Embedded Software, RWTH Aachen University
 
-#include "InternalConfiguration.hpp"
+#include "cpm/InternalConfiguration.hpp"
 #include "cpm/init.hpp"
 #include "cpm/CommandLineReader.hpp"
 #include "cpm/Logging.hpp"

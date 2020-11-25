@@ -112,7 +112,8 @@ namespace cpm
                 "Waiting for parameter %s ...", 
                 parameter_name.c_str()
             );
-            rti::util::sleep(dds::core::Duration::from_millisecs(static_cast<uint64_t>(1000)));
+
+            usleep(dds::core::Duration::from_millisecs(static_cast<uint64_t>(1000)).to_microsecs());
             s_lock.lock();
         }
 

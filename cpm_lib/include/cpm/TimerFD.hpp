@@ -29,16 +29,14 @@
 #include "cpm/Timer.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Logging.hpp"
-#include "ReadyStatus.hpp"
-#include "SystemTrigger.hpp"
+
+#include "dds/ReadyStatusPubSubTypes.h"
+#include "dds/SystemTriggerPubSubTypes.h"
 
 #include <mutex>
 #include <thread>
 #include <string>
 
-#include <dds/pub/ddspub.hpp>
-#include <dds/sub/ddssub.hpp>
-#include <dds/core/ddscore.hpp>
 
 #include "cpm/exceptions.hpp"
 #include "cpm/get_time_ns.hpp"
@@ -73,14 +71,13 @@ namespace cpm {
         //Cannot be substituted by other cpm classes and was not abstracted
         //Usage here: Wait for data on 'take' up to x ms or until the read condition is fulfilled
         //! Used to receive start and stop signals
-        dds::sub::DataReader<SystemTrigger> reader_system_trigger;
-        //! Read condition to wait for data
+        dds::sub::DataReader<SystemTriggerPubSubType> reader_system_trigger;
         dds::sub::cond::ReadCondition readCondition;
         //! To set the waiting time for the read condition
         dds::core::cond::WaitSet waitset;
 
         //! Writer for ready status, telling the network that the timer exists and is ready to operate
-        cpm::Writer<ReadyStatus> writer_ready_status;
+        cpm::Writer<ReadyStatusPubSubType> writer_ready_status;
         
         //! Timer is (in)active
         std::atomic_bool active;

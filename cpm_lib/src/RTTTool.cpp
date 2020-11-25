@@ -25,6 +25,7 @@
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 #include "cpm/RTTTool.hpp"
+#include <unistd.h>
 
 /**
  * \file RTTTool.cpp
@@ -39,7 +40,7 @@ cpm::RTTTool::RTTTool() :
     rtt_count.store(0);
 
     //Create reader that directly answers the messages and stores times of RTT answers
-    rtt_reader = std::make_shared<cpm::AsyncReader<RoundTripTime>>(
+    rtt_reader = std::make_shared<cpm::AsyncReader<RoundTripTimePubSubType>>(
         [this](std::vector<RoundTripTime>& samples){
             //Ignore any message if the RTT tool was not activated by the user of the library
             if(!rtt_measurement_active.load())
