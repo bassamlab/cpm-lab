@@ -74,7 +74,7 @@ namespace cpm {
              */
             std::atomic_ushort log_level;
             //! Reader to receive the currently set log level in the system
-            std::shared_ptr<cpm::AsyncReader<LogLevelPubSubType>> log_level_reader;
+            cpm::AsyncReader<LogLevelPubSubType> log_level_reader;
 
             /**
              * \brief Private Logging constructor to set up the Logging Singleton
@@ -91,6 +91,8 @@ namespace cpm {
              */
             void check_id();
 
+            static Logging* instance_;
+
         public:
             Logging(Logging const&) = delete;
             Logging(Logging&&) = delete; 
@@ -101,6 +103,7 @@ namespace cpm {
              * \brief Singleton constructor / method to access the Logging Singleton Instance; from there, the Logging functionality can be accessed
              */
             static Logging& Instance();
+            static void Remove();
 
             /**
              * \brief Function to set the Logging ID - must be called at the start of your program! 
@@ -164,6 +167,7 @@ namespace cpm {
                     log.content(str);
                     log.stamp(timestamp);
                     log.log_level(message_log_level);
+                    std::cout << log.content() << std::endl;
                     logger.write(log);
 
                     //Show the log message on the console

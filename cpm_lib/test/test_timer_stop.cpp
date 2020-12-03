@@ -1,17 +1,17 @@
 // MIT License
-// 
+//
 // Copyright (c) 2020 Lehrstuhl Informatik 11 - RWTH Aachen University
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-// 
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,26 +19,24 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-// 
+//
 // This file is part of cpm_lab.
-// 
+//
 // Author: i11 - Embedded Software, RWTH Aachen University
 
+#include <unistd.h>
 #include "catch.hpp"
 #include "cpm/TimerFD.hpp"
-#include <unistd.h>
 
 #include <thread>
 
-#include "cpm/get_topic.hpp"
 #include "cpm/ParticipantSingleton.hpp"
+#include "cpm/ReaderAbstract.hpp"
 #include "cpm/Writer.hpp"
+#include "cpm/get_topic.hpp"
 
-#include <dds/sub/ddssub.hpp>
-#include <dds/core/ddscore.hpp>
-#include <dds/topic/ddstopic.hpp>
-#include "ReadyStatus.hpp"
-#include "SystemTrigger.hpp"
+#include "cpm/dds/ReadyStatus.h"
+#include "cpm/dds/SystemTrigger.h"
 
 /**
  * \test Tests TimerFD stop signal
@@ -47,75 +45,62 @@
  * - Therefore: Makes sure that the timer callback function is never actually called
  * \ingroup cpmlib
  */
-TEST_CASE( "TimerFD_stop_signal" ) {
-    //Set the Logger ID
-    cpm::Logging::Instance().set_id("test_timerfd_stop_signal");
+TEST_CASE("TimerFD_stop_signal") {
+  // Set the Logger ID
+  cpm::Logging::Instance().set_id("test_timerfd_stop_signal");
 
-    const uint64_t period = 21000000;
-    const uint64_t offset =  5000000;
-    std::string timer_id = "0";
-    cpm::TimerFD timer(timer_id, period, offset, true);
+  const uint64_t period = 21000000;
+  const uint64_t offset = 5000000;
+  std::string timer_id = "0";
+  cpm::TimerFD timer(timer_id, period, offset, true);
 
-    //Writer to send system triggers to the timer 
-    cpm::Writer<SystemTrigger> writer_SystemTrigger("systemTrigger", true);
-    //Reader to receive ready signals from the timer
-    dds::sub::DataReader<ReadyStatus> reader_ReadyStatus(dds::sub::Subscriber(cpm::ParticipantSingleton::Instance()), 
-        cpm::get_topic<ReadyStatus>(cpm::ParticipantSingleton::Instance(), "readyStatus"), 
-        (dds::sub::qos::DataReaderQos() << dds::core::policy::Reliability::Reliable()));
-    
-    //Waitset to wait for any data
-    dds::core::cond::WaitSet waitset;
-    dds::sub::cond::ReadCondition read_cond(reader_ReadyStatus, dds::sub::status::DataState::any());
-    waitset += read_cond;
+  // Writer to send system triggers to the timer
+  cpm::Writer<SystemTriggerPubSubType> writer_SystemTrigger("systemTrigger",
+                                                            true);
+  cpm::ReaderAbstract<ReadyStatusPubSubType> reader("readyStatus", true);
 
-    //It usually takes some time for all instances to see each other - wait until then
-    std::cout << "Waiting for DDS entity match in Timer Stop Signal Before Start Signal test" << std::endl << "\t";
-    bool wait = true;
-    while (wait)
-    {
-        usleep(100000); //Wait 100ms
-        std::cout << "." << std::flush;
+  //It usually takes some time for all instances to see each other - wait until then
+  std::cout << "Waiting for DDS entity match in Timer Stop Signal Before Start Signal test" << std::endl << "\t";
+  bool wait = true;
+  while (wait)
+  {
+      usleep(100000); //Wait 100ms
+      std::cout << "." << std::flush;
 
-        auto matched_pub = dds::sub::matched_publications(reader_ReadyStatus);
+      auto matched_pub = dds::sub::matched_publications(reader_ReadyStatus);
 
-        if (writer_SystemTrigger.matched_subscriptions_size() >= 1 && matched_pub.size() >= 1)
-            wait = false;
-    }
-    std::cout << std::endl;
+      if (writer_SystemTrigger.matched_subscriptions_size() >= 1 && matched_pub.size() >= 1)
+          wait = false;
+  }
+  std::cout << std::endl;
 
-    //Thread to send a stop signal after the ready signal was received
-    std::thread signal_thread = std::thread([&](){
+  // Thread to send a stop signal after the ready signal was received
+  std::thread signal_thread = std::thread([&]() {
+    reader.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(std::numeric_limits<int32_t>::max()));
 
-        //Wait for ready signal
-        ReadyStatus status;
-        waitset.wait();
-        for (auto sample : reader_ReadyStatus.take()) {
-            if (sample.info().valid()) {
-                break;
-            }
-        }
+    // Send stop signal
+    SystemTrigger trigger;
+    TimeStamp timestamp;
+    timestamp.nanoseconds(cpm::TRIGGER_STOP_SYMBOL);
+    trigger.next_start(timestamp);
+    writer_SystemTrigger.write(trigger);
+  });
 
-        //Send stop signal
-        SystemTrigger trigger;
-        trigger.next_start(TimeStamp(cpm::TRIGGER_STOP_SYMBOL));
-        writer_SystemTrigger.write(trigger);
-    });
+// Ignore warning that t_start is unused
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
-    //Ignore warning that t_start is unused
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunused-parameter"
+  timer.start([&](uint64_t t_start) {
+    // The timer should never start because it is stopped before that can happen
+    // (No start signal is sent)
+    CHECK(false);
+  });
 
-    timer.start([&](uint64_t t_start){
-        //The timer should never start because it is stopped before that can happen (No start signal is sent)
-        CHECK(false);
-    });
+  // This part can only be reached if the timer was stopped
 
-    //This part can only be reached if the timer was stopped
+#pragma GCC diagnostic pop
 
-    #pragma GCC diagnostic pop
-
-    if (signal_thread.joinable()) {
-        signal_thread.join();
-    }
-
+  if (signal_thread.joinable()) {
+    signal_thread.join();
+  }
 }

@@ -40,16 +40,21 @@ namespace cpm
     template<typename T>
     class ReaderAbstract : public eprosima::fastdds::dds::DataReaderListener
     {
-    private:
-        AsyncReader<T>* reader;
+    private:   
+        AsyncReader<T> reader;
 
         //! Internal DDS reader that is abstracted by this class
         dds::sub::DataReader<T> dds_reader;
 
-        void on_data_available(eprosima::fastdds::dds::DataReader* reader) override;
-
         // this is actually never called...fix Writer API
         static void dummyCallback(std::vector<typename T::type> trigger){}
+
+        void on_data_available(
+          eprosima::fastdds::dds::DataReader* reader) override {}
+
+        void on_subscription_matched(
+          eprosima::fastdds::dds::DataReader* reader,
+          const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override {}
 
 
     public:
@@ -67,9 +72,8 @@ namespace cpm
          * \param transient_local Receive messages sent before joining (true) or not (false, default)
          */
         ReaderAbstract(std::string topic, bool reliable = false, bool history_keep_all = false, bool transient_local = false)
+        : ReaderAbstract(cpm::ParticipantSingleton::Instance(), topic, reliable, history_keep_all, transient_local)
         {
-            dds::domain::DomainParticipant& p = cpm::ParticipantSingleton::Instance();
-            ReaderAbstract(p, topic, reliable, history_keep_all, transient_local); 
         }
 
         /**
@@ -82,15 +86,13 @@ namespace cpm
          * \param transient_local Receive messages sent before joining (true) or not (false, default)
          */
         ReaderAbstract(
-            dds::domain::DomainParticipant & _participant, 
+            eprosima::fastdds::dds::DomainParticipant & _participant, 
             std::string topic, 
             bool reliable = false, 
             bool history_keep_all = false, 
             bool transient_local = false
-        )
-        {
-          reader = new cpm::AsyncReader<T>(&dummyCallback, _participant, topic, reliable, transient_local, history_keep_all, this);
-        }
+        ) : reader(cpm::AsyncReader<T>(&dummyCallback, _participant, topic, reliable, transient_local, history_keep_all, this))
+        {}
         
         /**
          * \brief Get the received messages
@@ -102,7 +104,7 @@ namespace cpm
 
             eprosima::fastdds::dds::SampleInfo info;
             typename T::type data;
-            while(reader->get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
+            while(reader.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
               if (info.instance_state == eprosima::fastdds::dds::ALIVE)
               {
                 samples.push_back(data);
@@ -116,9 +118,11 @@ namespace cpm
          */
         size_t matched_publications_size()
         {
-            return 0;
-            //auto matched_pub = dds::sub::matched_publications(dds_reader);
-            //return matched_pub.size();
+          return reader->matched_publications_size();
+        }
+
+        eprosima::fastdds::dds::DataReader* get_reader(){
+          return reader.get_reader();
         }
     };
 }

@@ -59,19 +59,25 @@ namespace cpm
     {
     private:
         //Reader and waitset for receiving data and calling the callback function
-        eprosima::fastdds::dds::Subscriber* sub;
-        eprosima::fastdds::dds::DataReader* reader;
-        eprosima::fastdds::dds::Topic* topic;
+        eprosima::fastdds::dds::Subscriber* sub = nullptr;
+        eprosima::fastdds::dds::DataReader* reader = nullptr;
+        eprosima::fastdds::dds::TopicDescription* topic = nullptr;
         eprosima::fastdds::dds::TypeSupport type_support;
+
+        eprosima::fastdds::dds::DomainParticipant* participant_ = nullptr;
+
         MessageType topic_data_type;
 
         std::vector<typename MessageType::type> buffer;
 
-        std::function<void(std::vector<typename MessageType::type>&)> target; 
+        std::function<void(std::vector<typename MessageType::type>&)> target;
 
-
+        unsigned int active_matches = 0;
+        
         void on_data_available(
           eprosima::fastdds::dds::DataReader* reader) override {
+
+          std::cout << "Data available in AsyncReader for topic " << topic_data_type.getName() << std::endl;
 
           buffer.clear();              
 
@@ -88,12 +94,15 @@ namespace cpm
           if(buffer.size() > 0){
             target(buffer);
           }
-          }
+        }
 
-      void on_subscription_matched(
-          eprosima::fastdds::dds::DataReader* reader,
-          const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override{
-      }
+
+        void on_subscription_matched(
+            eprosima::fastdds::dds::DataReader* reader,
+            const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override{
+
+              active_matches = info.total_count;
+        }
 
 
         /**
@@ -101,26 +110,41 @@ namespace cpm
          * \param is_reliable If the QoS for DDS messages should be set to reliable (true) or best effort (false) messaging
          * \param is_transient_local If true, and if the Writer is still present, the Reader receives data that was sent before it went online
          */
-        dds::sub::qos::DataReaderQos get_qos(bool is_reliable, bool is_transient_local, bool history_keep_all)
+        eprosima::fastdds::dds::DataReaderQos get_qos(bool is_reliable, bool is_transient_local, bool history_keep_all)
         {
-            dds::sub::qos::DataReaderQos data_reader_qos;
+            eprosima::fastdds::dds::DataReaderQos data_reader_qos;
+
             //Initialize reader
             if (is_transient_local)
             {
-                data_reader_qos.reliability(dds::core::policy::Reliability::Reliable());
-                data_reader_qos.durability(dds::core::policy::Durability::TransientLocal());
+                auto reliable_policy = eprosima::fastdds::dds::ReliabilityQosPolicy();
+                reliable_policy.kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
+
+                auto durability_policy = eprosima::fastdds::dds::DurabilityQosPolicy();
+                durability_policy.kind = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
+
+                data_reader_qos.reliability(reliable_policy);
+                data_reader_qos.durability(durability_policy);
             }
             else if (is_reliable)
             {
-                data_reader_qos.reliability(dds::core::policy::Reliability::Reliable());
+                auto reliable_policy = eprosima::fastdds::dds::ReliabilityQosPolicy();
+                reliable_policy.kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
+                data_reader_qos.reliability(reliable_policy);
             }
             else
             {
-                data_reader_qos.reliability(dds::core::policy::Reliability::BestEffort());
+                auto policy = eprosima::fastdds::dds::ReliabilityQosPolicy();
+                policy.kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
+
+                data_reader_qos.reliability(policy);
             }
 
             if(history_keep_all){
-              data_reader_qos.history(dds::core::policy::History::KeepAll());
+              auto policy = eprosima::fastdds::dds::HistoryQosPolicy();
+              policy.kind = eprosima::fastdds::dds::KEEP_ALL_HISTORY_QOS;
+
+              data_reader_qos.history(policy);
             }
 
             return data_reader_qos;
@@ -174,13 +198,19 @@ namespace cpm
 
         AsyncReader(
             std::function<void(std::vector<typename MessageType::type>&)> func, 
-            dds::domain::DomainParticipant&,
+            eprosima::fastdds::dds::DomainParticipant&,
             std::string topic_name, 
             bool is_reliable,
             bool is_transient_local,
             bool history_keep_all = true,
             eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
         );
+
+        virtual ~AsyncReader(){
+          std::cout << "Removing AsyncReader" << std::endl;
+          sub->delete_datareader(reader);
+          participant_->delete_subscriber(sub);          
+        }
 
         /**
          * \brief Returns # of matched writers
@@ -199,11 +229,8 @@ namespace cpm
         bool is_reliable,
         bool is_transient_local,
         eprosima::fastdds::dds::DataReaderListener* custom_listener
-    )
-    {
-      dds::domain::DomainParticipant& p = cpm::ParticipantSingleton::Instance();
-      AsyncReader(func, p, topic_name, is_reliable, is_transient_local);
-    }
+    ) : AsyncReader(func, cpm::ParticipantSingleton::Instance(), topic_name, is_reliable, is_transient_local, false, custom_listener)
+    {}
 
     template<class MessageType> 
     AsyncReader<MessageType>::AsyncReader(
@@ -213,22 +240,22 @@ namespace cpm
         bool is_reliable,
         bool is_transient_local,
         eprosima::fastdds::dds::DataReaderListener* custom_listener
-    ){
-      AsyncReader(func, participant.get_participant(), topic_name, is_reliable, is_transient_local);
-    }
+    ) :  AsyncReader(func, participant.get_participant(), topic_name, is_reliable, is_transient_local, false, custom_listener) {}
 
     template<class MessageType> 
     AsyncReader<MessageType>::AsyncReader(
         std::function<void(std::vector<typename MessageType::type>&)> func, 
-        dds::domain::DomainParticipant& participant,
+        eprosima::fastdds::dds::DomainParticipant& participant,
         std::string topic_name, 
         bool is_reliable,
         bool is_transient_local,
         bool history_keep_all,
         eprosima::fastdds::dds::DataReaderListener* custom_listener
     )
-    :sub(), target(func)
+    : target(func), type_support(new MessageType()), participant_(&participant)
     {
+
+      std::cout << std::endl << std::endl << "Creating new reader topic : " << topic_name  << " type: " << topic_data_type.getName() << std::endl;
 
       buffer.reserve(100);
 
@@ -236,26 +263,45 @@ namespace cpm
       sub = p_impl.create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT);
       assert(sub != nullptr);
 
-
       // Register Type      
       // Check if Type Name already registered
       auto find_type_ret = p_impl.find_type(topic_data_type.getName());
+      std::cout << "Checking if type exists: " << topic_data_type.getName() << std::endl;
       if(find_type_ret.empty()){
-        p_impl.register_type(eprosima::fastdds::dds::TypeSupport(&topic_data_type));
+        std::cout << "Type does not exist, creating type" << std::endl;
+        auto ret = p_impl.register_type(type_support);
+        assert(ret == ReturnCode_t::RETCODE_OK);
       }
+
+      assert(p_impl.find_type(topic_data_type.getName()).empty() == false);
+
+       std::cout << "Reader name check " << p_impl.find_type(topic_data_type.getName()).get_type_name() << std::endl;
 
       // Create Topic
       auto find_topic = p_impl.lookup_topicdescription(topic_name);
       if(find_topic == nullptr){
-        topic = p_impl.create_topic(topic_name,topic_data_type.getName(), eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
+        std::string type_name_str = topic_data_type.getName();
+        topic = p_impl.create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
+      }else{
+        topic = find_topic; 
+      }
+  
+      assert(topic != nullptr);
+
+      if(topic == nullptr){
+        while(1)
+        std::cout << "!" << std::endl;
       }
 
-      assert(topic != nullptr);
+      std::cout << "Reader Topic check " << topic->get_type_name() << " " << topic->get_name() << std::endl;
+
 
       // Create Reader
       if(custom_listener == nullptr){
+        std::cout << "Creating AsyncReader WITHOUT custom listener" << std::endl;
         reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local, history_keep_all), this);
       }else{
+        std::cout << "Creating AsyncReader WITH custom listener " << custom_listener  << std::endl;
         reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local, history_keep_all), custom_listener);
       }
       assert(reader != nullptr);      
@@ -264,8 +310,6 @@ namespace cpm
     template<class MessageType> 
     size_t AsyncReader<MessageType>::matched_publications_size()
     {
-        //auto matched_pub = dds::sub::matched_publications(reader);
-        //return matched_pub.size();
-        return 0;
+        return active_matches;
     }
 }

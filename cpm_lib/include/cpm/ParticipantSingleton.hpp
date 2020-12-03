@@ -58,11 +58,19 @@ namespace cpm
         ParticipantSingleton& operator=(ParticipantSingleton const&) = delete;
         ParticipantSingleton& operator=(ParticipantSingleton &&) = delete;
 
+        ~ParticipantSingleton();
+
+    private:
+
+      static eprosima::fastdds::dds::DomainParticipant* instance_;
+
+    public:
         /**
          * \brief Retrieve the participant singleton with this function
          * \return A participant
          */
-        static dds::domain::DomainParticipant& Instance();
+        static eprosima::fastdds::dds::DomainParticipant& Instance();
+        static void remove();
 
     };
 }

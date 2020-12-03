@@ -69,16 +69,22 @@ namespace cpm
     }
 
     ParameterReceiver::ParameterReceiver():
-        writer("parameterRequest", true),
-        subscriber(std::bind(&ParameterReceiver::callback, this, _1), "parameter", true)
+        writer("parameterRequest", true), subscriber(cpm::AsyncReader<ParameterPubSubType>(std::bind(&ParameterReceiver::callback, this, _1), "parameter", true))
     {
-
     }
+
+    ParameterReceiver* ParameterReceiver::instance_ = nullptr;
 
     ParameterReceiver& ParameterReceiver::Instance() {
         // Thread-safe in C++11
-        static ParameterReceiver myInstance;
-        return myInstance;
+        if(instance_ == nullptr){
+          instance_ = new ParameterReceiver();
+        }
+        return *instance_;
+    }
+
+    void ParameterReceiver::Remove(){
+      delete instance_;
     }
 
     bool ParameterReceiver::parameter_bool(std::string parameter_name) {
@@ -113,7 +119,7 @@ namespace cpm
                 parameter_name.c_str()
             );
 
-            usleep(dds::core::Duration::from_millisecs(static_cast<uint64_t>(1000)).to_microsecs());
+            usleep(1000000);
             s_lock.lock();
         }
 

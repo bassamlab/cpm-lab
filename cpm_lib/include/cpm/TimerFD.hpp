@@ -70,15 +70,13 @@ namespace cpm {
 
         //Cannot be substituted by other cpm classes and was not abstracted
         //! Used to receive start and stop signals
-        cpm::AsyncReader<SystemTriggerPubSubType>* reader_system_trigger;
-
-        void on_data_available(eprosima::fastdds::dds::DataReader* reader) override;
+        cpm::AsyncReader<SystemTriggerPubSubType> reader_system_trigger;
 
         // this is actually never called...fix Writer API
         static void dummyCallback(std::vector<SystemTrigger> trigger){}
 
         //! Writer for ready status, telling the network that the timer exists and is ready to operate
-        cpm::Writer<ReadyStatusPubSubType>* writer_ready_status;
+        cpm::Writer<ReadyStatusPubSubType> writer_ready_status;
         
         //! Timer is (in)active
         std::atomic_bool active;

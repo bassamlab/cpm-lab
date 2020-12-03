@@ -55,11 +55,13 @@ namespace cpm {
     ,offset_nanoseconds(_offset_nanoseconds)
     ,node_id(_node_id)
     ,wait_for_start(_wait_for_start)
-    ,stop_signal(_stop_signal)
+    ,stop_signal(_stop_signal),
+    writer_ready_status("readyStatus", true),
+    reader_system_trigger(&TimerFD::dummyCallback,"systemTrigger",true,false, this)
     {
 
-        writer_ready_status = new cpm::Writer<ReadyStatusPubSubType>("readyStatus", true);
-        reader_system_trigger = new cpm::AsyncReader<SystemTriggerPubSubType>(&TimerFD::dummyCallback,"systemTrigger",true,false, this);
+        //writer_ready_status = new cpm::Writer<ReadyStatusPubSubType>;
+        //reader_system_trigger = new cpm::AsyncReader<SystemTriggerPubSubType>(&);
 
         //Offset must be smaller than period
         if (offset_nanoseconds >= period_nanoseconds) {
@@ -144,12 +146,12 @@ namespace cpm {
         //Poll for start signal, send ready signal every 2 seconds until the start signal has been received or the thread has been killed
         //Break if stop signal was received
         while(active.load()) {
-            writer_ready_status->write(ready_status);
+            writer_ready_status.write(ready_status);
 
-            sleep(2);
+            reader_system_trigger.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(2));
             eprosima::fastdds::dds::SampleInfo info;
             SystemTrigger data;
-            while(reader_system_trigger->get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
+            while(reader_system_trigger.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
               if (info.instance_state == eprosima::fastdds::dds::ALIVE)
               {
                     return data.next_start().nanoseconds();
@@ -308,6 +310,7 @@ namespace cpm {
         cancelled.store(false);
 
         close(timer_fd);
+
     }
 
 
@@ -330,7 +333,7 @@ namespace cpm {
                   
       eprosima::fastdds::dds::SampleInfo info;
       SystemTrigger data;
-      while(reader_system_trigger->get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
+      while(reader_system_trigger.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
         if (info.instance_state == eprosima::fastdds::dds::ALIVE)
         {
             if(data.next_start().nanoseconds() == stop_signal){

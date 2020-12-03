@@ -27,6 +27,7 @@
 
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/InternalConfiguration.hpp"
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <memory>
 
 /**
@@ -35,26 +36,38 @@
  */
 namespace cpm 
 {
-    std::mutex ParticipantSingleton::creation_mutex;
-    
-    dds::domain::DomainParticipant& ParticipantSingleton::Instance() {
 
-        static std::shared_ptr<dds::domain::DomainParticipant> myInstance = nullptr;
+    eprosima::fastdds::dds::DomainParticipant* ParticipantSingleton::instance_ = nullptr;
 
-        //For efficiency reasons: After creation, this check suffices, so only use the mutex if 
-        //the object was not yet created
-        if(!myInstance)
+    eprosima::fastdds::dds::DomainParticipant& ParticipantSingleton::Instance() {
+
+        if(instance_ == nullptr)
         {
-            dds::domain::qos::DomainParticipantQos domainParticipantQos = dds::domain::DomainParticipant::default_participant_qos();
 
-                myInstance = std::make_shared<dds::domain::DomainParticipant>(
-                    cpm::InternalConfiguration::Instance().get_dds_domain(),
-                    domainParticipantQos
-                );
-            }
+            eprosima::fastdds::dds::DomainParticipantQos pqos;
+            pqos.name("Participant_sub");
+            instance_ = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(eprosima::fastdds::dds::DomainId_t(0), pqos);
         }
-
-
-        return *myInstance;
+        return *instance_;
     }
+
+    ParticipantSingleton::~ParticipantSingleton(){
+      eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);
+    }
+
+    void ParticipantSingleton::remove(){
+
+      // Remove DataReader
+
+      // Remove Subscriber
+
+      // Remove DataWriter
+
+      // Remove Publisher
+ 
+      auto retcode = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);
+
+    }
+
+
 }

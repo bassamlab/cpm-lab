@@ -55,11 +55,10 @@ namespace cpm {
         //! Offset from the common starting time 0 of all timers from which the periodic behaviour should start
         uint64_t offset_nanoseconds;
         //! Writer for ready status, telling the network that the timer exists and that it finished its current load and is ready for its next time step
-        cpm::Writer<ReadyStatusPubSubType>* writer_ready_status;
+        cpm::Writer<ReadyStatusPubSubType> writer_ready_status;
         //! Used to receive start, stop and intermediate timing signals
-        cpm::AsyncReader<SystemTriggerPubSubType>* reader_system_trigger;
+        cpm::AsyncReader<SystemTriggerPubSubType> reader_system_trigger;
         
-        void on_data_available(eprosima::fastdds::dds::DataReader* reader) override;
         // this is actually never called...fix Writer API
         static void dummyCallback(std::vector<SystemTrigger> trigger){}
         //! ID of the timer, e.g. middleware, e.g. for identification in the timer tab of the LCC

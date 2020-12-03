@@ -50,6 +50,7 @@ namespace cpm
     {
     protected:
         Timer(){}
+        virtual ~Timer() = default;
 
     public:
         /**

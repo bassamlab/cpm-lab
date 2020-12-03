@@ -32,6 +32,7 @@
 #include <sys/timerfd.h>
 #include <unistd.h>
 #include <cmath>
+#include <limits>
 
 /**
  * \file TimerSimulated.cpp
@@ -49,12 +50,10 @@ namespace cpm {
     :period_nanoseconds(_period_nanoseconds)
     ,offset_nanoseconds(_offset_nanoseconds)
     ,node_id(_node_id)
-    ,current_time(0)
+    ,current_time(0),
+    reader_system_trigger(cpm::AsyncReader<SystemTriggerPubSubType>(&dummyCallback, "systemTrigger", true, false, this)),
+    writer_ready_status("readyStatus", true)
     {
-
-        writer_ready_status = new cpm::Writer<ReadyStatusPubSubType>("readyStatus", true);
-        reader_system_trigger = new cpm::AsyncReader<SystemTriggerPubSubType>(&dummyCallback, "systemTrigger", true);
-
         //Offset is allowed to be greater than period!
         active.store(false);
         cancelled.store(false);
@@ -64,9 +63,9 @@ namespace cpm {
         bool got_valid = false;
         bool got_new_deadline = false;
 
-      eprosima::fastdds::dds::SampleInfo info;
-      SystemTrigger data;
-        while(reader_system_trigger->get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
+        eprosima::fastdds::dds::SampleInfo info;
+        SystemTrigger data;
+        while(reader_system_trigger.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
         if (info.instance_state == eprosima::fastdds::dds::ALIVE)
         {
                 got_valid = true;
@@ -86,7 +85,7 @@ namespace cpm {
                     timestamp.nanoseconds(deadline);
                     ready_status.next_start_stamp(timestamp);
                     ready_status.source_id(node_id);
-                    writer_ready_status->write(ready_status);
+                    writer_ready_status.write(ready_status);
                 }
                 else if (data.next_start().nanoseconds() == TRIGGER_STOP_SYMBOL) {
                     //Received stop signal - use the user's stop function or stop the timer if none was registered
@@ -101,7 +100,9 @@ namespace cpm {
                     
                     return Answer::STOP;
                 }
-        } 
+        }else{
+          std::cout << "Did not receive valid trigger" << std::endl;
+        }
       }
 
         if (got_new_deadline) {
@@ -148,9 +149,8 @@ namespace cpm {
             timestamp.nanoseconds(deadline);
             ready_status.next_start_stamp(timestamp);
             ready_status.source_id(node_id);
-            writer_ready_status->write(ready_status); 
-            //waitset.wait(dds::core::Duration::from_millisecs(2000));
-
+            writer_ready_status.write(ready_status);
+            reader_system_trigger.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(2));
             system_trigger = handle_system_trigger(deadline);
         }
 
@@ -158,7 +158,9 @@ namespace cpm {
         while(active.load()) {
             //Wait for the next signals until the next start signal has been received
             //dds::core::cond::WaitSet::ConditionSeq active_conditions = waitset.wait();
-
+            std::cout << "Waiting for trigger - ";
+            reader_system_trigger.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(std::numeric_limits<int32_t>::max()));
+            std::cout << "Done waiting for trigger" << std::endl;
             //Process new messages
             system_trigger = handle_system_trigger(deadline);
         }

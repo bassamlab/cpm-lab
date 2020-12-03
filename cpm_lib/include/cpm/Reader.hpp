@@ -26,16 +26,14 @@
 
 #pragma once
 
-#include <dds/sub/ddssub.hpp>
-
 #include <iterator>
 #include <mutex>
 #include <vector>
 
 #include "cpm/ParticipantSingleton.hpp"
+#include "cpm/AsyncReader.hpp"
 
-namespace cpm
-{
+namespace cpm {
     /**
      * \class Reader
      * \brief Creates a DDS Reader that, on request, returns 
@@ -57,11 +55,11 @@ namespace cpm
      * \ingroup cpmlib
      */
     template<typename T>
-    class Reader
+    class Reader : public eprosima::fastdds::dds::DataReaderListener
     {
-    private:
+    private:    
         //! Internal DDS Reader to receive messages of type T
-        dds::sub::DataReader<T> dds_reader;
+        cpm::AsyncReader<T> async_reader;
         //! Mutex for access to get_sample and removing old messages
         std::mutex m_mutex;
         //! Internal buffer that stores flushed messages until they are (partially) removed in get_sample
@@ -153,17 +151,29 @@ namespace cpm
         Reader& operator=(const Reader&) = delete;
         Reader(const Reader&&) = delete;
         Reader& operator=(const Reader&&) = delete;
-        
+
+        void dummy_callback(std::vector<typename T::type*>& arg){
+
+        }
+
+    public:
         /**
          * \brief Constructor using a topic to create a Reader
          * \param topic the topic of the communication
          * \return The DDS Reader
          */
         Reader(dds::topic::Topic<T> topic)
-        :dds_reader(dds::sub::Subscriber(ParticipantSingleton::Instance()), topic,
-            (dds::sub::qos::DataReaderQos() << dds::core::policy::History::KeepAll())
+        {
+
+          async_reader(&dummy_callback, 
+            dds::domain::DomainParticipant&,
+            std::string topic_name, 
+            bool is_reliable,
+            bool is_transient_local,
+            bool history_keep_all = true,
+            eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
         )
-        { 
+
             static_assert(std::is_same<decltype(std::declval<T>().header().create_stamp().nanoseconds()), rti::core::uint64>::value, "IDL type must have a Header.");
         }
         

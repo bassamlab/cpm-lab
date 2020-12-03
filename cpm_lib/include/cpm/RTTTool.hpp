@@ -87,6 +87,8 @@ namespace cpm
          */ 
         static RTTTool& Instance();
 
+        static void Remove();
+
         /**
          * \brief Activate the RTT measurement for this participant
          * It will answer to RTT requests with the ID set in the parameter

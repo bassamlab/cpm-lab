@@ -27,7 +27,7 @@
 #pragma once
 
 #include <dds/pub/DataWriter.hpp>
-
+#include <fastdds/dds/publisher/DataWriterListener.hpp>
 
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_topic.hpp"
@@ -48,43 +48,75 @@ namespace cpm
      * \ingroup cpmlib
      */
     template<class T>
-    class Writer
+    class Writer : public eprosima::fastdds::dds::DataWriterListener
     {
     private:
         T topic_data_type;
         
-        eprosima::fastdds::dds::Publisher* publisher;
-        eprosima::fastdds::dds::Topic* topic;
-        eprosima::fastdds::dds::DataWriter* writer;
+        eprosima::fastdds::dds::TypeSupport type_support;
+        eprosima::fastdds::dds::Publisher* publisher = nullptr;
+        eprosima::fastdds::dds::Topic* topic = nullptr;
+        eprosima::fastdds::dds::DataWriter* writer = nullptr;
+        eprosima::fastdds::dds::DomainParticipant* participant_ = nullptr;
+
 
         //dds::pub::DataWriter<typename T::type> dds_writer;
+
+        Writer(const Writer&) = delete;
+        Writer& operator=(const Writer&) = delete;
+        Writer(const Writer&&) = delete;
+        Writer& operator=(const Writer&&) = delete;
+
+        unsigned int active_matches = 0;
+
+        void on_publication_matched(
+            eprosima::fastdds::dds::DataWriter* reader,
+            const eprosima::fastdds::dds::PublicationMatchedStatus& info) override{
+              active_matches = info.total_count;
+        }
 
         /**
          * \brief Returns qos for the settings s.t. the constructor becomes more readable
          */
-        dds::pub::qos::DataWriterQos get_qos(bool is_reliable, bool history_keep_all, bool is_transient_local)
+        eprosima::fastdds::dds::DataWriterQos get_qos(bool is_reliable, bool history_keep_all, bool is_transient_local)
         {
-            auto qos = dds::pub::qos::DataWriterQos();
+            auto qos = eprosima::fastdds::dds::DataWriterQos();
 
 
             if (is_reliable)
             {
-                qos.reliability(dds::core::policy::Reliability::Reliable());
+                auto policy = eprosima::fastdds::dds::ReliabilityQosPolicy();
+                policy.kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
+                qos.reliability(policy);
             }
             else
             {
                 //Already implicitly given
-                qos.reliability(dds::core::policy::Reliability::BestEffort());
+                auto policy = eprosima::fastdds::dds::ReliabilityQosPolicy();
+                policy.kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
+                qos.reliability(policy);
             }
 
             if (history_keep_all)
             {
-                qos.history(dds::core::policy::History::KeepAll());
+                auto policy = eprosima::fastdds::dds::HistoryQosPolicy();
+                policy.kind = eprosima::fastdds::dds::KEEP_ALL_HISTORY_QOS;
+                qos.history(policy);
+            }else{
+                auto policy = eprosima::fastdds::dds::HistoryQosPolicy();
+                policy.kind = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
+                qos.history(policy);  
             }
 
             if (is_transient_local)
             {
-                qos.durability(dds::core::policy::Durability::TransientLocal());
+                auto policy = eprosima::fastdds::dds::DurabilityQosPolicy();
+                policy.kind = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
+                qos.durability(policy);
+            }else{
+                auto policy = eprosima::fastdds::dds::DurabilityQosPolicy();
+                policy.kind = eprosima::fastdds::dds::VOLATILE_DURABILITY_QOS;
+                qos.durability(policy);
             }
 
             return qos;
@@ -92,11 +124,13 @@ namespace cpm
 
 
     public:
-        Writer(const Writer&) = delete;
-        Writer& operator=(const Writer&) = delete;
-        Writer(const Writer&&) = delete;
-        Writer& operator=(const Writer&&) = delete;
-        
+
+        ~Writer(){
+          std::cout << "Deleting cpm::Writer" << std::endl;
+          publisher->delete_datawriter(writer);
+          participant_->delete_publisher(publisher);
+        }
+
         /**
          * \brief Constructor for a writer which is communicating within the ParticipantSingleton
          * Allows to set the topic name and some QoS settings
@@ -106,8 +140,8 @@ namespace cpm
          * \param transient_local Resent messages sent before a new participant joined to that participant (true) or not (false, default)
          */
         Writer(std::string topic_name, bool reliable = false, bool history_keep_all = false, bool transient_local = false)
-        { 
-          Writer(ParticipantSingleton::Instance(), topic_name, reliable, history_keep_all, transient_local);
+        : Writer(ParticipantSingleton::Instance(), topic_name, reliable, history_keep_all, transient_local)
+        {       
         }
         /**
          * \brief Constructor for a writer which is communicating within the ParticipantSingleton
@@ -132,31 +166,41 @@ namespace cpm
          * \param transient_local Resent messages sent before a new participant joined to that participant (true) or not (false, default)
          */
         Writer(
-            dds::domain::DomainParticipant & _participant, 
+            eprosima::fastdds::dds::DomainParticipant& _participant, 
             std::string topic_name, 
             bool reliable = false, 
             bool history_keep_all = false, 
             bool transient_local = false
-        )
+        ) : type_support(new T()), participant_(&_participant)
         {
-          
-          eprosima::fastdds::dds::DomainParticipant& p_impl = dynamic_cast<eprosima::fastdds::dds::DomainParticipant&>(_participant);
-
+          std::cout << "Creating Writer " << topic_name << " : " << topic_data_type.getName() << std::endl;
           // Check if Type is already registered
-          auto find_type_ret = p_impl.find_type(topic_data_type.getName());
+          auto find_type_ret = _participant.find_type(topic_data_type.getName());
+          std::cout << "Checking if type exists: " << topic_data_type.getName() << std::endl;
           if(find_type_ret.empty()){
-            p_impl.register_type(eprosima::fastdds::dds::TypeSupport(&topic_data_type));
+            std::cout << "Type does not exist, creating type" << std::endl;
+            auto ret = _participant.register_type(type_support);
+            assert(ret == ReturnCode_t::RETCODE_OK);
           }
+
+          assert(_participant.find_type(topic_data_type.getName()).empty() == false);
+          std::cout << "Double check: " << _participant.find_type(topic_data_type.getName()).get_type_name() << std::endl;
 
           // Create Topic
-          auto find_topic = p_impl.lookup_topicdescription(topic_name);
+          auto find_topic = _participant.lookup_topicdescription(topic_name);
           if(find_topic == nullptr){
-            topic = p_impl.create_topic(topic_name, std::string(topic_data_type.getName()), eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
+            std::string type_name_str = topic_data_type.getName();
+            topic = _participant.create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
+          }else{
+            topic = (eprosima::fastdds::dds::Topic*)find_topic;
           }
-          assert(topic != nullptr);
 
-          publisher = p_impl.create_publisher(eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT, nullptr);
-          writer = publisher->create_datawriter(topic, get_qos(reliable, history_keep_all, transient_local));
+          std::cout << "Double check topic " <<  topic->get_type_name() << " " << topic->get_name() << std::endl;
+          assert(topic != nullptr);
+          assert(_participant.find_type(topic->get_type_name()).empty() == false);
+
+          publisher = _participant.create_publisher(eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT);
+          writer = publisher->create_datawriter(topic, get_qos(reliable, history_keep_all, transient_local), this);
 
           assert(writer != nullptr);                      
         }
@@ -168,15 +212,16 @@ namespace cpm
         void write(typename T::type& msg)
         {
             //DDS operations are assumed to be thread safe, so don't use a mutex here
+            std::cout << "Writing Type " << topic_data_type.getName() << std::endl;
             writer->write(&msg);
         }
 
-        /**
+        /**<
          * \brief Returns # of matched writers, needs template parameter for topic type
          */
         size_t matched_subscriptions_size()
         {
-            return 0;// writer->get_listener().listener.n_matched;
+            return active_matches;
         }
     };
 }
