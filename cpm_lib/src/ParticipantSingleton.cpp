@@ -55,7 +55,7 @@ namespace cpm
       eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);
     }
 
-    void ParticipantSingleton::remove(){
+    void ParticipantSingleton::Remove(){
 
       // Remove DataReader
 

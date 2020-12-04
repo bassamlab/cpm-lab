@@ -70,7 +70,7 @@ namespace cpm
          * \return A participant
          */
         static eprosima::fastdds::dds::DomainParticipant& Instance();
-        static void remove();
+        static void Remove();
 
     };
 }

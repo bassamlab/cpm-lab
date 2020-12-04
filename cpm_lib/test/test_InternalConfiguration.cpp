@@ -30,6 +30,7 @@
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Logging.hpp"
 #include "cpm/ParameterReceiver.hpp"
+#include "cpm/RTTTool.hpp"
 
 /**
  * \test Tests InternalConfiguration by faking some command line input
@@ -49,5 +50,6 @@ TEST_CASE("InternalConfiguration") {
 
   cpm::ParameterReceiver::Remove();
   cpm::Logging::Remove();
-  cpm::ParticipantSingleton::remove();
+  cpm::RTTTool::Remove();
+  cpm::ParticipantSingleton::Remove();
 }

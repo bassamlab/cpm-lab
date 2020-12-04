@@ -209,7 +209,8 @@ namespace cpm
         virtual ~AsyncReader(){
           std::cout << "Removing AsyncReader" << std::endl;
           sub->delete_datareader(reader);
-          participant_->delete_subscriber(sub);          
+          participant_->delete_subscriber(sub);
+          participant_->delete_topic((eprosima::fastdds::dds::Topic*)topic);   
         }
 
         /**

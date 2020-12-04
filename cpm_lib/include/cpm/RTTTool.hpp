@@ -76,6 +76,8 @@ namespace cpm
          */
         RTTTool();
 
+        static RTTTool* instance_;
+
     public:
         RTTTool(RTTTool const&) = delete;
         RTTTool(RTTTool&&) = delete; 

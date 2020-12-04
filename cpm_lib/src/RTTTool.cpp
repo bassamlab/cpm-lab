@@ -32,6 +32,8 @@
  * \ingroup cpmlib
  */
 
+cpm::RTTTool* cpm::RTTTool::instance_ = nullptr;
+
 cpm::RTTTool::RTTTool() : 
     rtt_writer("round_trip_time")
 {
@@ -79,8 +81,17 @@ cpm::RTTTool::RTTTool() :
 
 cpm::RTTTool& cpm::RTTTool::Instance()
 {
-    static RTTTool instance;
-    return instance;
+  if(instance_ == nullptr){
+    instance_ = new RTTTool();
+  }
+
+  return *instance_;
+}
+
+void cpm::RTTTool::Remove(){
+  if(instance_ != nullptr){
+    delete instance_;
+  }
 }
 
 void cpm::RTTTool::activate(std::string _program_id)
