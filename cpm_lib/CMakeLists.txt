@@ -3,7 +3,7 @@ project(cpmlib)
 option(BUILD_ARM OFF)
 
 set (CMAKE_CXX_STANDARD 11)
-add_definitions(-Wall -Wextra -Werror=return-type -g -O2)
+add_definitions(-Wall -Wextra -Werror=return-type -g -O0)
 include_directories(src)
 include_directories(include)
 
@@ -98,8 +98,10 @@ target_link_libraries(cpm fastrtps fastcdr)
 
 
 if(NOT BUILD_ARM)
-    add_executable(unittest 
+    add_executable(unittest
         test/catch.cpp
+        test/test_VehicleIDFilteredTopic.cpp
+        test/test_Reader.cpp
         test/test_timer.cpp
         test/test_timer_simulated.cpp
         test/test_logging.cpp
@@ -111,13 +113,12 @@ if(NOT BUILD_ARM)
         test/test_timer_stop.cpp
         test/test_timer_stop_running.cpp
         test/test_timer_start_again.cpp
-        #test/test_VehicleIDFilteredTopic.cpp
-        #test/test_Participant.cpp
-        #test/test_Reader.cpp
         test/test_ReaderAbstract.cpp
         test/test_Writer.cpp
-        #test/test_MultiVehicleReader.cpp
+        test/test_MultiVehicleReader.cpp
         test/test_CommandLineReader.cpp
+        test/test_Participant.cpp
+
         test/test_InternalConfiguration.cpp
     )
 

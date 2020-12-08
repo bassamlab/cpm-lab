@@ -26,7 +26,8 @@
 
 #pragma once
 
-#include <dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastrtps/xmlparser/XMLProfileManager.h>
 
 namespace cpm
 {
@@ -39,8 +40,8 @@ namespace cpm
     class Participant
     {
     private:
-        //! Internal DDS participant that is abstracted by this class
-        dds::domain::DomainParticipant dds_participant;
+        //! Internal DDS participant that is abstracted by this class    
+        eprosima::fastdds::dds::DomainParticipant* participant = nullptr;
 
     public:
         Participant(const Participant&) = delete;
@@ -53,55 +54,42 @@ namespace cpm
          * \param domain_number Set the domain ID of the domain within which the communication takes place
          */
         Participant(int domain_number)
-        :
-            dds_participant(domain_number)
         { 
-            
+            auto qos = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_default_participant_qos();
+            participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos);
+            assert(participant != nullptr);
         }
 
         /**
          * \brief Constructor for a participant 
          * \param domain_number Set the domain ID of the domain within which the communication takes place
          * \param qos_file QoS settings to be imported from an .xml file
-         
+         */
         Participant(int domain_number, std::string qos_file)
-        :
-            dds_participant(domain_number, dds::core::QosProvider(qos_file).participant_qos())
-        { 
-            
-        }
-        */
+        {
+          auto ret_xml = eprosima::fastrtps::xmlparser::XMLProfileManager::loadXMLFile(qos_file);
+          if(ret_xml != eprosima::fastrtps::xmlparser::XMLP_ret::XML_OK){
+            throw std::invalid_argument("error loading xml profile");
+          }
 
-        /**
-         * \brief Constructor for a participant 
-         * \param domain_number Set the domain ID of the domain within which the communication takes place
-         * \param qos_file QoS settings to be imported from an .xml file
-         * \param qos_profile QoS profile from the .xml file that should be applied
-         */
-        Participant(int domain_number, std::string qos_file, std::string qos_profile)
-        :
-            dds_participant(domain_number, dds::core::QosProvider(qos_file, qos_profile).participant_qos())
-        { 
-            
+          eprosima::fastdds::dds::DomainParticipantQos qos;
+          auto ret_pf = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_participant_qos_from_profile("domainparticipant_profile_name", qos);
+          if(ret_pf != ReturnCode_t::RETCODE_OK){
+            throw std::invalid_argument("unable to create participant from xml profile");
+          }
+          participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos);
+          if(participant == nullptr){
+            throw std::invalid_argument("failed to create participant");
+          }
         }
 
-        /**
-         * \brief Constructor for a participant 
-         * \param participant A dds participant to be stored in this wrapper function (only for the middleware, replace after eProsima implementation)
-         */
-        Participant(dds::domain::DomainParticipant& participant)
-        :
-            dds_participant(participant)
-        { 
-            
+        ~Participant(){
+          delete participant;
         }
         
-        /**
-         * \brief Function to get the internally stored DDS-representation of the participant
-         */
-        dds::domain::DomainParticipant& get_participant()
+        eprosima::fastdds::dds::DomainParticipant& get_participant()
         {
-            return dds_participant;
+            return *participant;
         }
     };
 }

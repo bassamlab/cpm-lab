@@ -28,11 +28,13 @@
 #include "cpm/Logging.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Reader.hpp"
-#include "cpm/dds/VehicleState.hpp"
+#include "cpm/dds/VehicleStatePubSubTypes.h"
 #include "cpm/stamp_message.hpp"
 
 #include "cpm/Reader.hpp"
 #include "cpm/Writer.hpp"
+
+#include <unistd.h>
 
 /**
  * \test Tests Reader
@@ -45,11 +47,10 @@ TEST_CASE("Reader") {
   cpm::Logging::Instance().set_id("test_reader");
 
   // sender that sends various samples to the reader
-  cpm::Writer<VehicleState> sample_writer("asldkjfhslakdj");
+  cpm::Writer<VehicleStatePubSubType> sample_writer("asldkjfhslakdj");
 
   // receiver - the cpm reader that receives the sample sent by the writer above
-  cpm::Reader<VehicleState> reader(
-      cpm::get_topic<VehicleState>("asldkjfhslakdj"));
+  cpm::Reader<VehicleStatePubSubType> reader("asldkjfhslakdj");
 
   const uint64_t second = 1000000000ull;
   const uint64_t millisecond = 1000000ull;

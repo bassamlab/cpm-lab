@@ -27,8 +27,10 @@
 #include "catch.hpp"
 #include "cpm/MultiVehicleReader.hpp"
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/dds/VehicleState.hpp"
 #include "cpm/stamp_message.hpp"
+
+
+#include "cpm/dds/VehicleStatePubSubTypes.h"
 
 #include "cpm/Writer.hpp"
 #include "cpm/get_topic.hpp"
@@ -36,18 +38,20 @@
 #include <map>
 #include <vector>
 
+#include <unistd.h>
+
 /**
  * \test Tests MultiVehicleReader
  * \ingroup cpmlib
  */
 TEST_CASE("MultiVehicleReader") {
   // sender
-  cpm::Writer<VehicleState> writer("asldkjfhslakdj");
+  cpm::Writer<VehicleStatePubSubType> writer("asldkjfhslakdj");
 
   // receiver
   std::vector<uint8_t> vehicle_ids{1, 3, 7};
-  cpm::MultiVehicleReader<VehicleState> reader(
-      cpm::get_topic<VehicleState>("asldkjfhslakdj"), vehicle_ids);
+  std::string topic_name = "asldkjfhslakdj";
+  cpm::MultiVehicleReader<VehicleStatePubSubType> reader(topic_name, vehicle_ids);
 
   const uint64_t second = 1000000000ull;
   const uint64_t millisecond = 1000000ull;

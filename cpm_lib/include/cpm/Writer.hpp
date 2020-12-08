@@ -130,6 +130,7 @@ namespace cpm
           publisher->delete_datawriter(writer);
           participant_->delete_publisher(publisher);
           participant_->delete_topic(topic);
+          
         }
 
         /**

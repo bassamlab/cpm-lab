@@ -26,8 +26,6 @@
 
 #pragma once
 
-#include <dds/sub/ddssub.hpp>
-
 #include <mutex>
 #include <array>
 #include <vector>
@@ -35,6 +33,7 @@
 #include <algorithm>
 
 #include "cpm/ParticipantSingleton.hpp"
+#include "cpm/AsyncReader.hpp"
 
 #define CPM_READER_RING_BUFFER_SIZE (64)
 
@@ -47,15 +46,15 @@ namespace cpm
      * \ingroup cpmlib
      */
     template<typename T>
-    class MultiVehicleReader
+    class MultiVehicleReader : public eprosima::fastdds::dds::DataReaderListener
     {
     private:
         //! Internal DDS Reader for reading vehicle data
-        dds::sub::DataReader<T> dds_reader;
+        cpm::AsyncReader<T> dds_reader;
         //! Internal mutex for get_samples and copy constructor
         std::mutex m_mutex;
         //! Used as buffer to store vehicle data for each vehicle seperately, gets filled in flush_dds_reader and (partially) cleared in get_samples
-        std::vector<std::vector<T>> vehicle_buffers;
+        std::vector<std::vector<typename T::type>> vehicle_buffers;
         //! Vehicle IDs to listen for
         std::vector<uint8_t> vehicle_ids;
 
@@ -65,29 +64,25 @@ namespace cpm
          */
         void flush_dds_reader()
         {
-            auto num_samples = dds_reader->datareader_cache_status().sample_count();
-            auto read_samples = 0;
-
-            //We want to read all current samples, not only the ones take() gives us, which might be less than that
-            while (read_samples < num_samples)
+            eprosima::fastdds::dds::SampleInfo info;
+            typename T::type data;
+            
+            while(dds_reader.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
             {
-                auto samples = dds_reader.take();
-                read_samples += samples.length();
-
-                for(auto sample: samples)
+                if(info.instance_state == eprosima::fastdds::dds::ALIVE) 
                 {
-                    if(sample.info().valid()) 
-                    {
-                        uint8_t vehicle = sample.data().vehicle_id();
-                        long pos = std::distance(vehicle_ids.begin(), std::find(vehicle_ids.begin(), vehicle_ids.end(), vehicle));
+                    uint8_t vehicle = data.vehicle_id();
+                    long pos = std::distance(vehicle_ids.begin(), std::find(vehicle_ids.begin(), vehicle_ids.end(), vehicle));
 
-                        if (pos < static_cast<long>(vehicle_ids.size()) && pos >= 0) {
-                            vehicle_buffers.at(pos).push_back(sample.data());
-                        }
+                    if (pos < static_cast<long>(vehicle_ids.size()) && pos >= 0) {
+                        vehicle_buffers.at(pos).push_back(data);
                     }
                 }
             }
         }
+
+
+        static void dummyCallback(std::vector<typename T::type>&){}
 
     public:
         /**
@@ -96,9 +91,8 @@ namespace cpm
          * \param num_of_vehicles The number of vehicles to monitor / read from (from 1 to num_vehicles)
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
-        MultiVehicleReader(dds::topic::Topic<T> topic, int num_of_vehicles) : 
-            dds_reader(dds::sub::Subscriber(ParticipantSingleton::Instance()), topic, (dds::sub::qos::DataReaderQos() << dds::core::policy::History(dds::core::policy::HistoryKind::KEEP_LAST, 2000))
-        )
+        MultiVehicleReader(std::string& topic, int num_of_vehicles) : 
+          dds_reader(&dummyCallback, cpm::ParticipantSingleton::Instance(), topic, false, false, true, this)
         { 
             //Set size for buffers
             vehicle_buffers.resize(num_of_vehicles);
@@ -115,9 +109,8 @@ namespace cpm
          * \param _vehicle_ids List of vehicles to monitor / read from
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
-        MultiVehicleReader(dds::topic::Topic<T> topic, std::vector<uint8_t> _vehicle_ids) : 
-            dds_reader(dds::sub::Subscriber(ParticipantSingleton::Instance()), topic, (dds::sub::qos::DataReaderQos() << dds::core::policy::History(dds::core::policy::HistoryKind::KEEP_LAST, 2000))
-        )
+        MultiVehicleReader(std::string& topic, std::vector<uint8_t> _vehicle_ids) : 
+          dds_reader(&dummyCallback, cpm::ParticipantSingleton::Instance(), topic, false, false, true, this)
         {             
             //Set size for buffers
             int num_of_vehicles = _vehicle_ids.size();
@@ -149,7 +142,7 @@ namespace cpm
          */
         void get_samples(
             const uint64_t t_now, 
-            std::map<uint8_t, T>& sample_out, 
+            std::map<uint8_t, typename T::type>& sample_out, 
             std::map<uint8_t, uint64_t>& sample_age_out
         )
         {
@@ -160,7 +153,7 @@ namespace cpm
             sample_age_out.clear();
 
             for (long i = 0; i < static_cast<long>(vehicle_ids.size()); ++i) {
-                T sample = T();
+                typename T::type sample = typename T::type();
                 sample.header().create_stamp().nanoseconds(0);
                 sample_out[vehicle_ids.at(i)] = sample;
                 sample_age_out[vehicle_ids.at(i)] = t_now;

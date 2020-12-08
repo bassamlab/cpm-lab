@@ -70,15 +70,14 @@ namespace cpm
 
         std::vector<typename MessageType::type> buffer;
 
+        std::string topic_name;
+
         std::function<void(std::vector<typename MessageType::type>&)> target;
 
         unsigned int active_matches = 0;
         
         void on_data_available(
           eprosima::fastdds::dds::DataReader* reader) override {
-
-          std::cout << "Data available in AsyncReader for topic " << topic_data_type.getName() << std::endl;
-
           buffer.clear();              
 
           eprosima::fastdds::dds::SampleInfo info;
@@ -100,7 +99,7 @@ namespace cpm
         void on_subscription_matched(
             eprosima::fastdds::dds::DataReader* reader,
             const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override{
-
+              (void)reader;
               active_matches = info.total_count;
         }
 
@@ -200,17 +199,24 @@ namespace cpm
             std::function<void(std::vector<typename MessageType::type>&)> func, 
             eprosima::fastdds::dds::DomainParticipant&,
             std::string topic_name, 
-            bool is_reliable,
-            bool is_transient_local,
+            bool is_reliable = false,
+            bool is_transient_local = false,
             bool history_keep_all = true,
             eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
         );
 
         virtual ~AsyncReader(){
+          
           std::cout << "Removing AsyncReader" << std::endl;
           sub->delete_datareader(reader);
           participant_->delete_subscriber(sub);
-          participant_->delete_topic((eprosima::fastdds::dds::Topic*)topic);   
+          //if(topic != nullptr){
+          //  delete topic;
+          //}
+          //auto desc = participant_->lookup_topicdescription(topic_name);
+          //if(desc != nullptr){
+            auto ret = participant_->delete_topic((eprosima::fastdds::dds::Topic*)topic);   
+          //}
         }
 
         /**
@@ -253,13 +259,10 @@ namespace cpm
         bool history_keep_all,
         eprosima::fastdds::dds::DataReaderListener* custom_listener
     )
-    : target(func), type_support(new MessageType()), participant_(&participant)
+    : target(func), type_support(new MessageType()), participant_(&participant), topic_name(topic_name)
     {
 
-      std::cout << std::endl << std::endl << "Creating new reader topic : " << topic_name  << " type: " << topic_data_type.getName() << std::endl;
-
       buffer.reserve(100);
-
       eprosima::fastdds::dds::DomainParticipant& p_impl = dynamic_cast<eprosima::fastdds::dds::DomainParticipant&>(participant);
       sub = p_impl.create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT);
       assert(sub != nullptr);
@@ -276,8 +279,6 @@ namespace cpm
 
       assert(p_impl.find_type(topic_data_type.getName()).empty() == false);
 
-       std::cout << "Reader name check " << p_impl.find_type(topic_data_type.getName()).get_type_name() << std::endl;
-
       // Create Topic
       auto find_topic = p_impl.lookup_topicdescription(topic_name);
       if(find_topic == nullptr){
@@ -293,9 +294,6 @@ namespace cpm
         while(1)
         std::cout << "!" << std::endl;
       }
-
-      std::cout << "Reader Topic check " << topic->get_type_name() << " " << topic->get_name() << std::endl;
-
 
       // Create Reader
       if(custom_listener == nullptr){

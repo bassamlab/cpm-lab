@@ -32,6 +32,7 @@
 
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/AsyncReader.hpp"
+#include "cpm/AsyncReader.hpp"
 
 namespace cpm {
     /**
@@ -63,7 +64,9 @@ namespace cpm {
         //! Mutex for access to get_sample and removing old messages
         std::mutex m_mutex;
         //! Internal buffer that stores flushed messages until they are (partially) removed in get_sample
-        std::vector<T> messages_buffer;
+        std::vector<typename T::type> messages_buffer;
+
+        int vehicle_id_filter_ = -1;
 
         /**
          * \brief Store all received messages since the last call to get_samples in the data structure
@@ -72,27 +75,28 @@ namespace cpm {
          */
         void flush_dds_reader()
         {
-            auto samples = dds_reader.take();
 
-            //Just store all relevant data
-            //@Reviewer: What if this function is called e.g. only once a minute and we receive a lot of data?
-            //Should we already filter here, e.g. only store data that is not older than x seconds?
-            //x could also be specified by the user (-> constructor)
-            for(auto it = samples.begin(); it != samples.end(); ++it)
-            {
-                auto& sample = *it;
-                if(sample.info().valid()) 
-                {
-                    messages_buffer.push_back(sample.data());
+          eprosima::fastdds::dds::SampleInfo info;
+          typename T::type data;
+          while(async_reader.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
+          {
+              if (info.instance_state == eprosima::fastdds::dds::ALIVE)
+              {
+                if(vehicle_id_filter_ == -1 || vehicle_id_filter_ == data.vehicle_id()){
+                  messages_buffer.push_back(data);
+                }else{
+                  std::cout << "message for vehicle ID " << (int)data.vehicle_id() << " discarded" << std::endl;
                 }
-            }
+              }
+          }
+
         }
 
         /**
          * \brief Remove all old messages since the last call to get_samples in the data structure
          * \param current_newest_sample The currently newest sample, as determined by get_newest_sample
          */
-        void remove_old_msgs(const T& current_newest_sample)
+        void remove_old_msgs(const typename T::type& current_newest_sample)
         {
             //Delete all messages that are older than the currently newest sample
             //Take a look at the create_stamp only for this
@@ -122,9 +126,11 @@ namespace cpm {
          * \param sample_out Return value, either initialized with zeros if no samples exist, else the currently newest sample in the buffer
          * \param sample_age_out Return value, age of the returned sample (t_now - create_stamp)
          */
-        void get_newest_sample(const uint64_t t_now, T& sample_out, uint64_t& sample_age_out)
+        void get_newest_sample(const uint64_t t_now, typename T::type& sample_out, uint64_t& sample_age_out)
         {
-            sample_out = T();
+            std::lock_guard<std::mutex> lock(m_mutex);
+
+            sample_out = typename T::type();
             sample_out.header().create_stamp().nanoseconds(0);
             sample_age_out = t_now;
 
@@ -152,44 +158,32 @@ namespace cpm {
         Reader(const Reader&&) = delete;
         Reader& operator=(const Reader&&) = delete;
 
-        void dummy_callback(std::vector<typename T::type*>& arg){
-
-        }
-
+        static void dummyCallback(std::vector<typename T::type> trigger){ assert(false); }
     public:
         /**
          * \brief Constructor using a topic to create a Reader
          * \param topic the topic of the communication
          * \return The DDS Reader
          */
-        Reader(dds::topic::Topic<T> topic)
+        Reader(std::string topic_name, int vehicle_id_filter = -1):
+          async_reader(&Reader::dummyCallback,
+            ParticipantSingleton::Instance(),
+            topic_name, 
+            false,
+            false,
+            true,
+            this), vehicle_id_filter_(vehicle_id_filter)
         {
-
-          async_reader(&dummy_callback, 
-            dds::domain::DomainParticipant&,
-            std::string topic_name, 
-            bool is_reliable,
-            bool is_transient_local,
-            bool history_keep_all = true,
-            eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
-        )
-
-            static_assert(std::is_same<decltype(std::declval<T>().header().create_stamp().nanoseconds()), rti::core::uint64>::value, "IDL type must have a Header.");
+            typename T::type topic_type;
+            assert(typeof(topic_type.header().create_stamp().nanoseconds()) == uint64_t);
+            //static_assert(std::is_same<decltype(&topic_type.header().create_stamp().nanoseconds()), uint64_t>::value, "IDL type must have a Header.");
         }
-        
-        /**
-         * \brief Constructor using a filtered topic to create a Reader
-         * \param topic the topic of the communication, filtered (e.g. by the vehicle ID)
-         * \return The DDS Reader
-         */
-        Reader(dds::topic::ContentFilteredTopic<T> topic)
-        :dds_reader(dds::sub::Subscriber(ParticipantSingleton::Instance()), topic,
-            (dds::sub::qos::DataReaderQos() << dds::core::policy::History::KeepAll())
-        )
-        { 
-            static_assert(std::is_same<decltype(std::declval<T>().header().create_stamp().nanoseconds()), rti::core::uint64>::value, "IDL type must have a Header.");
+
+        std::vector<typename T::type> get_all_samples(){
+          flush_dds_reader();
+          return messages_buffer;
         }
-        
+             
         /**
          * \brief get the newest valid sample that was received by the reader
          * \param t_now current system time / function call time in nanoseconds
@@ -198,7 +192,7 @@ namespace cpm {
          * \return This function does not directly return the sample, it is returned via the parameters
          * This function iterates through all recently received samples (in the buffer) and uses t_now to find out which samples are already valid. Of these samples, the newest one is chosen and returned via the parameters.
          */
-        void get_sample(const uint64_t t_now, T& sample_out, uint64_t& sample_age_out)
+        void get_sample(const uint64_t t_now, typename T::type& sample_out, uint64_t& sample_age_out)
         {
             //Lock mutex to make whole get_sample function thread safe
             std::lock_guard<std::mutex> lock(m_mutex);
