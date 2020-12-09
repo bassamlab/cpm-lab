@@ -74,7 +74,7 @@ private:
     //! Lanelet references, part of the inexact position shape
     std::vector<int> lanelet_refs;
     //! Polygons, part of the inexact position shape
-    std::vector<Polygon> polygons;
+    std::vector<shape::Polygon> polygons;
     //! Rectangles, part of the inexact position shape
     std::vector<Rectangle> rectangles;
 
@@ -199,7 +199,7 @@ public:
     /**
      * \brief Access the polygons, which are part of the optional inexact position shape
      */
-    const std::vector<Polygon>& get_polygons() const;
+    const std::vector<shape::Polygon>& get_polygons() const;
     /**
      * \brief Access the rectangles, which are part of the optional inexact position shape
      */

@@ -26,12 +26,11 @@
 
 #pragma once
 #include "defaults.hpp"
-#include <dds/pub/ddspub.hpp>
 #include "cpm/TimerFD.hpp"
 #include "Joystick.hpp"
-#include "VehicleCommandDirect.hpp"
-#include "VehicleCommandSpeedCurvature.hpp"
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/VehicleCommandDirectPubSubTypes.h"
+#include "cpm/dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include <functional>
 
 /**
@@ -40,9 +39,6 @@
  */
 class VehicleManualControl
 {
-    //! TODO
-    dds::domain::DomainParticipant& participant;
-    //! TODO
     shared_ptr<Joystick> joystick = nullptr;
     //! TODO
     std::shared_ptr<cpm::TimerFD> update_loop = nullptr;
@@ -57,14 +53,9 @@ class VehicleManualControl
     int ref_trajectory_index = 0;
 
     //! TODO
-    dds::topic::Topic<VehicleCommandDirect> topic_vehicleCommandDirect;
+    shared_ptr<cpm::Writer<VehicleCommandDirectPubSubType>> writer_vehicleCommandDirect = nullptr;
     //! TODO
-    dds::topic::Topic<VehicleCommandSpeedCurvature> topic_vehicleCommandSpeedCurvature;
-
-    //! TODO
-    shared_ptr<dds::pub::DataWriter<VehicleCommandDirect>> writer_vehicleCommandDirect = nullptr;
-    //! TODO
-    shared_ptr<dds::pub::DataWriter<VehicleCommandSpeedCurvature>> writer_vehicleCommandSpeedCurvature = nullptr;
+    shared_ptr<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>> writer_vehicleCommandSpeedCurvature = nullptr;
 
     //! TODO
     std::function<void()> m_update_callback;

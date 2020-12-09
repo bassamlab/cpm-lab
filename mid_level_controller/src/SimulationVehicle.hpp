@@ -37,8 +37,8 @@
 #include "cpm/Writer.hpp"
 #include "geometry.hpp"
 #include "VehicleModel.hpp"
-#include "VehicleObservation.hpp"
-#include "VehicleState.hpp"
+#include "cpm/dds/VehicleObservationPubSubTypes.h"
+#include "cpm/dds/VehicleStateListPubSubTypes.h"
 #include "SimulationIPS.hpp"
 #include <vector>
 
@@ -104,9 +104,9 @@ class SimulationVehicle
     double steering_servo_history[INPUT_DELAY]; 
 
     //! TODO
-    cpm::Writer<VehicleObservation> writer_vehiclePoseSimulated;
+    cpm::Writer<VehicleObservationPubSubType> writer_vehiclePoseSimulated;
     //! TODO
-    cpm::MultiVehicleReader<VehicleObservation> reader_vehiclePoseSimulated;
+    cpm::MultiVehicleReader<VehicleObservationPubSubType> reader_vehiclePoseSimulated;
 
     //! TODO
     SimulationIPS& simulationIPS;

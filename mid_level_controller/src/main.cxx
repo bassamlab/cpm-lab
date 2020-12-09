@@ -36,14 +36,11 @@
 #include <ios>
 using std::vector;
 
-#include <rti/config/Logger.hpp>
-#include <rti/util/util.hpp> // for sleep()
-
-#include "VehicleObservation.hpp"
-#include "VehicleCommandDirect.hpp"
-#include "VehicleCommandSpeedCurvature.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include "VehicleState.hpp"
+#include "dds/VehicleObservationPubSubTypes.h"
+#include "dds/VehicleCommandDirectPubSubTypes.h"
+#include "dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
+#include "dds/VehicleCommandTrajectoryPubSubTypes.h"
+#include "dds/VehicleStatePubSubTypes.h"
 #include "cpm/Timer.hpp"
 #include "cpm/VehicleIDFilteredTopic.hpp"
 #include "cpm/ParticipantSingleton.hpp"
@@ -95,11 +92,10 @@ int main(int argc, char *argv[])
     cpm::Logging::Instance().set_id("vehicle_raspberry_" + std::to_string(vehicle_id));
 
     // DDS setup
-    cpm::Writer<VehicleState> writer_vehicleState("vehicleState");
+    cpm::Writer<VehicleStatePubSubType> writer_vehicleState("vehicleState");
 
     std::string topic_vehicleObservation_name = "vehicleObservation";
-    cpm::VehicleIDFilteredTopic<VehicleObservation> topic_vehicleObservationFiltered(cpm::get_topic<VehicleObservation>(topic_vehicleObservation_name), vehicle_id);
-    cpm::Reader<VehicleObservation> reader_vehicleObservation(topic_vehicleObservationFiltered);
+    cpm::Reader<VehicleObservationPubSubType> reader_vehicleObservation(topic_vehicleObservation_name, vehicle_id);
 
 #ifndef VEHICLE_SIMULATION
     // Hardware setup

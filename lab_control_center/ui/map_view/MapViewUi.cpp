@@ -490,7 +490,7 @@ void MapViewUi::draw_received_trajectory_commands(const DrawingContext& ctx)
         //const auto vehicle_id = entry.first;
         const auto& trajectory = entry.second;
 
-        rti::core::vector<TrajectoryPoint> trajectory_segment = trajectory.trajectory_points();
+        std::vector<TrajectoryPoint> trajectory_segment = trajectory.trajectory_points();
         
         if(trajectory_segment.size() < 2 ) continue;
         
@@ -668,7 +668,7 @@ void MapViewUi::draw_path_painting(const DrawingContext& ctx)
 void get_text_offset(Cairo::TextExtents ext, StringMessageAnchor anchor, double& offs_x, double& offs_y)
 {
     // x offset
-    switch(anchor.underlying())
+    switch(anchor)
     {
         case StringMessageAnchor::TopRight:
         case StringMessageAnchor::CenterRight:
@@ -689,7 +689,7 @@ void get_text_offset(Cairo::TextExtents ext, StringMessageAnchor anchor, double&
             offs_x = 0.0;
     }
     // y offset
-    switch(anchor.underlying())
+    switch(anchor)
     {
         case StringMessageAnchor::TopLeft:
         case StringMessageAnchor::TopCenter:
@@ -1263,7 +1263,7 @@ void MapViewUi::draw_commonroad_obstacles(const DrawingContext& ctx)
             {
                 description_stream << "S,";
             }
-            switch(entry.type().underlying())
+            switch(entry.type())
             {
                 case ObstacleType::Unknown:
                     description_stream << "Unk: ";

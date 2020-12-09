@@ -36,8 +36,8 @@
 #include "cpm/init.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/SimpleTimer.hpp"
-#include "CommonroadObstacle.hpp"
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/CommonroadObstaclePubSubTypes.h"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "commonroad_classes/DynamicObstacle.hpp"
 
 

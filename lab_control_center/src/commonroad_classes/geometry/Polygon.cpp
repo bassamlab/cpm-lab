@@ -26,11 +26,12 @@
 
 #include "commonroad_classes/geometry/Polygon.hpp"
 
+namespace shape{
+
 /**
  * \file Polygon.cpp
  * \ingroup lcc_commonroad
  */
-
 Polygon::Polygon(const xmlpp::Node* node)
 {
     //Check if node is of type polygon
@@ -153,7 +154,9 @@ CommonroadDDSPolygon Polygon::to_dds_msg()
         dds_points.push_back(point.to_dds_msg());
     }
 
-    polygon.points(rti::core::vector<CommonroadDDSPoint>(dds_points));
+    polygon.points(dds_points);
 
     return polygon;
+}
+
 }

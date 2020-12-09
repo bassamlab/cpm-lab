@@ -33,7 +33,7 @@
 
 VisualizationCommandsAggregator::VisualizationCommandsAggregator() 
 {
-    viz_reader = make_shared<cpm::AsyncReader<Visualization>>(
+    viz_reader = make_shared<cpm::AsyncReader<VisualizationPubSubType>>(
         [this](std::vector<Visualization>& samples){
             handle_new_viz_msgs(samples);
         }

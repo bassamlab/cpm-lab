@@ -186,11 +186,27 @@ std::vector<Log> LogStorage::perform_abortable_search(std::string filter_value, 
     }
     catch (std::regex_error& e) {
         std::cout << "Regex error (due to filter string): " << e.what() << std::endl;
-        search_result.push_back(Log("", "No results - Wrong regex expression!", TimeStamp(0), 0));
+        TimeStamp timestamp;
+        timestamp.nanoseconds(0);
+
+        Log log_entry;
+        log_entry.id("");
+        log_entry.id("No results - Wrong regex expression!");
+        log_entry.stamp(timestamp);
+        log_entry.log_level(0);
+        search_result.push_back(log_entry);
     }
 
     if (search_result.size() == 0 && log_storage_copy.size() > 0) {
-        search_result.push_back(Log("", "No results", TimeStamp(0), 0));
+        TimeStamp timestamp;
+        timestamp.nanoseconds(0);
+
+        Log log_entry;
+        log_entry.id("");
+        log_entry.content("No results");
+        log_entry.stamp(timestamp);
+        log_entry.log_level(0);
+        search_result.push_back(log_entry);
     }
 
     keep_last_elements(search_result, 100);

@@ -65,20 +65,9 @@
 #define BUTTON_SPEED_CONST (5)
 
 VehicleManualControl::VehicleManualControl()
-:participant(cpm::ParticipantSingleton::Instance())
-,topic_vehicleCommandDirect(cpm::get_topic<VehicleCommandDirect>("vehicleCommandDirect"))
-,topic_vehicleCommandSpeedCurvature(cpm::get_topic<VehicleCommandSpeedCurvature>("vehicleCommandSpeedCurvature"))
 {
-    auto QoS = dds::pub::qos::DataWriterQos();
-    auto reliability = dds::core::policy::Reliability::BestEffort();
-    reliability.max_blocking_time(dds::core::Duration(0,0));
-    QoS.policy(reliability);
-    auto publisher = dds::pub::Publisher(participant);
-    publisher.default_datawriter_qos(QoS);
-
-
-    writer_vehicleCommandDirect = make_shared<dds::pub::DataWriter<VehicleCommandDirect>>(publisher, topic_vehicleCommandDirect);
-    writer_vehicleCommandSpeedCurvature = make_shared<dds::pub::DataWriter<VehicleCommandSpeedCurvature>>(publisher, topic_vehicleCommandSpeedCurvature);
+  writer_vehicleCommandDirect = std::make_shared<cpm::Writer<VehicleCommandDirectPubSubType>>("vehicleCommandDirect");
+  writer_vehicleCommandSpeedCurvature = std::make_shared<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>>("vehicleCommandSpeedCurvature");
 }
 
 void VehicleManualControl::start(uint8_t vehicleId, string joystick_device_file) 

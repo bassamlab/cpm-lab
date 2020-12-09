@@ -27,8 +27,8 @@
 #pragma once
 #include <stdint.h>
 #include "defaults.hpp"
-#include "Pose2D.hpp"
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/Pose2DPubSubTypes.h"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "cpm/TimerFD.hpp"
 #include "cpm/get_topic.hpp"
 #include "cpm/Writer.hpp"
@@ -53,8 +53,8 @@ class TrajectoryCommand
      */
     std::shared_ptr<cpm::TimerFD> timer;
 
-    //! Writer to send trajectories to the vehicles
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory;
+    //! Writer to send trajectories to the vehicles 
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory;
 
     /**
      * \brief Function to send a current trajectory, created from the drawn path in the LCC's MapView using set_path and stored

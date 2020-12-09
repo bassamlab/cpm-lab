@@ -238,7 +238,7 @@ void ParamsCreateView::on_add() {
 
         std::vector<int32_t> stdInts;
         stdInts.push_back(value);
-        rti::core::vector<int32_t> ints(stdInts);
+        std::vector<int32_t> ints(stdInts);
 
         param.parameter_data.type(ParameterType::Int32);
         param.parameter_data.values_int32(ints);
@@ -256,7 +256,7 @@ void ParamsCreateView::on_add() {
 
         std::vector<double> stdDoubles;
         stdDoubles.push_back(value);
-        rti::core::vector<double> doubles(stdDoubles);
+        std::vector<double> doubles(stdDoubles);
 
         param.parameter_data.type(ParameterType::Double);
         param.parameter_data.values_double(doubles);

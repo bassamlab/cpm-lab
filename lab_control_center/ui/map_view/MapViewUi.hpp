@@ -34,13 +34,13 @@
 #include <sstream>
 #include <vector>
 #include "TrajectoryCommand.hpp"
-#include "VehicleCommandPathTracking.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include "Visualization.hpp"
-#include "Pose2D.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
+#include "cpm/dds/VisualizationPubSubTypes.h"
+#include "cpm/dds/Visualization.h"
+#include "cpm/dds/Pose2DPubSubTypes.h"
 #include "cpm/get_time_ns.hpp"
 
-#include "CommonroadObstacle.hpp"
+#include "cpm/dds/CommonroadObstacleListPubSubTypes.h"
 
 #include "commonroad_classes/CommonRoadScenario.hpp"
 #include "LCCErrorLogger.hpp"

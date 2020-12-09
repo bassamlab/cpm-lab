@@ -249,7 +249,7 @@ void TrajectoryCommand::send_trajectory(uint64_t t_now)
 
             VehicleCommandTrajectory command;
             command.vehicle_id(vehicle_id);
-            command.trajectory_points(rti::core::vector<TrajectoryPoint>(trajectory_points));
+            command.trajectory_points(std::vector<TrajectoryPoint>(trajectory_points));
             command.header().create_stamp().nanoseconds(t_now);
             command.header().valid_after_stamp().nanoseconds(t_valid_nanos);
             writer_vehicleCommandTrajectory.write(command);

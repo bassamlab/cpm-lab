@@ -91,7 +91,7 @@ namespace cpm
          * \param num_of_vehicles The number of vehicles to monitor / read from (from 1 to num_vehicles)
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
-        MultiVehicleReader(std::string& topic, int num_of_vehicles) : 
+        MultiVehicleReader(std::string topic, int num_of_vehicles) : 
           dds_reader(&dummyCallback, cpm::ParticipantSingleton::Instance(), topic, false, false, true, this)
         { 
             //Set size for buffers
@@ -109,7 +109,7 @@ namespace cpm
          * \param _vehicle_ids List of vehicles to monitor / read from
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
-        MultiVehicleReader(std::string& topic, std::vector<uint8_t> _vehicle_ids) : 
+        MultiVehicleReader(std::string topic, std::vector<uint8_t> _vehicle_ids) : 
           dds_reader(&dummyCallback, cpm::ParticipantSingleton::Instance(), topic, false, false, true, this)
         {             
             //Set size for buffers

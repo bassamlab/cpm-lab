@@ -149,6 +149,6 @@ Pose2D Localization::update(
 void Localization::reset() {
     for (size_t i = 0; i < LOCALIZATION_BUFFER_SIZE; ++i)
     {
-        state_buffer[i].pose = Pose2D(0,0,0);
+        state_buffer[i].pose = Pose2D();
     }
 }

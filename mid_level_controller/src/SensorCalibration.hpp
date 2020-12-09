@@ -27,7 +27,7 @@
 #pragma once
 
 
-#include "VehicleState.hpp"
+#include "dds/VehicleStateListPubSubTypes.h"
 
 extern "C" {
 #include "spi.h"

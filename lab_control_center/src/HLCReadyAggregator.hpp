@@ -32,7 +32,7 @@
 #include <string>
 #include <vector>
 
-#include "HLCHello.hpp"
+#include "cpm/dds/HLCHelloPubSubTypes.h"
 
 #include "cpm/Logging.hpp"
 #include "cpm/ParticipantSingleton.hpp"
@@ -52,7 +52,7 @@ private:
     //Reader, mutex and list to get and store a list of currently online HLCs
     //A map is used because each ID has a time to live, which is updated whenever a new sample with this ID is received - this is supposed to handle NUC crashes (-> not shown to be online anymore)
     //! Reader to get the currently online HLCs
-    cpm::AsyncReader<HLCHello> async_hlc_reader;
+    cpm::AsyncReader<HLCHelloPubSubType> async_hlc_reader;
     //! Mutex for the maps storing which hlc is online and which is running script / middleware
     std::mutex hlc_list_mutex;
     //! Map to store when the last online message from an HLC was received

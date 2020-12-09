@@ -39,7 +39,7 @@
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_topic.hpp"
 #include "cpm/get_time_ns.hpp"
-#include "Visualization.hpp"
+#include "cpm/dds/VisualizationPubSubTypes.h"
 
 /**
  * \brief This class is used as storage to aggregate all visualization commands received by the LCC (which are drawn in MapViewUi)
@@ -56,7 +56,7 @@ private:
     void handle_new_viz_msgs(std::vector<Visualization>& samples);
 
     //! Reader to receive visualization messages sent within the network
-    std::shared_ptr<cpm::AsyncReader<Visualization>> viz_reader;
+    std::shared_ptr<cpm::AsyncReader<VisualizationPubSubType>> viz_reader;
     //! Map to save visualization messages with their ID
     std::map<uint64_t, Visualization> received_viz_map;
     //! Mutex to thread-safely store and access visualization messages in received_viz_map

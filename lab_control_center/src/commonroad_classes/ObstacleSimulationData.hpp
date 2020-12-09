@@ -31,8 +31,8 @@
 
 #include "commonroad_classes/datatypes/IntervalOrExact.hpp"
 
-#include "CommonroadDDSShape.hpp"
-#include "CommonroadObstacle.hpp"
+#include "cpm/dds/CommonroadDDSShapePubSubTypes.h"
+#include "cpm/dds/CommonroadObstaclePubSubTypes.h"
 
 /**
  * \file ObstacleSimulationData.hpp

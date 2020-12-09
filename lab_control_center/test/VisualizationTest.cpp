@@ -27,6 +27,7 @@
 #include <chrono>
 #include <iostream>
 #include <thread>
+#include <unistd.h>
 
 #include "cpm/init.hpp"
 #include "cpm/Logging.hpp"
@@ -34,8 +35,8 @@
 #include "cpm/get_topic.hpp"
 #include "cpm/get_time_ns.hpp"
 #include "cpm/Writer.hpp"
-#include "Color.hpp"
-#include "Visualization.hpp"
+#include "cpm/dds/ColorPubSubTypes.h"
+#include "cpm/dds/VisualizationPubSubTypes.h"
 
 /**
  * \file VisualizationTest.cpp
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Creating visualization sender..." << std::endl;
 
-    cpm::Writer<Visualization> viz_writer("visualization", true);
+    cpm::Writer<VisualizationPubSubType> viz_writer("visualization", true);
 
     // LineStrips
     Visualization viz;
@@ -58,15 +59,33 @@ int main(int argc, char *argv[]) {
     viz.time_to_live(3000000000);
     viz.size(1.0);
 
-    Point2D point1(0.0, 0.0);
-    Point2D point2(1.0, 1.0);
-    Point2D point3(2.0, -2.0);
-    Point2D point4(3.0, 3.0);
-    Point2D point5(4.0, -4.0);
-    std::vector<Point2D> viz_points {point1, point2, point3, point4, point5};
-    viz.points(rti::core::vector<Point2D>(viz_points));
+    Point2D point1;
+    point1.x(0.0);
+    point1.y(0.0);
 
-    Color viz_color(255, 0, 255, 255);
+    Point2D point2;
+    point2.x(1.0);
+    point2.y(1.0);
+
+    Point2D point3;
+    point3.x(2.0);
+    point3.y(-2.0);
+
+    Point2D point4;
+    point4.x(3.0);
+    point4.y(3.0);
+
+    Point2D point5;
+    point5.x(4.0);
+    point5.y(-4.0);
+    
+    std::vector<Point2D> viz_points {point1, point2, point3, point4, point5};
+    viz.points(viz_points);
+
+    Color viz_color;
+    viz_color.a(255);
+    viz_color.r(0);
+    viz_color.g(255);
     viz.color(viz_color);
 
     usleep(100000);
@@ -82,13 +101,25 @@ int main(int argc, char *argv[]) {
     viz2.time_to_live(5000000000);
     viz2.size(0.05);
 
-    Point2D point1_2(0.0, 0.0);
-    Point2D point2_2(0.5, 0.5);
-    Point2D point3_2(1.0, 0.0);
-    std::vector<Point2D> viz2_points {point1_2, point2_2, point3_2};
-    viz2.points(rti::core::vector<Point2D>(viz2_points));
+    Point2D point1_2;
+    point1_2.x(0.0);
+    point1_2.y(0.0);
 
-    Color viz2_color(255, 255, 0, 255);
+    Point2D point2_2;
+    point2_2.x(0.5);
+    point2_2.y(0.5);
+
+    Point2D point3_2;
+    point3_2.x(1.0);
+    point3_2.y(0.0);
+    std::vector<Point2D> viz2_points {point1_2, point2_2, point3_2};
+    viz2.points(std::vector<Point2D>(viz2_points));
+
+    Color viz2_color;
+    viz2_color.a(255);
+    viz2_color.r(255);
+    viz2_color.g(0);
+    viz2_color.b(255);
     viz2.color(viz2_color);
 
     usleep(100000);
@@ -104,11 +135,18 @@ int main(int argc, char *argv[]) {
     viz3.time_to_live(10000000000);
     viz3.size(1.0);
 
-    Point2D point1_3(0.2, 0.2);
+    Point2D point1_3;
+    point1_3.x(0.2);
+    point1_3.y(0.2);
+    
     std::vector<Point2D> viz3_points {point1_3};
-    viz3.points(rti::core::vector<Point2D>(viz3_points));
+    viz3.points(viz3_points);
 
-    Color viz3_color(255, 255, 255, 0);
+    Color viz3_color;
+    viz3_color.a(255);
+    viz3_color.r(255);
+    viz3_color.g(255);
+    viz3_color.b(0);
     viz3.color(viz3_color);
 
     viz3.string_message("Hello LCC!");
@@ -126,10 +164,17 @@ int main(int argc, char *argv[]) {
     viz4.time_to_live(11500000000);
     viz4.size(0.04);
 
-    std::vector<Point2D> viz4_points{ Point2D(1.0, 3.0) };
-    viz4.points(rti::core::vector<Point2D>(viz4_points));
+    Point2D p;
+    p.x(1.0);
+    p.y(3.0);
+    std::vector<Point2D> viz4_points{ p };
+    viz4.points(viz4_points);
 
-    Color viz4_color(100, 255, 100, 0);
+    Color viz4_color;
+    viz4_color.a(100);
+    viz4_color.r(255);
+    viz4_color.g(100);
+    viz4_color.b(0);
     viz4.color(viz4_color);
 
     usleep(100000);
@@ -145,11 +190,17 @@ int main(int argc, char *argv[]) {
     viz5.time_to_live(1200000000); // 1.5 seconds
     viz5.size(0.2);
 
-    Point2D point1_5(1.0, 3.0);
+    Point2D point1_5;
+    point1_5.x(1.0);
+    point1_5.y(3.0);
     std::vector<Point2D> viz5_points {point1_5};
-    viz5.points(rti::core::vector<Point2D>(viz5_points));
+    viz5.points(viz5_points);
 
-    Color viz5_color(255, 0, 128, 64);
+    Color viz5_color;
+    viz5_color.a(255);
+    viz5_color.r(0);
+    viz5_color.g(128);
+    viz5_color.b(64);
     viz5.color(viz5_color);
 
     viz5.string_message("H - Default alignment");

@@ -26,11 +26,11 @@
 
 #pragma once
 
-#include "VehicleCommandDirect.hpp"
-#include "VehicleCommandSpeedCurvature.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include "VehicleCommandPathTracking.hpp"
-#include "VehicleState.hpp"
+#include "cpm/dds/VehicleCommandDirectPubSubTypes.h"
+#include "cpm/dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
+#include "VehicleCommandPathTrackingPubSubTypes.hpp"
+#include "cpm/dds/VehicleStateListPubSubTypes.h"
 #include <map>
 #include <memory>
 #include <mutex>
@@ -78,25 +78,21 @@ class Controller
     //! TODO
     std::function<uint64_t()> m_get_time;
 
+    //cpm::VehicleIDFilteredTopic<VehicleCommandDirect> topic_vehicleCommandDirect;
     //! TODO
-    cpm::VehicleIDFilteredTopic<VehicleCommandDirect> topic_vehicleCommandDirect;
-    //! TODO
-    std::unique_ptr< cpm::Reader<VehicleCommandDirect> > reader_CommandDirect;
+    std::unique_ptr< cpm::Reader<VehicleCommandDirectPubSubType> > reader_CommandDirect;
 
+    //cpm::VehicleIDFilteredTopic<VehicleCommandSpeedCurvature> topic_vehicleCommandSpeedCurvature;
     //! TODO
-    cpm::VehicleIDFilteredTopic<VehicleCommandSpeedCurvature> topic_vehicleCommandSpeedCurvature;
-    //! TODO
-    std::unique_ptr< cpm::Reader<VehicleCommandSpeedCurvature> > reader_CommandSpeedCurvature;
+    std::unique_ptr< cpm::Reader<VehicleCommandSpeedCurvaturePubSubType> > reader_CommandSpeedCurvature;
 
+    //cpm::VehicleIDFilteredTopic<VehicleCommandTrajectory> topic_vehicleCommandTrajectory;
     //! TODO
-    cpm::VehicleIDFilteredTopic<VehicleCommandTrajectory> topic_vehicleCommandTrajectory;
-    //! TODO
-    std::unique_ptr< cpm::Reader<VehicleCommandTrajectory> > reader_CommandTrajectory;
+    std::unique_ptr< cpm::Reader<VehicleCommandTrajectoryPubSubType> > reader_CommandTrajectory;
 
+    //cpm::VehicleIDFilteredTopic<VehicleCommandPathTracking> topic_vehicleCommandPathTracking;
     //! TODO
-    cpm::VehicleIDFilteredTopic<VehicleCommandPathTracking> topic_vehicleCommandPathTracking;
-    //! TODO
-    std::unique_ptr< cpm::Reader<VehicleCommandPathTracking> > reader_CommandPathTracking;
+    std::unique_ptr< cpm::Reader<VehicleCommandPathTrackingPubSubType>> reader_CommandPathTracking;
 
     //! TODO
     VehicleState m_vehicleState;

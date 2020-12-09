@@ -41,16 +41,12 @@ Controller::Controller(uint8_t _vehicle_id, std::function<uint64_t()> _get_time)
 :mpcController(_vehicle_id, std::bind(&Controller::get_stop_signals, this, _1, _2))
 ,pathTrackingController(_vehicle_id)
 ,m_get_time(_get_time)
-,topic_vehicleCommandDirect(cpm::VehicleIDFilteredTopic<VehicleCommandDirect>(cpm::get_topic<VehicleCommandDirect>("vehicleCommandDirect"), _vehicle_id))
-,topic_vehicleCommandSpeedCurvature(cpm::VehicleIDFilteredTopic<VehicleCommandSpeedCurvature>(cpm::get_topic<VehicleCommandSpeedCurvature>("vehicleCommandSpeedCurvature"), _vehicle_id))
-,topic_vehicleCommandTrajectory(cpm::VehicleIDFilteredTopic<VehicleCommandTrajectory>(cpm::get_topic<VehicleCommandTrajectory>("vehicleCommandTrajectory"), _vehicle_id))
-,topic_vehicleCommandPathTracking(cpm::VehicleIDFilteredTopic<VehicleCommandPathTracking>(cpm::get_topic<VehicleCommandPathTracking>("vehicleCommandPathTracking"), _vehicle_id))
 ,vehicle_id(_vehicle_id)
 {
-    reader_CommandDirect = std::unique_ptr<cpm::Reader<VehicleCommandDirect>>(new cpm::Reader<VehicleCommandDirect>(topic_vehicleCommandDirect));
-    reader_CommandSpeedCurvature = std::unique_ptr<cpm::Reader<VehicleCommandSpeedCurvature>>(new cpm::Reader<VehicleCommandSpeedCurvature>(topic_vehicleCommandSpeedCurvature));
-    reader_CommandTrajectory = std::unique_ptr<cpm::Reader<VehicleCommandTrajectory>>(new cpm::Reader<VehicleCommandTrajectory>(topic_vehicleCommandTrajectory));
-    reader_CommandPathTracking = std::unique_ptr<cpm::Reader<VehicleCommandPathTracking>>(new cpm::Reader<VehicleCommandPathTracking>(topic_vehicleCommandPathTracking));
+    reader_CommandDirect = std::unique_ptr<cpm::Reader<VehicleCommandDirectPubSubType>>(new cpm::Reader<VehicleCommandDirectPubSubType>("vehicleCommandDirect", _vehicle_id));
+    reader_CommandSpeedCurvature = std::unique_ptr<cpm::Reader<VehicleCommandSpeedCurvaturePubSubType>>(new cpm::Reader<VehicleCommandSpeedCurvaturePubSubType>("vehicleCommandSpeedCurvature", _vehicle_id));
+    reader_CommandTrajectory = std::unique_ptr<cpm::Reader<VehicleCommandTrajectoryPubSubType>>(new cpm::Reader<VehicleCommandTrajectoryPubSubType>("vehicleCommandTrajectory", _vehicle_id));
+    reader_CommandPathTracking = std::unique_ptr<cpm::Reader<VehicleCommandPathTrackingPubSubType>>(new cpm::Reader<VehicleCommandPathTrackingPubSubType>("vehicleCommandPathTracking", _vehicle_id));
 }
 
 
@@ -501,10 +497,10 @@ void Controller::reset()
     std::lock_guard<std::mutex> lock(command_receive_mutex);
 
     cpm::TimeMeasurement::Instance().start("reset_reader");
-    reader_CommandDirect.reset(new cpm::Reader<VehicleCommandDirect>(topic_vehicleCommandDirect));
-    reader_CommandSpeedCurvature.reset(new cpm::Reader<VehicleCommandSpeedCurvature>(topic_vehicleCommandSpeedCurvature));
-    reader_CommandPathTracking.reset(new cpm::Reader<VehicleCommandPathTracking>(topic_vehicleCommandPathTracking));
-    reader_CommandTrajectory.reset(new cpm::Reader<VehicleCommandTrajectory>(topic_vehicleCommandTrajectory));
+    reader_CommandDirect.reset(new cpm::Reader<VehicleCommandDirectPubSubType>("vehicleCommandDirect", vehicle_id));
+    reader_CommandSpeedCurvature.reset(new cpm::Reader<VehicleCommandSpeedCurvaturePubSubType>("vehicleCommandSpeedCurvature", vehicle_id));
+    reader_CommandPathTracking.reset(new cpm::Reader<VehicleCommandPathTrackingPubSubType>("vehicleCommandPathTracking", vehicle_id));
+    reader_CommandTrajectory.reset(new cpm::Reader<VehicleCommandTrajectoryPubSubType>("vehicleCommandTrajectory", vehicle_id));
     cpm::TimeMeasurement::Instance().stop("reset_reader");
 
     //Set current state to stop until new commands are received

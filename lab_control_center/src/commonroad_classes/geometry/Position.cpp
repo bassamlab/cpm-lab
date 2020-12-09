@@ -70,7 +70,7 @@ Position::Position(const xmlpp::Node* node)
             node,
             [&] (const xmlpp::Node* child)
             {
-                polygons.push_back(Polygon(child));
+                polygons.push_back(shape::Polygon(child));
             },
             "polygon"
         );
@@ -360,7 +360,7 @@ const std::vector<int>& Position::get_lanelet_refs() const
     return lanelet_refs;
 }
 
-const std::vector<Polygon>& Position::get_polygons() const
+const std::vector<shape::Polygon>& Position::get_polygons() const
 {
     return polygons;
 }

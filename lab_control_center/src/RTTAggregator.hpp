@@ -31,7 +31,7 @@
 #include <set>
 #include <string>
 
-#include "ReadyStatus.hpp"
+#include "cpm/dds/ReadyStatusPubSubTypes.h"
 
 #include "cpm/Logging.hpp"
 #include "cpm/RTTTool.hpp"

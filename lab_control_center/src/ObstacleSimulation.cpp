@@ -49,8 +49,10 @@ CommonroadObstacle ObstacleSimulation::construct_obstacle(ObstacleSimulationSegm
 
     //Set header
     Header header;
-    header.create_stamp(TimeStamp(t_now));
-    header.valid_after_stamp(TimeStamp(t_now));
+    TimeStamp timestamp;
+    timestamp.nanoseconds(t_now);
+    header.create_stamp(timestamp);
+    header.valid_after_stamp(timestamp);
     obstacle.header(header);
 
     //Set shape (Can be overriden by trajectory shape if required)
@@ -81,9 +83,11 @@ CommonroadObstacle ObstacleSimulation::construct_obstacle(ObstacleSimulationSegm
 VehicleCommandTrajectory ObstacleSimulation::construct_trajectory(std::vector<TrajectoryPoint>& trajectory_points, uint64_t t_now)
 {
     VehicleCommandTrajectory trajectory;
+    TimeStamp timestamp;
+    timestamp.nanoseconds(t_now);
     Header header;
-    header.create_stamp(TimeStamp(t_now));
-    header.valid_after_stamp(TimeStamp(t_now));
+    header.create_stamp(timestamp);
+    header.valid_after_stamp(timestamp);
     trajectory.header(header);
     trajectory.trajectory_points(trajectory_points);
     trajectory.vehicle_id(obstacle_id);
@@ -291,7 +295,9 @@ VehicleCommandTrajectory ObstacleSimulation::get_init_trajectory(uint64_t t_now,
     for (size_t i = 0; i < 2; ++i)
     {
         TrajectoryPoint point;
-        point.t(TimeStamp(t_now + i * timer_step_size));
+        TimeStamp timestamp;
+        timestamp.nanoseconds(t_now + i * timer_step_size);
+        point.t(timestamp);
         
         auto position = get_position(first_point);
         point.px(position.first);
@@ -335,7 +341,9 @@ VehicleCommandTrajectory ObstacleSimulation::get_trajectory(uint64_t start_time,
             auto& current_point = trajectory.trajectory.at(index);
 
             TrajectoryPoint point;
-            point.t(TimeStamp(start_time + current_point.time.value().get_mean() * time_step_size));
+            TimeStamp timestamp;
+            timestamp.nanoseconds(start_time + current_point.time.value().get_mean() * time_step_size);
+            point.t(timestamp);
 
             auto position = get_position(current_point);
             point.px(position.first);
@@ -443,7 +451,9 @@ VehicleCommandTrajectory ObstacleSimulation::get_trajectory(uint64_t start_time,
         for (int i = trajectory_points.size(); i < 4; ++i)
         {
             TrajectoryPoint point;
-            point.t(TimeStamp(t_now + i * time_step_size));
+            TimeStamp timestamp;
+            timestamp.nanoseconds(t_now + i * time_step_size);
+            point.t(timestamp);
             
             auto position = get_position(last_point);
             point.px(position.first);

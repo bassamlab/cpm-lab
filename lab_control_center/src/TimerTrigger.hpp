@@ -43,12 +43,10 @@
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_time_ns.hpp"
 #include "cpm/Writer.hpp"
-#include "cpm/AsyncReader.hpp"
-#include "dds/sub/DataReader.hpp"
+#include "cpm/ReaderAbstract.hpp"
 
-#include "ReadyStatus.hpp"
-#include "SystemTrigger.hpp"
-#include "StopRequest.hpp"
+#include "cpm/dds/ReadyStatusPubSubTypes.h"
+#include "cpm/dds/SystemTriggerPubSubTypes.h"
 
 /**
  * \enum ParticipantStatus
@@ -97,23 +95,10 @@ private:
      */
 
     bool obtain_new_ready_signals();
-
-    /**
-     * \brief TODO
-     */
-    bool obtain_new_stop_request_signals();
-
-    /**
-     * \brief TODO
-     * \param samples
-     */
-    void stop_request_callback(std::vector<StopRequest>& samples);
     //! DDS Reader to obtain ReadyStatus messages sent within the network
-    dds::sub::DataReader<ReadyStatus> ready_status_reader;
-    //! TODO
-    cpm::AsyncReader<StopRequest> stop_request_reader;
+    cpm::ReaderAbstract<ReadyStatusPubSubType> ready_status_reader;
     //! DDS Writer to send SystemTrigger messages, with which timers in the network can be started / controlled (simulated time) / stopped
-    cpm::Writer<SystemTrigger> system_trigger_writer;
+    cpm::Writer<SystemTriggerPubSubType> system_trigger_writer;
     //! Always stores the highest timestamp that was sent by each participant
     std::map<string, TimerData> ready_status_storage;
     //! Mutex for accessing ready_status_storage

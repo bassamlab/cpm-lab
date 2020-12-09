@@ -55,7 +55,7 @@ Shape::Shape(const xmlpp::Node* node)
             node,
             [&] (const xmlpp::Node* child)
             {
-                polygons.push_back(Polygon(child));
+                polygons.push_back(shape::Polygon(child));
             },
             "polygon"
         );
@@ -243,9 +243,9 @@ CommonroadDDSShape Shape::to_dds_msg()
         dds_rectangles.push_back(rectangle.to_dds_msg());
     }
 
-    dds_shape.circles(rti::core::vector<CommonroadDDSCircle>(dds_circles));
-    dds_shape.polygons(rti::core::vector<CommonroadDDSPolygon>(dds_polygons));
-    dds_shape.rectangles(rti::core::vector<CommonroadDDSRectangle>(dds_rectangles));
+    dds_shape.circles(dds_circles);
+    dds_shape.polygons(dds_polygons);
+    dds_shape.rectangles(dds_rectangles);
 
     return dds_shape;
 }
@@ -260,7 +260,7 @@ const std::vector<Circle>& Shape::get_circles() const
     return circles;
 }
 
-const std::vector<Polygon>& Shape::get_polygons() const
+const std::vector<shape::Polygon>& Shape::get_polygons() const
 {
     return polygons;
 }

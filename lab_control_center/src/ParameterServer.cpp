@@ -101,7 +101,7 @@ void ParameterServer::handleSingleParamRequest(std::string name) {
         //Create data to send
         std::vector<int32_t> stdInts;
         stdInts.push_back(intParam);
-        rti::core::vector<int32_t> ints(stdInts);
+        std::vector<int32_t> ints(stdInts);
 
         param.type(ParameterType::Int32);
         param.values_int32(ints);
@@ -116,7 +116,7 @@ void ParameterServer::handleSingleParamRequest(std::string name) {
         //Create data to send
         std::vector<double> stdDoubles;
         stdDoubles.push_back(doubleParam);
-        rti::core::vector<double> doubles(stdDoubles);
+        std::vector<double> doubles(stdDoubles);
 
         param.type(ParameterType::Double);
         param.values_double(doubles);
@@ -139,7 +139,7 @@ void ParameterServer::handleSingleParamRequest(std::string name) {
     std::vector<int32_t> intParams;
     if(storage->get_parameter_ints(name, intParams)) {
         //Create data to send
-        rti::core::vector<int32_t> ints(intParams);
+        std::vector<int32_t> ints(intParams);
 
         param.type(ParameterType::Vector_Int32);
         param.values_int32(ints);
@@ -152,7 +152,7 @@ void ParameterServer::handleSingleParamRequest(std::string name) {
     std::vector<double> doubleParams;
     if(storage->get_parameter_doubles(name, doubleParams)) {
         //Create data to send
-        rti::core::vector<double> doubles(doubleParams);
+        std::vector<double> doubles(doubleParams);
 
         param.type(ParameterType::Vector_Double);
         param.values_double(doubles);

@@ -25,7 +25,7 @@
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 #pragma once
-#include "VehicleObservation.hpp"
+#include "cpm/dds/VehicleObservationPubSubTypes.h"
 #include "cpm/Writer.hpp"
 #include <list>
 #include <string>
@@ -38,7 +38,7 @@
 class SimulationIPS
 {
     //! TODO
-    cpm::Writer<VehicleObservation> writer_vehicleObservation;
+    cpm::Writer<VehicleObservationPubSubType> writer_vehicleObservation;
 
     //! TODO
     std::list<VehicleObservation> delay_buffer;

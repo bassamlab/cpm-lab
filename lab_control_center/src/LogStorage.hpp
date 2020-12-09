@@ -47,7 +47,7 @@
 #include "cpm/Timer.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 
-#include "Log.hpp"
+#include "cpm/dds/LogPubSubTypes.h"
 
 /**
  * \brief Used to receive and store Log messages (cpm::Logging) from all participants in the current domain
@@ -69,9 +69,9 @@ private:
      */
     void log_callback(std::vector<Log>& samples);
     //! Async. reader to receive log messages sent within the network
-    cpm::AsyncReader<Log> log_reader;
+    cpm::AsyncReader<LogPubSubType> log_reader;
     //! Only keeps the newest logs, used when not in search-mode
-    std::vector<Log> log_buffer;
+    std::vector<Log> log_buffer; //TODO choose a more useful data structure depending on what is supposed to be done with the Logs
     //! Keeps all logs (might delete oldest ones if some limit is reached)
     std::vector<Log> log_storage;
     //! Mutex for accessing log_buffer

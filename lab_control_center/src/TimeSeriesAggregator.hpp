@@ -27,11 +27,11 @@
 #pragma once
 #include "defaults.hpp"
 
-#include "VehicleState.hpp"
-#include "VehicleObservation.hpp"
+#include "cpm/dds/VehicleStatePubSubTypes.h"
+#include "cpm/dds/VehicleObservationPubSubTypes.h"
 #include "TimeSeries.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include "VehicleCommandPathTracking.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
+#include "cpm/dds/VehicleCommandPathTrackingPubSubTypes.h"
 
 #include "cpm/AsyncReader.hpp"
 #include "cpm/get_time_ns.hpp"
@@ -102,13 +102,13 @@ class TimeSeriesAggregator
     void handle_new_vehicleObservation_samples(std::vector<VehicleObservation>& samples);
 
     //! Async. reader to receive vehicle state data from the vehicles and store them for later access in the LCC
-    shared_ptr<cpm::AsyncReader<VehicleState>> vehicle_state_reader;
+    shared_ptr<cpm::AsyncReader<VehicleStatePubSubType>> vehicle_state_reader;
     //! Async. reader to receive vehicle observation data from the IPS and store them for later access in the LCC
-    shared_ptr<cpm::AsyncReader<VehicleObservation>> vehicle_observation_reader;
+    shared_ptr<cpm::AsyncReader<VehicleObservationPubSubType>> vehicle_observation_reader;
     //! Reader to allow for simple access to newest already valid vehicle trajectories in get_vehicle_trajectory_commands
-    shared_ptr<cpm::MultiVehicleReader<VehicleCommandTrajectory>> vehicle_commandTrajectory_reader;
+    shared_ptr<cpm::MultiVehicleReader<VehicleCommandTrajectoryPubSubType>> vehicle_commandTrajectory_reader;
     //! Reader to allow for simple access to newest already valid vehicle path trackings in get_vehicle_path_tracking_commands
-    shared_ptr<cpm::MultiVehicleReader<VehicleCommandPathTracking>> vehicle_commandPathTracking_reader;
+    shared_ptr<cpm::MultiVehicleReader<VehicleCommandPathTrackingPubSubType>> vehicle_commandPathTracking_reader;
     //! Vector of vehicle IDs to listen to (every other trajectory msg gets ignored) - Reason: Compatible to MultiVehicleReader. Alternative: MultiVehicleReader that is flexible regarding the vehicle IDs.
     std::vector<uint8_t> vehicle_ids;
 

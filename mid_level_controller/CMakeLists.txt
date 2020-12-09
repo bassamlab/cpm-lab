@@ -7,20 +7,16 @@ add_definitions(-Wall -Wextra)
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_C_STANDARD 99)
 
-# RTI DDS
-include_directories(SYSTEM $ENV{NDDSHOME}/include)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
-include_directories(SYSTEM rtidds)
 include_directories(src)
-
 
 # CPM lib
 include_directories(../cpm_lib/include/)
-include_directories(../cpm_lib/include/cpm/dds/)
+include_directories(../cpm_lib/include/cpm/)
 
-
-
+# Fast-DDS
+option(THIRDPARTY "" ON)
+option(BUILD_TESTING "" OFF)
+add_subdirectory(../cpm_lib/thirdparty/Fast-DDS/ build)
 
 
 set(SOURCE_BASE
@@ -46,8 +42,6 @@ set(SOURCE_BASE
     ../low_level_controller/vehicle_atmega2560_firmware/crc.h
     ../low_level_controller/vehicle_atmega2560_firmware/crc.c
 )
-
-
 
 set_source_files_properties(src/casadi_mpc_fn.c PROPERTIES COMPILE_FLAGS -O3)
 
@@ -98,5 +92,4 @@ endif()
 
 
 target_link_libraries(vehicle_rpi_firmware dl nsl m pthread rt)
-target_link_libraries(vehicle_rpi_firmware nddscpp2 nddsc nddscore)
-target_link_libraries(vehicle_rpi_firmware cpm)
+target_link_libraries(vehicle_rpi_firmware cpm fastrtps)

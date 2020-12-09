@@ -40,7 +40,7 @@ extern "C" {
 
 SimulationVehicle::SimulationVehicle(SimulationIPS& _simulationIPS, uint8_t vehicle_id, vector<double> starting_position)
 :writer_vehiclePoseSimulated("vehiclePoseSimulated")
-,reader_vehiclePoseSimulated(cpm::get_topic<VehicleObservation>("vehiclePoseSimulated"), MAX_NUM_VEHICLES)
+,reader_vehiclePoseSimulated("vehiclePoseSimulated",MAX_NUM_VEHICLES)
 ,simulationIPS(_simulationIPS)
 {
     // select a starting position on the "map2" layout
@@ -128,7 +128,11 @@ VehicleState SimulationVehicle::update(
 
     
     // save current pose
-    ego_pose_history[t_now] = Pose2D(px, py, yaw);
+    Pose2D pose;
+    pose.x(px);
+    pose.y(py);
+    pose.yaw(yaw);
+    ego_pose_history[t_now] = pose;
     // Check for collision
     std::map<uint8_t, uint64_t> collisions = get_collisions(t_now, vehicle_id);
     for (auto const& colli : collisions)

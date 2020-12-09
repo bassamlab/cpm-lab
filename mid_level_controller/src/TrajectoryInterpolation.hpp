@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 
 /**
  * \struct TrajectoryInterpolation

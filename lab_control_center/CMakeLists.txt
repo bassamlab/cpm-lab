@@ -14,13 +14,18 @@ if(SIMULATION)
     add_definitions(-DSIMULATION)
 endif()
 
+# Fast-DDS# Fast-DDS
+option(THIRDPARTY "" ON)
+option(BUILD_TESTING "" OFF)
+add_subdirectory(../cpm_lib/thirdparty/Fast-DDS/ build)
+
 # RTI DDS
-add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
-include_directories(SYSTEM $ENV{NDDSHOME}/include)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
-link_libraries(nddscpp2z nddscz nddscorez)
-link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
+#add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
+#include_directories(SYSTEM $ENV{NDDSHOME}/include)
+#include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
+#include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
+#link_libraries(nddscpp2z nddscz nddscorez)
+#link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
 include_directories(src)
 include_directories(.)
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
@@ -216,9 +221,9 @@ add_executable(lab_control_center
 
 
 if(NOT SIMULATION)
-    target_link_libraries(lab_control_center cpm yaml-cpp stdc++fs labcamlib ${LibXML++_LIBRARIES} ${GTKMM_LIBRARIES})
+    target_link_libraries(lab_control_center cpm yaml-cpp stdc++fs labcamlib ${LibXML++_LIBRARIES} ${GTKMM_LIBRARIES} fastrtps)
 else()
-    target_link_libraries(lab_control_center cpm yaml-cpp stdc++fs ${LibXML++_LIBRARIES} ${GTKMM_LIBRARIES})
+    target_link_libraries(lab_control_center cpm yaml-cpp stdc++fs ${LibXML++_LIBRARIES} ${GTKMM_LIBRARIES} fastrtps)
 endif()
 
 target_include_directories(lab_control_center PUBLIC ${GTKMM_INCLUDE_DIRS})
@@ -228,16 +233,16 @@ add_executable(TimerTestSimulated
     test/TimerTestSimulated.cpp
 )
 
-target_link_libraries(TimerTestSimulated cpm)
+target_link_libraries(TimerTestSimulated cpm fastrtps)
 
 add_executable(TimerTestRealtime
     test/TimerTestRealtime.cpp
 )
 
-target_link_libraries(TimerTestRealtime cpm)
+target_link_libraries(TimerTestRealtime cpm fastrtps)
 
 add_executable(VisualizationTest
     test/VisualizationTest.cpp
 )
 
-target_link_libraries(VisualizationTest cpm)
+target_link_libraries(VisualizationTest cpm fastrtps)

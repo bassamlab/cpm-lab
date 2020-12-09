@@ -35,8 +35,8 @@
 #include "cpm/Logging.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_time_ns.hpp"
-#include "CommonroadObstacle.hpp"
-#include "CommonroadObstacleList.hpp"
+#include "cpm/dds/CommonroadObstaclePubSubTypes.h"
+#include "cpm/dds/CommonroadObstacleListPubSubTypes.h"
 #include "commonroad_classes/CommonRoadScenario.hpp"
 
 /**
@@ -48,7 +48,7 @@ class ObstacleAggregator
 {
     //For visualization of commonroad data - store all received data in the map below, use it to get currently relevant data
     //! Async. reader to receive sent obstacle data
-    cpm::AsyncReader<CommonroadObstacleList> commonroad_obstacle_reader;
+    cpm::AsyncReader<CommonroadObstacleListPubSubType> commonroad_obstacle_reader;
     /**
      * \brief Callback function for the async reader, to process received obstacle messages
      * \param samples Received obstacle messages

@@ -26,7 +26,7 @@
 
 #pragma once
 #include "defaults.hpp"
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "cpm/get_time_ns.hpp"
 
 /**

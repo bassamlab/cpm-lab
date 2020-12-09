@@ -16,7 +16,9 @@ set(SOURCE_CPM
         
     include/cpm/ParticipantSingleton.hpp
     src/ParticipantSingleton.cpp
+    
     include/cpm/Participant.hpp
+    src/Participant.cpp
 
     include/cpm/AsyncReader.hpp
 

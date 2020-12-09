@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "cpm/dds/Parameter.hpp"
+#include "cpm/dds/ParameterPubSubTypes.h"
 #include <string>
 #include <sstream>
 #include <iomanip> 
@@ -86,13 +86,18 @@ struct ParameterWithDescription {
         else if (param.parameter_data.type() == ParameterType::Vector_Int32) {
             type = "Integer List";
             std::stringstream value_stream;
-            value_stream << param.parameter_data.values_int32();
+            for(auto& val :  param.parameter_data.values_int32()){
+              value_stream << val << std::endl;
+            }
             value = value_stream.str();
         }
         else if (param.parameter_data.type() == ParameterType::Vector_Double) {
             type = "Double List";
             std::stringstream value_stream;
-            value_stream << std::fixed << std::setprecision(precision) << param.parameter_data.values_double();
+            value_stream << std::fixed << std::setprecision(precision);
+            for(auto& val : param.parameter_data.values_double()){
+              value_stream << val << std::endl;
+            }
             value = value_stream.str();
         }
 

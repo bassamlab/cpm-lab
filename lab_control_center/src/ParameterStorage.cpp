@@ -308,7 +308,7 @@ void ParameterStorage::set_parameter_uint64_t(std::string name, uint64_t value, 
 void ParameterStorage::set_parameter_int(std::string name, int32_t value, std::string info) {
     std::vector<int32_t> stdInts;
     stdInts.push_back(value);
-    rti::core::vector<int32_t> ints(stdInts);
+    std::vector<int32_t> ints(stdInts);
 
     //Create parameter object
     ParameterWithDescription param;
@@ -323,7 +323,7 @@ void ParameterStorage::set_parameter_int(std::string name, int32_t value, std::s
 void ParameterStorage::set_parameter_double(std::string name, double value, std::string info) {
     std::vector<double> stdDoubles;
     stdDoubles.push_back(value);
-    rti::core::vector<double> doubles(stdDoubles);
+    std::vector<double> doubles(stdDoubles);
 
     //Create parameter object
     ParameterWithDescription param;
@@ -434,7 +434,7 @@ bool ParameterStorage::get_parameter_ints(std::string name, std::vector<int32_t>
     std::lock_guard<std::mutex> u_lock(param_storage_mutex);
     if (param_storage.find(name) != param_storage.end()) {
         if ((param_storage[name]).parameter_data.type() == ParameterType::Vector_Int32) {
-            rti::core::vector<int32_t>& rti_vector = (param_storage[name]).parameter_data.values_int32();
+            std::vector<int32_t>& rti_vector = (param_storage[name]).parameter_data.values_int32();
             value.clear();
             for (int32_t val : rti_vector) {
                 value.push_back(val);
@@ -448,7 +448,7 @@ bool ParameterStorage::get_parameter_doubles(std::string name, std::vector<doubl
     std::lock_guard<std::mutex> u_lock(param_storage_mutex);
     if (param_storage.find(name) != param_storage.end()) {
         if ((param_storage[name]).parameter_data.type() == ParameterType::Vector_Double) {
-            rti::core::vector<double>& rti_vector = (param_storage[name]).parameter_data.values_double();
+            std::vector<double>& rti_vector = (param_storage[name]).parameter_data.values_double();
             value.clear();
             for (double val : rti_vector) {
                 value.push_back(val);

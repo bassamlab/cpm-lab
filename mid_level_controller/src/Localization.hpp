@@ -26,8 +26,9 @@
 
 #pragma once
 
-#include "VehicleState.hpp"
-#include "VehicleObservation.hpp"
+#include "dds/Pose2DPubSubTypes.h"
+#include "dds/VehicleStateListPubSubTypes.h"
+#include "dds/VehicleObservationPubSubTypes.h"
 #include <cassert>
 
 /**
@@ -48,7 +49,13 @@ struct LocalizationState
     //! TODO, remote IPS data
     VehicleObservation vehicleObservation;
     //! Best estimate of the pose
-    Pose2D pose = Pose2D(0,0,0);
+    Pose2D pose;
+    //! TODO
+    LocalizationState(){
+      pose.x(0); // best estimate of the pose
+      pose.y(0);
+      pose.yaw(0);
+    }
 };
 
 #define LOCALIZATION_BUFFER_SIZE (512)

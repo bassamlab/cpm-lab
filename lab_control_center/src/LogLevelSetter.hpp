@@ -31,7 +31,7 @@
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Writer.hpp"
 
-#include "LogLevel.hpp"
+#include "cpm/dds/LogLevelPubSubTypes.h"
 
 #include <memory>
 
@@ -45,7 +45,7 @@
 class LogLevelSetter {
 private:
     //! Writer to send log level to all other participants in the network. Set to be transient local and reliable, s.t. a participant that joins the domain after the log level was set can still receive the last set value
-    cpm::Writer<LogLevel> log_level_writer;
+    cpm::Writer<LogLevelPubSubType> log_level_writer;
 
     /**
      * \brief The constructor sets up the DDS Writer, private as this is a Singleton

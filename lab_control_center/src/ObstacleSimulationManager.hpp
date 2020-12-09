@@ -35,8 +35,8 @@
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_topic.hpp"
 #include "cpm/Writer.hpp"
-#include "CommonroadObstacleList.hpp"
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/CommonroadObstacleListPubSubTypes.h"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 
 #include "ui/commonroad/ObstacleToggle.hpp" //For callback from vehicle toggle: Need enum defined here
 
@@ -77,9 +77,9 @@ private:
     std::shared_ptr<cpm::SimpleTimer> standby_timer;
 
     //! DDS writer to send obstacle information to the MapView (and potentially other participants in the network)
-    cpm::Writer<CommonroadObstacleList> writer_commonroad_obstacle;
+    cpm::Writer<CommonroadObstacleListPubSubType> writer_commonroad_obstacle;
     //! DDS writer to send obstacle trajectories e.g. to a vehicle, s.t. it can follow this trajectory to represent the object in the real world
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicle_trajectory;
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicle_trajectory;
 
     /**
      * \brief Function that sets up the obstacle simulation based on the currently set scenario (callback for scenario)

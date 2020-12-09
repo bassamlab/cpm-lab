@@ -39,7 +39,7 @@
 #include "commonroad_classes/InterfaceGeometry.hpp"
 #include "commonroad_classes/XMLTranslation.hpp"
 
-#include "CommonroadDDSShape.hpp"
+#include "cpm/dds/CommonroadDDSShapePubSubTypes.h"
 
 #include "LCCErrorLogger.hpp"
 
@@ -56,7 +56,7 @@ private:
     //! Circles, part of the shape
     std::vector<Circle> circles;
     //! Polygons, part of the shape
-    std::vector<Polygon> polygons;
+    std::vector<shape::Polygon> polygons;
     //! Rectangles, part of the shape
     std::vector<Rectangle> rectangles;
 
@@ -122,7 +122,7 @@ public:
     /**
      * \brief Get polygons, which are part of the overall shape
      */
-    const std::vector<Polygon>& get_polygons() const;
+    const std::vector<shape::Polygon>& get_polygons() const;
     /**
      * \brief Get rectangles, which are part of the overall shape
      */

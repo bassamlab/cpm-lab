@@ -35,8 +35,7 @@ using namespace std::placeholders;
 TimerTrigger::TimerTrigger(bool simulated_time) :
     use_simulated_time(simulated_time),
     /*Set up communication*/
-    ready_status_reader(dds::sub::Subscriber(cpm::ParticipantSingleton::Instance()), cpm::get_topic<ReadyStatus>("readyStatus"), dds::sub::qos::DataReaderQos() << dds::core::policy::Reliability::Reliable() << dds::core::policy::History::KeepAll()),
-    stop_request_reader([this](std::vector<StopRequest>& samples){stop_request_callback(samples);}, "stopRequest"),
+    ready_status_reader("readyStatus", true, true),
     system_trigger_writer("systemTrigger", true)
 {    
     current_simulated_time = 0;
@@ -114,17 +113,16 @@ bool TimerTrigger::obtain_new_ready_signals() {
     bool any_message_received = false; 
     
     for (auto sample : ready_status_reader.take()) {
-        if (sample.info().valid()) {
             any_message_received = true;
             
             //Data from the sample to string
-            const std::string id = sample.data().source_id();
+            const std::string id = sample.source_id();
 
             std::unique_lock<std::mutex> lock(ready_status_storage_mutex);
             std::unique_lock<std::mutex> lock2(simulated_time_mutex);
 
             //Save current start request and storage start request of the participant (the latter may be higher)
-            uint64_t next_start_request = sample.data().next_start_stamp().nanoseconds();
+            uint64_t next_start_request = sample.next_start_stamp().nanoseconds();
             uint64_t storage_start_request = 0;
             if (ready_status_storage.find(id) != ready_status_storage.end()) {
                 storage_start_request = ready_status_storage[id].next_timestep;
@@ -165,7 +163,7 @@ bool TimerTrigger::obtain_new_ready_signals() {
                     id.c_str()
                 );
             }
-        }
+        
     }
 
     return any_message_received;
@@ -180,8 +178,9 @@ void TimerTrigger::send_start_signal() {
     }
     else {
         SystemTrigger trigger;
-
-        trigger.next_start(TimeStamp(cpm::get_time_ns() + 1000000000ull));
+        TimeStamp timestamp;
+        timestamp.nanoseconds(cpm::get_time_ns() + 1000000000ull);
+        trigger.next_start(timestamp);
         system_trigger_writer.write(trigger);
 
         //New messages are now meaningless, thus shut down the message receiver
@@ -235,7 +234,9 @@ bool TimerTrigger::check_signals_and_send_next_signal() {
 
             //Send system trigger message to participants
             SystemTrigger trigger;
-            trigger.next_start(TimeStamp(current_simulated_time));
+            TimeStamp timestamp;
+            timestamp.nanoseconds(current_simulated_time);
+            trigger.next_start(timestamp);
             system_trigger_writer.write(trigger);
 
             return true;
@@ -247,7 +248,9 @@ bool TimerTrigger::check_signals_and_send_next_signal() {
 
 void TimerTrigger::send_stop_signal() {
     SystemTrigger trigger;
-    trigger.next_start(TimeStamp(cpm::TRIGGER_STOP_SYMBOL));
+    TimeStamp timestamp;
+    timestamp.nanoseconds(cpm::TRIGGER_STOP_SYMBOL);
+    trigger.next_start(timestamp);
     system_trigger_writer.write(trigger);
 
     cpm::Logging::Instance().write(

@@ -27,8 +27,7 @@
 #pragma once
 
 #include "defaults.hpp"
-#include <dds/pub/ddspub.hpp>
-#include "VehicleCommandSpeedCurvature.hpp"
+#include "cpm/dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
 #include "cpm/get_time_ns.hpp"
 #include "cpm/stamp_message.hpp"
 #include "cpm/ParticipantSingleton.hpp"
@@ -47,12 +46,8 @@ class VehicleAutomatedControl
 {
 private:
     //DDS data structures to send automated commands to the vehicles
-    //! DDS Participant to send the stop signal (speed = 0) to the vehicles
-    dds::domain::DomainParticipant& participant;
-    //! DDS Topic to send the stop signal (speed = 0) to the vehicles
-    dds::topic::Topic<VehicleCommandSpeedCurvature> topic_vehicleCommandSpeedCurvature;
     //! DDS Writer to send the stop signal (speed = 0) to the vehicles
-    shared_ptr<dds::pub::DataWriter<VehicleCommandSpeedCurvature>> writer_vehicleCommandSpeedCurvature = nullptr;
+    shared_ptr<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>> writer_vehicleCommandSpeedCurvature = nullptr;
 
     //Vehicle commands need to be sent regularly to be interpreted correctly, so e.g. a stop signal should not be sent only once (TODO: Check that)
     //! Loop to send the speed = 0 stop signal multiple times, s.t. it is definitely received and obeyed for some time period

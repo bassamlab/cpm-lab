@@ -35,8 +35,8 @@
 #include <memory>
 #include <atomic>
 
-#include "Parameter.hpp"
-#include "ParameterRequest.hpp"
+#include "cpm/dds/ParameterPubSubTypes.h"
+#include "cpm/dds/ParameterRequestPubSubTypes.h"
 #include "ParameterStorage.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Writer.hpp"
@@ -68,9 +68,9 @@ private:
 
     //Communication
     //! DDS Writer to send parameter values to the network, if set by the user or requested
-    cpm::Writer<Parameter> writer;
+    cpm::Writer<ParameterPubSubType> writer;
     //! DDS Async Reader that looks for parameter requests and calls handleParamRequest if new messages were received
-    cpm::AsyncReader<ParameterRequest> readerParameterRequest;
+    cpm::AsyncReader<ParameterRequestPubSubType> readerParameterRequest;
 
     //! Thread to send parameters in the network not immediately, but 5 seconds after the ParameterServer object was created
     std::thread delayed_init_param_thread;

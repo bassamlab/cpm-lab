@@ -286,7 +286,8 @@ void ObstacleSimulationManager::start_helper(bool wait_for_start_signal, bool si
         {
             if (get_obstacle_simulation_state(obstacle.second.get_id()) == ObstacleToggle::ToggleState::On) //TODO: Let the user choose which obstacle should be real in the UI
             {
-                writer_vehicle_trajectory.write(obstacle.second.get_trajectory(start_time, t_now, time_step_size));
+                auto trajectory = obstacle.second.get_trajectory(start_time, t_now, time_step_size);
+                writer_vehicle_trajectory.write(trajectory);
             }
         }
     });

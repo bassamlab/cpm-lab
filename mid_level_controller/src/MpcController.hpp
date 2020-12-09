@@ -31,9 +31,9 @@
 #include <array>
 #include <vector>
 #include "VehicleModel.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include "VehicleState.hpp"
-#include "Visualization.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
+#include "cpm/dds/VehicleStateListPubSubTypes.h"
+#include "cpm/dds/VisualizationPubSubTypes.h"
 #include "cpm/get_topic.hpp"
 #include "cpm/Writer.hpp"
 
@@ -55,8 +55,8 @@
 class MpcController
 {
     //! TODO
-    cpm::Writer<Visualization> writer_Visualization;
-    //! TODO
+    cpm::Writer<VisualizationPubSubType> writer_Visualization;
+    //! TODO 
     uint8_t vehicle_id;
 
     //! TODO

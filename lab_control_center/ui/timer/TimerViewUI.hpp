@@ -50,8 +50,8 @@
 #include "cpm/get_topic.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 
-#include "ReadyStatus.hpp"
-#include "SystemTrigger.hpp"
+#include "cpm/dds/ReadyStatusPubSubTypes.h"
+#include "cpm/dds/SystemTriggerPubSubTypes.h"
 
 #include "ui/setup/CrashChecker.hpp"
 

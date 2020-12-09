@@ -36,8 +36,8 @@
 #include <algorithm>
 #include <atomic>
 
-#include "LogPubSubTypes.h"
-#include "LogLevelPubSubTypes.h"
+#include "dds/LogLevelPubSubTypes.h"
+#include "dds/LogPubSubTypes.h"
 
 #include "cpm/AsyncReader.hpp"
 #include "cpm/ParticipantSingleton.hpp"

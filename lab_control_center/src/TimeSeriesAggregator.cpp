@@ -35,7 +35,7 @@
 
 TimeSeriesAggregator::TimeSeriesAggregator(uint8_t max_vehicle_id)
 {
-    vehicle_state_reader = make_shared<cpm::AsyncReader<VehicleState>>(
+    vehicle_state_reader = make_shared<cpm::AsyncReader<VehicleStatePubSubType>>(
         [this](std::vector<VehicleState>& samples){
             handle_new_vehicleState_samples(samples);
         },
@@ -43,7 +43,7 @@ TimeSeriesAggregator::TimeSeriesAggregator(uint8_t max_vehicle_id)
     );
 
 
-    vehicle_observation_reader = make_shared<cpm::AsyncReader<VehicleObservation>>(
+    vehicle_observation_reader = make_shared<cpm::AsyncReader<VehicleObservationPubSubType>>(
         [this](std::vector<VehicleObservation>& samples){
             handle_new_vehicleObservation_samples(samples);
         },
@@ -55,12 +55,10 @@ TimeSeriesAggregator::TimeSeriesAggregator(uint8_t max_vehicle_id)
     {
         vehicle_ids.push_back(i);
     }
-    vehicle_commandTrajectory_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandTrajectory>>(
-        cpm::get_topic<VehicleCommandTrajectory>("vehicleCommandTrajectory"),
-        vehicle_ids
-    );
-    vehicle_commandPathTracking_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandPathTracking>>(
-        cpm::get_topic<VehicleCommandPathTracking>("vehicleCommandPathTracking"),
+    vehicle_commandTrajectory_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandTrajectoryPubSubType>>("vehicleCommandTrajectory",
+        vehicle_ids);
+    vehicle_commandPathTracking_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandPathTrackingPubSubType>>(
+        "vehicleCommandPathTracking",
         vehicle_ids
     );
 }
@@ -328,8 +326,7 @@ void TimeSeriesAggregator::reset_all_data()
 {
     std::lock_guard<std::mutex> lock(_mutex);
     timeseries_vehicles.clear();
-    vehicle_commandTrajectory_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandTrajectory>>(
-        cpm::get_topic<VehicleCommandTrajectory>("vehicleCommandTrajectory"),
+    vehicle_commandTrajectory_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandTrajectoryPubSubType>>("vehicleCommandTrajectory",
         vehicle_ids
     );
     vehicle_commandPathTracking_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandPathTracking>>(

@@ -27,7 +27,6 @@
 #pragma once
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
-#include <fastrtps/xmlparser/XMLProfileManager.h>
 
 namespace cpm
 {
@@ -53,43 +52,17 @@ namespace cpm
          * \brief Constructor for a participant 
          * \param domain_number Set the domain ID of the domain within which the communication takes place
          */
-        Participant(int domain_number)
-        { 
-            auto qos = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_default_participant_qos();
-            participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos);
-            assert(participant != nullptr);
-        }
+        Participant(int domain_number);
 
         /**
          * \brief Constructor for a participant 
          * \param domain_number Set the domain ID of the domain within which the communication takes place
          * \param qos_file QoS settings to be imported from an .xml file
          */
-        Participant(int domain_number, std::string qos_file)
-        {
-          auto ret_xml = eprosima::fastrtps::xmlparser::XMLProfileManager::loadXMLFile(qos_file);
-          if(ret_xml != eprosima::fastrtps::xmlparser::XMLP_ret::XML_OK){
-            throw std::invalid_argument("error loading xml profile");
-          }
+        Participant(int domain_number, std::string qos_file);
 
-          eprosima::fastdds::dds::DomainParticipantQos qos;
-          auto ret_pf = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_participant_qos_from_profile("domainparticipant_profile_name", qos);
-          if(ret_pf != ReturnCode_t::RETCODE_OK){
-            throw std::invalid_argument("unable to create participant from xml profile");
-          }
-          participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos);
-          if(participant == nullptr){
-            throw std::invalid_argument("failed to create participant");
-          }
-        }
-
-        ~Participant(){
-          delete participant;
-        }
+        ~Participant();
         
-        eprosima::fastdds::dds::DomainParticipant& get_participant()
-        {
-            return *participant;
-        }
+        eprosima::fastdds::dds::DomainParticipant& get_participant();
     };
 }
