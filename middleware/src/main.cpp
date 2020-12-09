@@ -42,7 +42,7 @@
 #include "cpm/CommandLineReader.hpp"
 #include "cpm/init.hpp"
 
-#include "VehicleStateList.hpp"
+#include "cpm/dds/VehicleStateListPubSubTypes.h"
 
 #include "Communication.hpp"
 
@@ -182,8 +182,8 @@ int main (int argc, char *argv[]) {
         std::vector<VehicleObservation> observations = communication->getLatestVehicleObservationMessages(t_now);
 
         //Transform to VehicleStateList message
-        rti::core::vector<VehicleState> rti_states(states);
-        rti::core::vector<VehicleObservation> rti_observations(observations);
+        std::vector<VehicleState> rti_states(states);
+        std::vector<VehicleObservation> rti_observations(observations);
         VehicleStateList state_list;
         state_list.state_list(rti_states);
         state_list.vehicle_observation_list(rti_observations);

@@ -165,7 +165,7 @@ template<class MessageType> class TypedCommunication {
          * the actual check depends on the message type and can be found in the .cpp file for this class
          * \param msg Message to check
          */
-        void type_specific_msg_check(MessageType msg)
+        void type_specific_msg_check(typename MessageType::type& msg)
         {
             //Unspecific version, thus empty
             //Specializations can be found in the .cpp file
@@ -194,10 +194,7 @@ template<class MessageType> class TypedCommunication {
         ,timer(_timer)
         ,lastHLCResponseTimes()
         ,vehicle_ids(_vehicle_ids)
-        {
-            static_assert(std::is_same<decltype(std::declval<MessageType>().vehicle_id()), uint8_t>::value, "IDL type must have a vehicle_id.");
-            static_assert(std::is_same<decltype(std::declval<MessageType>().header().create_stamp().nanoseconds()), unsigned long long>::value, "IDL type must use the Header IDL as header.");
-        }
+        {}
 
         /**
          * \brief Returns latest HLC response time (for the last received vehicle command) or an empty optional if no entry could be found
@@ -224,7 +221,7 @@ template<class MessageType> class TypedCommunication {
          * \brief Send a command to a vehicle
          * \param message The command to send
          */
-        void sendToVehicle(MessageType message) {
+        void sendToVehicle(typename MessageType::type& message) {
             vehicleWriter.write(message);
         }
 

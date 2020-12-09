@@ -26,7 +26,7 @@ add_executable( middleware
     ${SOURCES}
 )
 
-target_link_libraries(middleware cpm)
+target_link_libraries(middleware cpm fastrtps)
 
 add_executable(unittest 
     test/catch.cpp

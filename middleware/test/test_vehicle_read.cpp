@@ -37,10 +37,10 @@
 #include "cpm/Parameter.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Logging.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include "VehicleState.hpp"
-#include "VehicleStateList.hpp"
-#include "Parameter.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
+#include "cpm/dds/VehicleStateListPubSubTypes.h"
+#include "cpm/dds/VehicleStateListPubSubTypes.h"
+#include "cpm/dds/ParameterRequestPubSubTypes.h"
 
 #include "Communication.hpp"
 
@@ -99,8 +99,8 @@ TEST_CASE( "VehicleCommunication_Read" ) {
     });
 
     //Send random data from two vehicle dummies to the Middleware
-    cpm::Writer<VehicleState> vehicle_0_writer("vehicleState");
-    cpm::Writer<VehicleState> vehicle_1_writer("vehicleState");
+    cpm::Writer<VehicleStatePubSubType> vehicle_0_writer("vehicleState");
+    cpm::Writer<VehicleStatePubSubType> vehicle_1_writer("vehicleState");
 
     for (int stamp_number = 0; stamp_number <= testMessagesAmount; ++stamp_number) {
         //Create random variable
@@ -108,20 +108,29 @@ TEST_CASE( "VehicleCommunication_Read" ) {
 	    std::uniform_real_distribution<double> distribution(0.0, 3.0);
         double changingParam = distribution(generator);
 
+
+    TimeStamp timestamp;
+    timestamp.nanoseconds(stamp_number);
+    Header header;
+    header.create_stamp(timestamp);
+    header.valid_after_stamp(timestamp);
+
 		VehicleState first_vehicle_state;
-        first_vehicle_state.vehicle_id(vehicle_ids.at(0));
-        first_vehicle_state.header(Header(TimeStamp(stamp_number), TimeStamp(stamp_number)));
-        first_vehicle_state.pose(Pose2D(0, 1 * changingParam, 2 * changingParam));
-        first_vehicle_state.battery_voltage(3 * changingParam);
+    first_vehicle_state.vehicle_id(vehicle_ids.at(0));
+    first_vehicle_state.header(header);
 
-        VehicleState second_vehicle_state;
-        second_vehicle_state.vehicle_id(vehicle_ids.at(1));
-        second_vehicle_state.header(Header(TimeStamp(stamp_number), TimeStamp(stamp_number)));
-        second_vehicle_state.pose(Pose2D(0, 1 * changingParam, 2 * changingParam));
-        second_vehicle_state.battery_voltage(3 * changingParam);
+    Pose2D pose;
+    pose.x(0);
+    pose.y(1 * changingParam);
+    pose.yaw(2*changingParam);
+    first_vehicle_state.battery_voltage(3 * changingParam);
 
-		vehicle_0_writer.write(first_vehicle_state);
-        vehicle_1_writer.write(second_vehicle_state);
+ 		vehicle_0_writer.write(first_vehicle_state);
+
+    VehicleState second_vehicle_state = first_vehicle_state;
+    second_vehicle_state.vehicle_id(vehicle_ids.at(1));
+
+    vehicle_1_writer.write(second_vehicle_state);
 		std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<uint64_t>(sensor_period)));
     }
 

@@ -35,20 +35,17 @@
 #include <vector>
 #include <chrono>
 
-#include <dds/sub/ddssub.hpp>
-#include <dds/pub/ddspub.hpp>
-#include <dds/core/QosProvider.hpp>
-#include <rti/core/cond/AsyncWaitSet.hpp>
-#include <rti/core/ListenerBinder.hpp>
+#include "fastdds/domain/DomainParticipantImpl.hpp"
 
 #include "cpm/Timer.hpp"
 #include "cpm/Parameter.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Logging.hpp"
-#include "VehicleState.hpp"
-#include "VehicleStateList.hpp"
-#include "VehicleCommandSpeedCurvature.hpp"
-#include "Parameter.hpp"
+
+#include "cpm/dds/VehicleStateListPubSubTypes.h"
+#include "cpm/dds/VehicleStateListPubSubTypes.h"
+#include "cpm/dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
+#include "cpm/dds/ParameterRequestPubSubTypes.h"
 
 #include "cpm/AsyncReader.hpp"
 #include "cpm/ReaderAbstract.hpp"
@@ -99,9 +96,8 @@ TEST_CASE( "MiddlewareToHLCCommunication" ) {
         vehicle_ids);
 
     //HLC Writer
-    dds::domain::DomainParticipant participant = dds::domain::find(hlcDomainNumber);
-    auto cpm_participant = cpm::Participant(participant);
-    cpm::Writer<VehicleCommandSpeedCurvature> hlcWriter(participant, vehicleSpeedCurvatureTopicName);
+    auto participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->lookup_participant(hlcDomainNumber);
+    cpm::Writer<VehicleCommandSpeedCurvaturePubSubType> hlcWriter(*participant, vehicleSpeedCurvatureTopicName);
 
     //Data for checks
     std::vector<uint64_t> hlc_current_round_received;
@@ -116,7 +112,7 @@ TEST_CASE( "MiddlewareToHLCCommunication" ) {
     size_t hlc_reader_round_pos = 0;
 
     //Test which data was received by the HLC
-	cpm::AsyncReader<VehicleStateList> hlcReader([&] (std::vector<VehicleStateList>& samples) {
+	cpm::AsyncReader<VehicleStateListPubSubType> hlcReader([&] (std::vector<VehicleStateList>& samples) {
         // Check if received data matches sent data + order is kept (not guaranteed though)
         // Store the highest round value and require it to be as high as the current round value of the timer (see checks)
         uint64_t highest_round_value = 0;
@@ -145,10 +141,20 @@ TEST_CASE( "MiddlewareToHLCCommunication" ) {
             std::this_thread::sleep_for(std::chrono::milliseconds(51));
         }
 
-        VehicleCommandSpeedCurvature curv(vehicleID, Header(TimeStamp(1), TimeStamp(1)), 0, 0);
+        VehicleCommandSpeedCurvature curv;
+        curv.vehicle_id(vehicleID);
+        TimeStamp timestamp;
+        timestamp.nanoseconds(1);
+        Header header;
+        header.create_stamp(timestamp);
+        header.valid_after_stamp(timestamp);
+        curv.header(header);
+        curv.speed(0);
+        curv.curvature(0);
+        
         hlcWriter.write(curv);
     },
-    cpm_participant, vehicleStateListTopicName);
+    *participant, vehicleStateListTopicName);
 
     //Wait for setup
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -181,10 +187,16 @@ TEST_CASE( "MiddlewareToHLCCommunication" ) {
 
             VehicleState state;
             state.vehicle_id(vehicleID);
-            state.header(Header(TimeStamp(roundNum), TimeStamp(roundNum)));
+
+            TimeStamp timestamp;
+            timestamp.nanoseconds(roundNum);
+            Header header;
+            header.create_stamp(timestamp);
+            header.valid_after_stamp(timestamp);
+            state.header(header);
             std::vector<VehicleState> states;
             states.push_back(state);
-            dds::core::vector<VehicleState> rti_state_list(states);
+            std::vector<VehicleState> rti_state_list(states);
             VehicleStateList state_list;
             state_list.state_list(rti_state_list);
             state_list.t_now(t_now_value);

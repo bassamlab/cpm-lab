@@ -31,7 +31,7 @@
  * \ingroup middleware
  */
 
-template<> void TypedCommunication<VehicleCommandTrajectory>::type_specific_msg_check(VehicleCommandTrajectory msg)
+template<> void TypedCommunication<VehicleCommandTrajectoryPubSubType>::type_specific_msg_check(VehicleCommandTrajectory& msg)
 {
     auto set_id = msg.vehicle_id();
 

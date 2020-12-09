@@ -3,7 +3,7 @@ project(cpmlib)
 option(BUILD_ARM OFF)
 
 set (CMAKE_CXX_STANDARD 11)
-add_definitions(-Wall -Wextra -Werror=return-type -g -O0)
+add_definitions(-Wall -Wextra -Werror=return-type -g -O3)
 include_directories(src)
 include_directories(include)
 
