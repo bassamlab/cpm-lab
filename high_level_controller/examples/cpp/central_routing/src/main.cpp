@@ -33,8 +33,8 @@
 #include "cpm/ParticipantSingleton.hpp"         //->cpm_lib->include->cpm
 #include "cpm/Timer.hpp"                        //->cpm_lib->include->cpm
 #include "cpm/Writer.hpp"
-#include "VehicleObservation.hpp" 
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/VehicleObservationPubSubTypes.h" 
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "VehicleTrajectoryPlanningState.hpp"   //sw-folder central routing
 #include "lane_graph_tools.hpp"                 //sw-folder central routing
 #include <iostream>
@@ -109,12 +109,9 @@ int main(int argc, char *argv[])
 
     ///////////// writer and reader for sending trajectory commands////////////////////////
     //the writer will write data for the trajectory for the position of the vehicle (x,y) and the speed for each direction vecotr (vx,vy) and the vehicle ID
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory("vehicleCommandTrajectory");
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory("vehicleCommandTrajectory");
     //the reader will read the pose of a vehicle given by its vehicle ID
-    cpm::MultiVehicleReader<VehicleObservation> ips_reader(
-        cpm::get_topic<VehicleObservation>("vehicleObservation"),
-        vehicle_ids
-    );
+    cpm::MultiVehicleReader<VehicleObservationPubSubType> ips_reader("vehicleObservation", vehicle_ids);
 
     /////////////////////////////////Trajectory planner//////////////////////////////////////////
     //create(node_id, period in nanoseconds, offset in nanoseconds, bool wait_for_start, bool simulated_time_allowed, bool simulated_time (set in line 27))

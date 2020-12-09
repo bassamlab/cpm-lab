@@ -2,13 +2,9 @@ cmake_minimum_required(VERSION 3.1)
 add_definitions(-Wall -Wextra -Werror=return-type)
 set (CMAKE_CXX_STANDARD 11)
 
-# RTI DDS
-add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
-include_directories(SYSTEM $ENV{NDDSHOME}/include)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
-link_libraries(nddscpp2z nddscz nddscorez)
-link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
+option(THIRDPARTY "" ON)
+option(BUILD_TESTING "" OFF)
+add_subdirectory(../../../../cpm_lib/thirdparty/Fast-DDS/ build)
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
 
 
@@ -34,7 +30,7 @@ add_executable(central_routing
 )
 target_include_directories(central_routing PUBLIC
     include/lane_graph_full)
-target_link_libraries(central_routing cpm)
+target_link_libraries(central_routing cpm fastrtps)
 
 add_executable(central_routing_reduced
     src/main.cpp
@@ -48,7 +44,7 @@ add_executable(central_routing_reduced
 )
 target_include_directories(central_routing_reduced PUBLIC 
     include/lane_graph_one_lane)
-target_link_libraries(central_routing_reduced cpm)
+target_link_libraries(central_routing_reduced cpm fastrtps)
 
 add_executable(150_jahre_RWTH_szenario
     src/main.cpp
@@ -62,7 +58,7 @@ add_executable(150_jahre_RWTH_szenario
 )
 target_include_directories(150_jahre_RWTH_szenario PUBLIC 
     include/150_jahre_RWTH_szenario)
-target_link_libraries(150_jahre_RWTH_szenario cpm)
+target_link_libraries(150_jahre_RWTH_szenario cpm fastrtps)
 
 add_executable(outer_circle
     src/main.cpp
@@ -77,7 +73,7 @@ add_executable(outer_circle
 
 target_include_directories(outer_circle PUBLIC 
     include/lane_graph_outer_circle)
-target_link_libraries(outer_circle cpm)
+target_link_libraries(outer_circle cpm fastrtps)
 
 add_executable(tests
     src/tests.cpp
@@ -87,4 +83,4 @@ add_executable(tests
 )
 target_include_directories(tests PUBLIC
     include/lane_graph_full)
-target_link_libraries(tests cpm)
+target_link_libraries(tests cpm fastrtps)

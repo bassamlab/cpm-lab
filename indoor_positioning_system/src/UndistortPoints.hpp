@@ -26,7 +26,7 @@
 
 #pragma once
 #include "types.hpp"
-#include "LedPoints.hpp"
+#include "cpm/dds/LedPointsPubSubTypes.h"
 
 /**
  * \class UndistortPoints

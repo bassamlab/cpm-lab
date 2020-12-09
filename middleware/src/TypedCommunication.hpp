@@ -35,12 +35,12 @@
 #include <cassert>
 #include <type_traits>
 
-#include "Header.hpp"
-#include "VehicleState.hpp"
-#include "VehicleCommandDirect.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include "VehicleCommandPathTracking.hpp"
-#include "VehicleCommandSpeedCurvature.hpp"
+#include "cpm/dds/HeaderPubSubTypes.h"
+#include "cpm/dds/VehicleStatePubSubTypes.h"
+#include "cpm/dds/VehicleCommandDirectPubSubTypes.h"
+#include "cpm/dds/VehicleCommandPathTrackingPubSubTypes.h"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
+#include "cpm/dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
 
 #include "cpm/Logging.hpp"
 #include "cpm/ParticipantSingleton.hpp"
@@ -94,8 +94,8 @@ template<class MessageType> class TypedCommunication {
          * Also performs some checks on the commands, e.g. if the vehicle ID is correct.
          * 
          * \param samples Received vehicle commands by the HLC
-         */
-        void handler(std::vector<MessageType>& samples)
+         */ 
+        void handler(std::vector<typename MessageType::type>& samples)
         {
             // Process sample 
             for (auto& data : samples) {

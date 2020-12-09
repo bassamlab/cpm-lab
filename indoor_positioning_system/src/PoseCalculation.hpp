@@ -26,7 +26,7 @@
 
 #pragma once
 #include "types.hpp"
-#include "VehicleObservation.hpp"
+#include "cpm/dds/VehicleObservationPubSubTypes.h"
 
 /**
  * \class PoseCalculation

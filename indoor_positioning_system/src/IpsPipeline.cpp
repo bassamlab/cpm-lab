@@ -90,7 +90,7 @@ void IpsPipeline::apply(LedPoints led_points)
     vehicleObservations = poseCalculationFn->apply(identifiedVehicles);
 
     // Send via DDS
-    for(const auto &vehicleObservation:vehicleObservations)
+    for(auto &vehicleObservation:vehicleObservations)
     {
         if(vehicleObservation.vehicle_id() > 0)
         {

@@ -2,15 +2,10 @@ cmake_minimum_required(VERSION 3.1)
 add_definitions(-Wall -Wextra -Werror=return-type)
 set (CMAKE_CXX_STANDARD 17)
 
-# RTI DDS
-add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
-include_directories(SYSTEM $ENV{NDDSHOME}/include)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
-link_libraries(dl nsl m pthread rt)
-link_libraries(nddscpp2z nddscz nddscorez)
-link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
+# Fast-DDS
+option(THIRDPARTY "" ON)
+option(BUILD_TESTING "" OFF)
+add_subdirectory(../cpm_lib/thirdparty/Fast-DDS/ build)
 
 # CPM lib
 include_directories(SYSTEM ../cpm_lib/include/)
@@ -43,4 +38,4 @@ add_executable(unittest
     ${SOURCES}
 )
 
-target_link_libraries(unittest cpm)
+target_link_libraries(unittest cpm fastrtps)

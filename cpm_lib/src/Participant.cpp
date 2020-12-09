@@ -70,7 +70,7 @@ namespace cpm
     }
 
     Participant::~Participant(){
-      delete participant;
+      eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
     }
     
     eprosima::fastdds::dds::DomainParticipant& Participant::get_participant()

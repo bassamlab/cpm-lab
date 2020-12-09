@@ -29,7 +29,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "VehicleTrajectoryPlanningState.hpp"
 using std::vector;
 

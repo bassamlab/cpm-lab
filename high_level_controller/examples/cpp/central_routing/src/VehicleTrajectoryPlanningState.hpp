@@ -31,7 +31,7 @@
 #include <utility>
 #include <cstdint>
 #include "cpm/Logging.hpp"
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 using std::vector;
 using std::array;
 

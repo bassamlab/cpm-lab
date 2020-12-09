@@ -27,7 +27,7 @@
 #pragma once
 #include "types.hpp"
 #include "UndistortPoints.hpp"
-#include "LedPoints.hpp"
+#include "cpm/dds/LedPointsPubSubTypes.h"
 #include "DetectVehicles.hpp"
 #include "DetectVehicleID.hpp"
 #include "PoseCalculation.hpp"
@@ -63,8 +63,8 @@ struct IpsVisualizationInput
  */
 class IpsPipeline
 {
-    //! TODO
-    cpm::Writer<VehicleObservation> writer_vehicleObservation;
+    //! TODO 
+    cpm::Writer<VehicleObservationPubSubType> writer_vehicleObservation;
 
     //! TODO
     std::shared_ptr<UndistortPoints> undistortPointsFn;

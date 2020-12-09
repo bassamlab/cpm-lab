@@ -36,7 +36,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <ThreadSafeQueue.hpp>
-#include "LedPoints.hpp"
+#include "cpm/dds/LedPointsPubSubTypes.h"
 #include "cpm/get_topic.hpp"
 #include "cpm/CommandLineReader.hpp"
 #include "cpm/init.hpp"
@@ -86,7 +86,7 @@ ThreadSafeQueue< std::shared_ptr<FrameInfo> > queue_visualization;
  */
 void worker_led_detection()
 {
-    cpm::Writer<LedPoints> LED_writer("ipsLedPoints");
+    cpm::Writer<LedPointsPubSubType> LED_writer("ipsLedPoints");
 
     // Number of points in the previous frame.
     // Used for debug trigger.
@@ -133,7 +133,10 @@ void worker_led_detection()
         myledPoints.led_points().resize(frame->points_x.size());
         for (size_t i = 0; i < frame->points_x.size(); ++i)
         {
-            myledPoints.led_points().at(i) = ImagePoint(frame->points_x[i], frame->points_y[i]);
+            ImagePoint ip;
+            ip.x(frame->points_x[i]);
+            ip.y(frame->points_y[i]);
+            myledPoints.led_points().at(i) = ip;
         }
         LED_writer.write(myledPoints);
 

@@ -30,7 +30,7 @@
 #include <unistd.h>
 
 #include "cpm/AsyncReader.hpp"
-#include "LedPoints.hpp"
+#include "cpm/dds/LedPointsPubSubTypes.h"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_topic.hpp"
 #include "cpm/CommandLineReader.hpp"
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
     IpsPipeline ipsPipeline(enable_visualization);
 
 
-    cpm::AsyncReader<LedPoints> ipsLedPoints_reader(
+    cpm::AsyncReader<LedPointsPubSubType> ipsLedPoints_reader(
         [&](std::vector<LedPoints>& samples){
             for(auto& data : samples) 
                 ipsPipeline.apply(data);

@@ -36,8 +36,10 @@
 #include <atomic>
 #include <mutex>
 
-#include "VehicleState.hpp"
-#include "VehicleStateList.hpp"
+#include <unistd.h>
+
+#include "cpm/dds/VehicleStatePubSubTypes.h"
+#include "cpm/dds/VehicleStateListPubSubTypes.h"
 
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Reader.hpp"
@@ -50,14 +52,14 @@
 #include "cpm/ReaderAbstract.hpp"
 #include "cpm/Participant.hpp"
 
-#include "CommonroadDDSGoalState.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include "VehicleCommandPathTracking.hpp"
-#include "VehicleCommandSpeedCurvature.hpp"
-#include "VehicleCommandDirect.hpp"
-#include "ReadyStatus.hpp"
-#include "SystemTrigger.hpp"
-#include "VehicleObservation.hpp"
+#include "cpm/dds/CommonroadDDSGoalStatePubSubTypes.h"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
+#include "cpm/dds/VehicleCommandPathTrackingPubSubTypes.h"
+#include "cpm/dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
+#include "cpm/dds/VehicleCommandDirectPubSubTypes.h"
+#include "cpm/dds/ReadyStatusPubSubTypes.h"
+#include "cpm/dds/SystemTriggerPubSubTypes.h"
+#include "cpm/dds/VehicleObservationPubSubTypes.h"
 
 #include "TypedCommunication.hpp"
 
@@ -75,43 +77,43 @@ class Communication {
     private:
         //For HLC - communication
         cpm::Participant hlcParticipant;
-        cpm::Writer<VehicleStateList> hlcStateWriter;
+        cpm::Writer<VehicleStateListPubSubType> hlcStateWriter;
         //! DDS reader for getting ready status messages from the HLC (sent when it has finished its initialization)
-        cpm::ReaderAbstract<ReadyStatus> hlc_ready_status_reader;
+        cpm::ReaderAbstract<ReadyStatusPubSubType> hlc_ready_status_reader;
         //! Remember if all HLCs are online (checked by main using wait_for_hlc_ready_msg)
         std::atomic_bool all_hlc_online{false};
 
         //Timing messages to HLC
         //! DDS writer for sending stop signals to the HLC
-        cpm::Writer<SystemTrigger> hlc_system_trigger_writer;
+        cpm::Writer<SystemTriggerPubSubType> hlc_system_trigger_writer;
         //! DDS async reader to receive timing information from the LCC, which are handled by the Middleware, not the HLC
-        cpm::AsyncReader<SystemTrigger> lcc_system_trigger_reader;
+        cpm::AsyncReader<SystemTriggerPubSubType> lcc_system_trigger_reader;
 
         //Goal states to HLC
         //! DDS writer to send Commonroad goal state information to the HLC
-        cpm::Writer<CommonroadDDSGoalState> hlc_goal_state_writer;
+        cpm::Writer<CommonroadDDSGoalStatePubSubType> hlc_goal_state_writer;
         //! For access to the goal state writer (handled async. upon receiving and also after HLC init.)
         std::mutex hlc_goal_state_writer_mutex;
         //! DDS async reader for receiving Commonroad goal state information from the LCC (and passing it to the HLC)
-        cpm::AsyncReader<CommonroadDDSGoalState> lcc_goal_state_reader;
+        cpm::AsyncReader<CommonroadDDSGoalStatePubSubType> lcc_goal_state_reader;
         //! Before all HLCs have come online, remember goal states received so far
-        std::vector<CommonroadDDSGoalState> buffered_goal_states;
+        std::vector<CommonroadDDSGoalStatePubSubType> buffered_goal_states;
 
         //! DDS reader, for Vehicle communication, to receive states of vehicles and pass them on to the HLC
-        cpm::MultiVehicleReader<VehicleState> vehicleReader;
+        cpm::MultiVehicleReader<VehicleStatePubSubType> vehicleReader;
 
         //! DDS reader, for vehicle observation, to receive observation of vehicles and pass them on to the HLC
-        cpm::MultiVehicleReader<VehicleObservation> vehicleObservationReader;
+        cpm::MultiVehicleReader<VehicleObservationPubSubType> vehicleObservationReader;
 
         //Communication for commands
         //! To send trajectory commands to a vehicle (given by the HLC)
-        TypedCommunication<VehicleCommandTrajectory> trajectoryCommunication;
+        TypedCommunication<VehicleCommandTrajectoryPubSubType> trajectoryCommunication;
         //! To send path tracking commands to a vehicle (given by the HLC)
-        TypedCommunication<VehicleCommandPathTracking> pathTrackingCommunication;
+        TypedCommunication<VehicleCommandPathTrackingPubSubType> pathTrackingCommunication;
         //! To send speed curvature commands to a vehicle (given by the HLC)
-        TypedCommunication<VehicleCommandSpeedCurvature> speedCurvatureCommunication;
+        TypedCommunication<VehicleCommandSpeedCurvaturePubSubType> speedCurvatureCommunication;
         //! To send direct commands to a vehicle (given by the HLC)
-        TypedCommunication<VehicleCommandDirect> directCommunication;
+        TypedCommunication<VehicleCommandDirectPubSubType> directCommunication;
     public:
         /**
          * \brief Constructor
@@ -150,9 +152,9 @@ class Communication {
             "commonroad_dds_goal_states",
             true, true)
 
-        ,vehicleReader(cpm::get_topic<VehicleState>("vehicleState"), vehicle_ids)
+        ,vehicleReader("vehicleState", vehicle_ids)
 
-        ,vehicleObservationReader(cpm::get_topic<VehicleObservation>("vehicleObservation"), vehicle_ids)
+        ,vehicleObservationReader("vehicleObservation", vehicle_ids)
 
         ,trajectoryCommunication(hlcParticipant, vehicleTrajectoryTopicName, _timer, vehicle_ids)
         ,pathTrackingCommunication(hlcParticipant, vehiclePathTrackingTopicName, _timer, vehicle_ids)

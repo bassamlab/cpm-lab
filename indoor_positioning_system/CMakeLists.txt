@@ -15,14 +15,10 @@ include_directories(${PYLON_INCLUDE_DIRS})
 message("-- found Pylon Version ${PYLON_VERSION}")
 
 
-# RTI DDS
-add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
-include_directories(SYSTEM $ENV{NDDSHOME}/include)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
-link_libraries(nddscpp2z nddscz nddscorez)
-link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
-SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
+# Fast-DDS# Fast-DDS
+option(THIRDPARTY "" ON)
+option(BUILD_TESTING "" OFF)
+add_subdirectory(../cpm_lib/thirdparty/Fast-DDS/ build)
 
 
 # CPM lib
@@ -40,7 +36,7 @@ link_libraries(dl nsl m pthread rt)
 add_executable(BaslerLedDetection
     src/main_led_detection.cpp
 )
-target_link_libraries(BaslerLedDetection cpm ${OpenCV_LIBRARIES} ${PYLON_LIBRARIES})
+target_link_libraries(BaslerLedDetection cpm ${OpenCV_LIBRARIES} ${PYLON_LIBRARIES} fastrtps)
 
 
 
@@ -57,7 +53,7 @@ add_executable(ips_pipeline
     src/PoseCalculation.cpp
     src/PoseCalculation.hpp
 )
-target_link_libraries(ips_pipeline cpm ${OpenCV_LIBRARIES})
+target_link_libraries(ips_pipeline cpm ${OpenCV_LIBRARIES} fastrtps)
 
 
 add_executable(unittest
@@ -70,4 +66,4 @@ add_executable(unittest
     src/DetectVehicleID.cpp
     src/DetectVehicleID.hpp
 )
-target_link_libraries(unittest cpm ${OpenCV_LIBRARIES})
+target_link_libraries(unittest cpm ${OpenCV_LIBRARIES} fastrtps)

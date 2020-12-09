@@ -35,21 +35,14 @@
 #include <thread>
 #include <chrono>
 
-#include <dds/sub/ddssub.hpp>
-#include <dds/pub/ddspub.hpp>
-#include <dds/core/QosProvider.hpp>
-#include <rti/core/cond/AsyncWaitSet.hpp>
-#include <rti/core/ListenerBinder.hpp>
-#include <dds/core/vector.hpp>
-
 #include "cpm/init.hpp"
 #include "cpm/Timer.hpp"
 #include "cpm/Parameter.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Logging.hpp"
-#include "VehicleCommandSpeedCurvature.hpp"
-#include "VehicleStateList.hpp"
-#include "Parameter.hpp"
+#include "cpm/dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
+#include "cpm/dds/VehicleStateListPubSubTypes.h"
+#include "cpm/dds/ParameterRequestPubSubTypes.h"
 
 #include "cpm/AsyncReader.hpp"
 #include "cpm/ReaderAbstract.hpp"
@@ -119,7 +112,7 @@ TEST_CASE( "HLCToVehicleCommunication" ) {
 
         //Thread that simulates the vehicle (only a reader is created). A waitset is attached to the reader and a callback function is created. 
         //In this function, round numbers are stored - the number of each round should be received.
-        cpm::AsyncReader<VehicleCommandSpeedCurvature> vehicleReader([&] (std::vector<VehicleCommandSpeedCurvature>& samples)
+        cpm::AsyncReader<VehicleCommandSpeedCurvaturePubSubType> vehicleReader([&] (std::vector<VehicleCommandSpeedCurvature>& samples)
         {
             // Store received data for later checks
             std::lock_guard<std::mutex> lock(round_numbers_mutex);
@@ -134,7 +127,7 @@ TEST_CASE( "HLCToVehicleCommunication" ) {
         //Send test data from a virtual HLC - only the round number matters here, which is transmitted using the timestamp value
         //The data is sent to the middleware (-> middleware participant, because of the domain ID), and the middleware should send it to the vehicle
         dds::domain::DomainParticipant participant = dds::domain::find(hlcDomainNumber);
-        cpm::Writer<VehicleCommandSpeedCurvature> hlcWriter(participant, vehicleSpeedCurvatureTopicName);
+        cpm::Writer<VehicleCommandSpeedCurvaturePubSubType> hlcWriter(participant, vehicleSpeedCurvatureTopicName);
         for (uint64_t i = 0; i <= max_rounds; ++i) {
             //Send data and wait
             std::this_thread::sleep_for(std::chrono::milliseconds(50));

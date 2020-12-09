@@ -695,6 +695,8 @@ void Deploy::kill_labcam() {
 
 void Deploy::deploy_recording() 
 {
+
+    return;
     //if old session already exists, kill it
     kill_session(recording_session);
 
