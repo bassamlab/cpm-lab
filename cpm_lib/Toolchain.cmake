@@ -9,6 +9,8 @@ SET(CMAKE_CXX_COMPILER $ENV{RASPBIAN_TOOLCHAIN}/bin/arm-linux-gnueabihf-g++)
 # Define the sysroot path for the RaspberryPi distribution in our tools folder 
 SET(CMAKE_FIND_ROOT_PATH $ENV{RASPBIAN_TOOLCHAIN}/arm-raspbian-linux-gnueabi/sysroot/)
 
+SET(CMAKE_INSTALL_PREFIX $ENV{RASPBIAN_TOOLCHAIN}/arm-raspbian-linux-gnueabi/sysroot/usr/local/)
+
 # Use our definitions for compiler tools
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 # Search for libraries and headers in the target directories only

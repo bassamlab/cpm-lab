@@ -148,7 +148,9 @@ namespace cpm {
         while(active.load()) {
             writer_ready_status.write(ready_status);
 
-            reader_system_trigger.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(2));
+            if(!reader_system_trigger.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(2))){
+                continue;
+            }
             eprosima::fastdds::dds::SampleInfo info;
             SystemTrigger data;
             while(reader_system_trigger.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {

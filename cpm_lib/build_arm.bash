@@ -7,7 +7,7 @@ if [ ! -d "build_arm" ]; then
 fi
 
 if [ ! -d "dds_idl_cpp" ]; then
-    ./rtigen.bash
+    ./ddsgen.bash
 fi
 
 

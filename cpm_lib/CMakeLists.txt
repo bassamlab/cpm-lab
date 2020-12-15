@@ -3,7 +3,7 @@ project(cpmlib)
 option(BUILD_ARM OFF)
 
 set (CMAKE_CXX_STANDARD 11)
-add_definitions(-Wall -Wextra -Werror=return-type -g -O3)
+add_definitions(-Wall -Wextra -Werror=return-type -O2)
 include_directories(src)
 include_directories(include)
 
@@ -79,11 +79,8 @@ add_subdirectory(thirdparty/Fast-DDS/)
 include_directories(dds_idl_cpp)
 
 if(BUILD_ARM)
-    link_directories($ENV{NDDSHOME}/lib/armv6vfphLinux3.xgcc4.7.2)
     add_definitions(-fpic -DRTI_UNIX -DRTI_LINUX -march=armv6 -mfpu=vfp -mfloat-abi=hard -mlong-calls)
 else()
- #   link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
-#    add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
 endif()
 

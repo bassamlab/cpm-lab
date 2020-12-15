@@ -65,5 +65,6 @@ add_executable(unittest
     src/DetectVehicles.hpp
     src/DetectVehicleID.cpp
     src/DetectVehicleID.hpp
+    test/test_cleanup.cpp
 )
 target_link_libraries(unittest cpm ${OpenCV_LIBRARIES} fastrtps)

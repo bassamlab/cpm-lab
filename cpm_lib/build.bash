@@ -12,17 +12,8 @@ mkdir $DIR/cpm_library_package
 
 if [ ! -d "dds_idl_cpp" ]; then
     echo "Generating C++ IDL files..."
-    ./rtigen.bash
+    ./ddsgen.bash
 fi
-
-if [[ ! -z $(which matlab) ]] && [[ ! -d "dds_idl_matlab" ]]; then
-	echo "Generating Matlab IDL files..."
-    matlab -sd "./" -batch "rtigen_matlab"
-fi 
-
-if [[ -d "dds_idl_matlab" ]]; then
-    cp -R $DIR/dds_idl_matlab/ $DIR/cpm_library_package
-fi 
 
 mkdir -p $DIR/build
 

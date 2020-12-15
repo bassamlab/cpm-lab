@@ -290,11 +290,6 @@ namespace cpm
   
       assert(topic != nullptr);
 
-      if(topic == nullptr){
-        while(1)
-        std::cout << "!" << std::endl;
-      }
-
       // Create Reader
       if(custom_listener == nullptr){
         std::cout << "Creating AsyncReader WITHOUT custom listener" << std::endl;

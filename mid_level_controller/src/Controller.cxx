@@ -459,6 +459,7 @@ void Controller::get_control_signals(uint64_t t_now, double &out_motor_throttle,
 
         default: // Direct
         {
+
             motor_throttle = m_vehicleCommandDirect.motor_throttle();
             steering_servo = m_vehicleCommandDirect.steering_servo();
         }

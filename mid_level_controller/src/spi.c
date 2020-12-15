@@ -110,20 +110,45 @@ void spi_transfer(
         uint8_t SPI_recv_buffer[SPI_BUFFER_SIZE];
         uint8_t* mosi_data_ptr = (uint8_t*)(&spi_mosi_data);
 
-
-        busy_wait(2000);
+        /*
+        printf("\n\nDATA IN\n");
+        printf("%d\n", (int)spi_mosi_data.pi_tick);
+        printf("%d\n", (int)spi_mosi_data.motor_pwm);
+        printf("%d\n", (int)spi_mosi_data.servo_command);
+        printf("%d\n", (int)spi_mosi_data.CRC);
+        printf("%d\n", (int)spi_mosi_data.motor_mode);
+        printf("%d\n", (int)spi_mosi_data.vehicle_id);
+        */
+        usleep(200);
+        //busy_wait(2000);
 
         for (int i = 0; i < SPI_BUFFER_SIZE; ++i)
         {
             SPI_recv_buffer[i] = bcm2835_spi_transfer(mosi_data_ptr[i]);
-            busy_wait(3000);
+            usleep(300);
         }
 
-        busy_wait(10000);
+        usleep(200);
 
         *n_transmission_attempts_out = i;
 
         memcpy(spi_miso_data_out, SPI_recv_buffer, sizeof(spi_miso_data_t));
+        
+        /*
+        printf("\n\nDATA OUT\n");
+        printf("%d\n", (int) spi_miso_data_out->tick );
+        printf("%d\n", (int) spi_miso_data_out->odometer_steps );
+        printf("%d\n", (int) spi_miso_data_out->imu_yaw );
+        printf("%d\n", (int) spi_miso_data_out->imu_yaw_rate );
+        printf("%d\n", (int) spi_miso_data_out->imu_acceleration_forward );
+        printf("%d\n", (int) spi_miso_data_out->imu_acceleration_left );
+        printf("%d\n", (int) spi_miso_data_out->imu_acceleration_up );
+        printf("%d\n", (int) spi_miso_data_out->speed );
+        printf("%d\n", (int) spi_miso_data_out->battery_voltage );
+        printf("%d\n", (int) spi_miso_data_out->motor_current );
+        printf("%d\n", (int) spi_miso_data_out->CRC );
+        printf("%d\n", (int) spi_miso_data_out->status_flags );
+        */
 
         if(check_CRC_miso(*spi_miso_data_out) && !(spi_miso_data_out->status_flags & 2))
         {

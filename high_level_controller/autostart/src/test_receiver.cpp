@@ -35,7 +35,7 @@
 #include <vector>
 #include <functional>
 
-#include "HLCHello.hpp"
+#include "cpm/dds/HLCHelloPubSubTypes.h"
 
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_topic.hpp"
@@ -50,11 +50,11 @@ int main (int argc, char *argv[]) {
     cpm::Logging::Instance().set_id("hlc_hello");
 
     //Create DataReader that reads NUC ready messages
-    cpm::AsyncReader<HLCHello> reader(
+    cpm::AsyncReader<HLCHelloPubSubType> reader(
         [](std::vector<HLCHello>& samples){
             for (auto& data : samples)
             {
-                std::cout << "Received: " << data << std::endl;
+                std::cout << "Received: " << data.source_id() << " " << data.script_running() << " " << data.middleware_running() << std::endl;
             }
         },
         "hlc_hello",

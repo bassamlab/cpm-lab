@@ -1,16 +1,11 @@
 cmake_minimum_required(VERSION 3.1)
-add_definitions(-Wall -Wextra -Werror=return-type)
+add_definitions(-Wall -Wextra -Werror=return-type -O2)
 set (CMAKE_CXX_STANDARD 17)
 
-# RTI DDS
-add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
-include_directories(SYSTEM $ENV{NDDSHOME}/include)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
-link_libraries(dl nsl m pthread rt)
-link_libraries(nddscpp2z nddscz nddscorez)
-link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
+# FastRTPS
+option(THIRDPARTY "" ON)
+option(BUILD_TESTING "" OFF)
+add_subdirectory(../../cpm_lib/thirdparty/Fast-DDS/ build)
 
 # CPM lib
 include_directories(SYSTEM ../../cpm_lib/include/)
@@ -28,18 +23,18 @@ add_executable( autostart
     ${SOURCES}
 )
 
-target_link_libraries(autostart cpm)
+target_link_libraries(autostart cpm fastrtps)
 
 add_executable( test_receiver
     src/test_receiver.cpp
     ${SOURCES}
 )
 
-target_link_libraries(test_receiver cpm)
+target_link_libraries(test_receiver cpm fastrtps)
 
 add_executable( download_error_logger
     src_error_logger/main.cpp
     ${SOURCES}
 )
 
-target_link_libraries(download_error_logger stdc++fs cpm)
+target_link_libraries(download_error_logger stdc++fs cpm fastrtps)

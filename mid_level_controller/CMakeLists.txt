@@ -87,9 +87,7 @@ endif()
 
 
 if(BUILD_SIMULATION)
-    target_compile_options(vehicle_rpi_firmware PUBLIC -DVEHICLE_SIMULATION)
+    target_compile_options(vehicle_rpi_firmware  PUBLIC -DVEHICLE_SIMULATION)
 endif()
 
-
-target_link_libraries(vehicle_rpi_firmware dl nsl m pthread rt)
 target_link_libraries(vehicle_rpi_firmware cpm fastrtps)

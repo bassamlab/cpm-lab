@@ -52,6 +52,7 @@
  * \ingroup cpmlib
  */
 TEST_CASE("TimerFD_accuracy") {
+  std::cout << "TimerFD_accuracy" << std::endl;
   // Set the Logger ID
   cpm::Logging::Instance().set_id("test_timerfd_accuracy");
 

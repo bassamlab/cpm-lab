@@ -214,7 +214,6 @@ namespace cpm
         void write(typename T::type& msg)
         {
             //DDS operations are assumed to be thread safe, so don't use a mutex here
-            std::cout << "Writing Type " << topic_data_type.getName() << std::endl;
             writer->write(&msg);
         }
 

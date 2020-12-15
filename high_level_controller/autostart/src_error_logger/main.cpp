@@ -30,7 +30,7 @@
 #include <sstream>
 #include <string>
 
-#include "ReadyStatus.hpp"
+#include "cpm/dds/ReadyStatus.h"
 
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_topic.hpp"

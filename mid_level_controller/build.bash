@@ -19,6 +19,8 @@ if [ -z $SIMULATION ]; then
     make -j$(nproc)
     cp -R ../package/ .
     cp vehicle_rpi_firmware package
+    cp build/src/cpp/libfast* package
+    cp build/thirdparty/fastcdr/src/cpp/libfast* package
     cp ../../cpm_lib/build_arm/libcpm.so package
     tar -czf package.tar.gz package
     popd
@@ -30,6 +32,8 @@ if [ -z $SIMULATION ]; then
     make -j$(nproc)
     cp -R ../package/ .
     cp vehicle_rpi_firmware package
+    cp build/src/cpp/libfast* package
+    cp build/thirdparty/fastcdr/src/cpp/libfast* package
     cp ../../cpm_lib/build_arm/libcpm.so package
     tar -czf package.tar.gz package
     popd
