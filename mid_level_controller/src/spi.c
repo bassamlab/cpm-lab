@@ -119,16 +119,16 @@ void spi_transfer(
         printf("%d\n", (int)spi_mosi_data.motor_mode);
         printf("%d\n", (int)spi_mosi_data.vehicle_id);
         */
-        usleep(200);
+        usleep(40);
         //busy_wait(2000);
 
         for (int i = 0; i < SPI_BUFFER_SIZE; ++i)
         {
             SPI_recv_buffer[i] = bcm2835_spi_transfer(mosi_data_ptr[i]);
-            usleep(300);
+            usleep(60);
         }
 
-        usleep(200);
+        usleep(40);
 
         *n_transmission_attempts_out = i;
 

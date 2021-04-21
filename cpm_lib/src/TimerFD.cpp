@@ -142,6 +142,8 @@ namespace cpm {
 
         ready_status.next_start_stamp(timestamp);
         ready_status.source_id(node_id);
+
+        uint64_t nsec_ret;
         
         //Poll for start signal, send ready signal every 2 seconds until the start signal has been received or the thread has been killed
         //Break if stop signal was received
@@ -156,9 +158,13 @@ namespace cpm {
             while(reader_system_trigger.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
               if (info.instance_state == eprosima::fastdds::dds::ALIVE)
               {
-                    return data.next_start().nanoseconds();
+                    nsec_ret = data.next_start().nanoseconds();
+              }else{
+                  break;
               }
             }
+
+            return nsec_ret;
         }
 
         //Active is false, just return stop signal here
@@ -193,29 +199,39 @@ namespace cpm {
         if (wait_for_start) {
 
             start_point = receiveStartTime();
-            
+            std::cout << "Received start_point from remote = " << start_point << std::endl;
             if (start_point == stop_signal) {
                 return;
             }
         }
         else {
+            std::cout << "setting start_point = this->get_time()" << std::endl;
             start_point = this->get_time();
         }
 
         if ((start_point - offset_nanoseconds) % period_nanoseconds == 0) {
+            std::cout << "Setting deadline = start_point" << std::endl;
             deadline = start_point;
         }
         else {
+            std::cout << "Setting deadline = (((start_point - offset_nanoseconds) / period_nanoseconds) + 1) * period_nanoseconds + offset_nanoseconds;" << std::endl;
             deadline = (((start_point - offset_nanoseconds) / period_nanoseconds) + 1) * period_nanoseconds + offset_nanoseconds;
         }
 
         start_point_initialized = true;
 
+        std::cout << "Deadline = " << deadline << std::endl;
+        std::cout << "Start Point = " << start_point << std::endl;
+        std::cout << "Offset Nanoseconds = " << offset_nanoseconds << std::endl;
+
+
         while(active.load()) {
             this->wait();
             if(this->get_time() >= deadline) {
+                auto start_cb = this->get_time();
                 if(m_update_callback) m_update_callback(deadline);
-
+                auto end_cb = this->get_time();
+                
                 deadline += period_nanoseconds;
 
                 uint64_t current_time = this->get_time();
@@ -225,9 +241,9 @@ namespace cpm {
                 {
                     Logging::Instance().write(
                         1,
-                        "TimerFD: Periods missed: %d", 
-                        static_cast<int>(((current_time - deadline) / period_nanoseconds) + 1)
-                    );
+                        "TimerFD: Periods missed: %d %d %d", 
+                        static_cast<int>((current_time - deadline) / period_nanoseconds) + 1, current_time, deadline);
+
                     Logging::Instance().write(1,"%s", TimeMeasurement::Instance().get_str().c_str());
 
                     deadline += (((current_time - deadline)/period_nanoseconds) + 1)*period_nanoseconds;
@@ -246,7 +262,6 @@ namespace cpm {
                 }
             }
         }
-
         close(timer_fd);
     }
 

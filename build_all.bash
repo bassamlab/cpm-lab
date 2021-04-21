@@ -5,6 +5,8 @@ set -e
 BASH_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd ${BASH_DIR}
 
+export RASPBIAN_TOOLCHAIN=/opt/cross-pi-gcc
+
 #Get command line arguments
 for arg in "$@"
 do

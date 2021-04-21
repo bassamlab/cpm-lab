@@ -13,6 +13,8 @@ make -j$(nproc)
 popd
 
 if [ -z $SIMULATION ]; then
+
+    export RASPBIAN_TOOLCHAIN=/opt/cross-pi-gcc
     # Build for simulation on Raspberry
     pushd build_arm_sim
     cmake .. -DBUILD_ARM=ON -DBUILD_SIMULATION=ON -DCMAKE_TOOLCHAIN_FILE=../Toolchain.cmake

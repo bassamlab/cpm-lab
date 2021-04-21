@@ -2,6 +2,8 @@
 # exit when any command fails
 set -e
 
+export RASPBIAN_TOOLCHAIN=/opt/cross-pi-gcc
+
 if [ ! -d "build_arm" ]; then
     mkdir -p build_arm
 fi

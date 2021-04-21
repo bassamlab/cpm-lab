@@ -163,6 +163,8 @@ int main(int argc, char *argv[])
             //log_fn(__LINE__);
             try 
             {
+
+                auto start_vehicle_observation = cpm::get_time_ns();
                 // get IPS observation
                 VehicleObservation sample_vehicleObservation;
                 uint64_t sample_vehicleObservation_age;
@@ -171,10 +173,15 @@ int main(int argc, char *argv[])
                     sample_vehicleObservation,
                     sample_vehicleObservation_age
                 );
+                auto end_vehicle_observation = cpm::get_time_ns();
+
+                //std::cout << "Observation = " << end_vehicle_observation - start_vehicle_observation << std::endl;
+
 
                 double motor_throttle = 0;
                 double steering_servo = 0;
 
+                auto start_get_control_signals = cpm::get_time_ns();
                 // Run controller only if no stop signal was received, else do not drive
                 //The controller gets reset at the end of the function, to make sure that before that the vehicle actually gets to stop driving
                 cpm::TimeMeasurement::Instance().start("mpc");
@@ -202,6 +209,9 @@ int main(int argc, char *argv[])
                 );
                 vehicleState.is_real(false); // Is not real, is simulated
     #else
+
+                auto start_spi = cpm::get_time_ns();
+
                 // Motor deadband, to prevent small stall currents when standing still
                 uint8_t motor_mode = SPI_MOTOR_MODE_BRAKE;
                 if(motor_throttle > 0.05) motor_mode = SPI_MOTOR_MODE_FORWARD;
@@ -242,8 +252,13 @@ int main(int argc, char *argv[])
 
                 VehicleState vehicleState = SensorCalibration::convert(spi_miso_data);
                 vehicleState.is_real(true); // Is real, is not simulated
+                auto end_spi = cpm::get_time_ns();
+
+                //std::cout << "SPI Time " << end_spi - start_spi << std::endl;
+
     #endif
 
+                auto start_process = cpm::get_time_ns();
                 // Process sensor data
                 if(transmission_successful) 
                 {
@@ -280,6 +295,10 @@ int main(int argc, char *argv[])
                     localization.reset();
                 }
                 loop_count++;
+
+                auto end_process = cpm::get_time_ns();
+                //std::cout << "Process Time " << end_process - start_process << std::endl;
+
             }
             catch(const dds::core::Exception& e)
             {
