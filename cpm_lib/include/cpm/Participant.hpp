@@ -61,6 +61,13 @@ namespace cpm
          * \param qos_file QoS settings to be imported from an .xml file
          */
         Participant(int domain_number, std::string qos_file);
+
+        /**
+         * \brief Just a test for the Middleware
+         */
+        Participant(int domain_number, bool localhost);
+
+        ~Participant();
         
         std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> get_participant();
     };

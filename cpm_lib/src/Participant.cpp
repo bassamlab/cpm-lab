@@ -31,6 +31,11 @@
  * \ingroup cpmlib
  */
 
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include "cpm/Participant.hpp"
+#include <fastrtps/xmlparser/XMLProfileManager.h>
+#include <fastdds/rtps/transport/shared_mem/SharedMemTransportDescriptor.h>
+
 namespace cpm
 {
 
@@ -76,6 +81,32 @@ namespace cpm
       if(! participant){
         throw std::invalid_argument("failed to create participant");
       }
+    }
+
+    Participant::Participant(int domain_number, bool localhost)
+    {
+      if (!localhost)
+      {
+        std::cerr << "Experimental and bad implementation - crash imminent" << std::endl;
+        exit(1);
+      }
+
+      //Create new QoS for shared memory
+      eprosima::fastdds::dds::DomainParticipantQos qos;
+
+      //Create shared memory descriptor
+      auto shm_transport = std::make_shared<eprosima::fastdds::rtps::SharedMemTransportDescriptor>();
+      
+      //Try to set to shared memory transport only
+      qos.transport().use_builtin_transports = false;
+      qos.transport().user_transports.push_back(shm_transport);
+
+      participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos);
+      assert(participant != nullptr);
+    }
+
+    Participant::~Participant(){
+      eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
     }
     
     std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> Participant::get_participant()

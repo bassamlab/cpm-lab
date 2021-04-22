@@ -133,3 +133,13 @@ if(NOT BUILD_ARM)
 
     target_link_libraries(unittest cpm fastrtps fastcdr foonathan_memory)
 endif()
+
+add_executable(SHM_READER
+    test_apps/test_shm_reader.cpp
+)
+target_link_libraries(SHM_READER cpm fastrtps)
+
+add_executable(SHM_WRITER
+    test_apps/test_shm_writer.cpp
+)
+target_link_libraries(SHM_WRITER cpm fastrtps)
