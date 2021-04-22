@@ -47,7 +47,7 @@ VehicleCommandTrajectory VehicleTrajectoryPlanner::get_trajectory_command(uint64
     VehicleCommandTrajectory vehicleCommandTrajectory;
     vehicleCommandTrajectory.vehicle_id(trajectoryPlan->get_vehicle_id());
     vehicleCommandTrajectory.trajectory_points(
-            rti::core::vector<TrajectoryPoint>(trajectory_point_buffer)
+            trajectory_point_buffer
     );
     vehicleCommandTrajectory.header().create_stamp().nanoseconds(t_now); //You just need to set t_now here, as it was created at t_now
     vehicleCommandTrajectory.header().valid_after_stamp().nanoseconds(t_now + 1000000000ull); //Hardcoded value from the planner (t_start), should be correct (this value should correlate with the trajectory point that should be valid at t_now)
@@ -453,11 +453,11 @@ void VehicleTrajectoryPlanner::clear_past_trajectory_point_buffer() {
 }
 
 void VehicleTrajectoryPlanner::set_writer(
-        std::unique_ptr< cpm::Writer<LaneGraphTrajectory> > writer){
+        std::unique_ptr< cpm::Writer<LaneGraphTrajectoryPubSubType> > writer){
     writer_laneGraphTrajectory = std::move(writer);
 }
 void VehicleTrajectoryPlanner::set_reader(
-        std::unique_ptr< cpm::ReaderAbstract<LaneGraphTrajectory> > reader){
+        std::unique_ptr< cpm::ReaderAbstract<LaneGraphTrajectoryPubSubType> > reader){
     reader_laneGraphTrajectory = std::move(reader);
 }
 

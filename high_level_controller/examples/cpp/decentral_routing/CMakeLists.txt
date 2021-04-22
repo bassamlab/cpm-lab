@@ -1,16 +1,26 @@
 cmake_minimum_required(VERSION 3.1)
 add_definitions(-g -Wall -Wextra -Werror=return-type)
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
-# RTI DDS
-add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
-include_directories(SYSTEM $ENV{NDDSHOME}/include)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
-link_libraries(nddscpp2z nddscz nddscorez)
-link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
+# Fast DDS / eProsima
+if(NOT fastcdr_FOUND)
+    find_package(fastcdr REQUIRED)
+endif()
+
+if(NOT foonathan_memory_FOUND)
+    find_package(foonathan_memory REQUIRED)
+endif()
+
+if(NOT fastrtps_FOUND)
+    find_package(fastrtps REQUIRED)
+endif()
+
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
 
+# Fast-DDS
+option(THIRDPARTY "" ON)
+option(BUILD_TESTING "" OFF)
+add_subdirectory(../../../../cpm_lib/thirdparty/Fast-DDS/ build)
 
 # CPM lib
 include_directories(SYSTEM ../../../../cpm_lib/include/)
@@ -36,7 +46,7 @@ add_executable(decentral_routing
 )
 target_include_directories(decentral_routing PUBLIC
     include/lane_graph_full)
-target_link_libraries(decentral_routing cpm)
+target_link_libraries(decentral_routing cpm fastrtps fastcdr foonathan_memory)
 
 add_executable(tests
     src/tests.cpp
@@ -46,4 +56,4 @@ add_executable(tests
 )
 target_include_directories(tests PUBLIC
     include/lane_graph_full)
-target_link_libraries(tests cpm)
+target_link_libraries(tests cpm fastrtps fastcdr foonathan_memory)

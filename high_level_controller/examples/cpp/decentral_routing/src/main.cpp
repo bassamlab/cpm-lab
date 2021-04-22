@@ -41,12 +41,12 @@
 #include "cpm/ReaderAbstract.hpp"
 
 // IDL files
-#include "VehicleCommandTrajectory.hpp"
-#include "TimeStamp.hpp"
-#include "ReadyStatus.hpp"
-#include "SystemTrigger.hpp"
-#include "VehicleStateList.hpp"
-#include "StopRequest.hpp"
+#include "VehicleCommandTrajectoryPubSubTypes.h"
+#include "TimeStampPubSubTypes.h"
+#include "ReadyStatusPubSubTypes.h"
+#include "SystemTriggerPubSubTypes.h"
+#include "VehicleStateListPubSubTypes.h"
+#include "StopRequestPubSubTypes.h"
 
 // General C++ libs
 #include <chrono>
@@ -179,8 +179,7 @@ int main(int argc, char *argv[]) {
     //);
     cpm::Participant local_comms_participant(
             middleware_domain,
-            "./QOS_LOCAL_COMMUNICATION.xml",
-            "MatlabLibrary::LocalCommunicationProfile"
+            true
     );
 
     /* --------------------------------------------------------------------------------- 
@@ -188,9 +187,9 @@ int main(int argc, char *argv[]) {
      * ---------------------------------------------------------------------------------
      */
     // These QoS Settings are taken from the QOS_READY_TRIGGER.xml used in matlab example
-    cpm::Writer<ReadyStatus> writer_readyStatus(
+    cpm::Writer<ReadyStatusPubSubType> writer_ReadyStatus(
             local_comms_participant.get_participant(),
-            "readyStatus",
+            "ReadyStatus",
             true,
             true,
             true
@@ -205,10 +204,10 @@ int main(int argc, char *argv[]) {
     //            << dds::core::policy::Durability::TransientLocal())
     //);
 
-    // systemTrigger Reader, QoS Settings taken from QOS_READY_TRIGGER.xml
-    cpm::ReaderAbstract<SystemTrigger> reader_systemTrigger(
+    // SystemTrigger Reader, QoS Settings taken from QOS_READY_TRIGGER.xml
+    cpm::ReaderAbstract<SystemTriggerPubSubType> reader_systemTrigger(
             local_comms_participant.get_participant(),
-            "systemTrigger",
+            "SystemTrigger",
             true,
             true
     );
@@ -222,47 +221,47 @@ int main(int argc, char *argv[]) {
     //);
 
     // VehicleStateList is our timing signal from the middleware
-    cpm::ReaderAbstract<VehicleStateList> reader_vehicleStateList(
+    cpm::ReaderAbstract<VehicleStateListPubSubType> reader_VehicleStateList(
             local_comms_participant.get_participant(),
-            "vehicleStateList"
+            "VehicleStateList"
     );
 
-    //dds::sub::DataReader<VehicleStateList> reader_vehicleStateList(
+    //dds::sub::DataReader<VehicleStateList> reader_VehicleStateList(
     //        local_comms_subscriber,
     //        cpm::get_topic<VehicleStateList>(
     //            local_comms_participant,
-    //            "vehicleStateList")
+    //            "VehicleStateList")
     //);
      
     // Writer to send trajectory to middleware
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory(
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory(
             local_comms_participant.get_participant(),
-            "vehicleCommandTrajectory"
+            "VehicleCommandTrajectory"
     );
 
-    //dds::pub::DataWriter<VehicleCommandTrajectory> writer_vehicleCommandTrajectory(
+    //dds::pub::DataWriter<VehicleCommandTrajectory> writer_VehicleCommandTrajectory(
     //    local_comms_publisher,
     //    cpm::get_topic<VehicleCommandTrajectory>(
     //        local_comms_participant,
-    //        "vehicleCommandTrajectory")
+    //        "VehicleCommandTrajectory")
     //);
 
     // Writer to send a StopRequest to LCC (in case of failure)
     //dds::pub::DataWriter<StopRequest> writer_stopRequest(
     //        dds::pub::Publisher(cpm::ParticipantSingleton::Instance()), 
-    //        cpm::get_topic<StopRequest>("stopRequest")
+    //        cpm::get_topic<StopRequest>("StopRequest")
     //);
-    cpm::Writer<StopRequest> writer_stopRequest("stopRequest");
+    cpm::Writer<StopRequestPubSubType> writer_stopRequest("StopRequest");
 
     /* 
      * Reader/Writers for comms between vehicles directly
      */
     // Writer to communicate plans with other vehicles
-    cpm::Writer<LaneGraphTrajectory> writer_laneGraphTrajectory(
+    cpm::Writer<LaneGraphTrajectoryPubSubType> writer_laneGraphTrajectory(
             "laneGraphTrajectory");
 
     // Reader to receive planned trajectories of other vehicles
-    cpm::ReaderAbstract<LaneGraphTrajectory> reader_laneGraphTrajectory(
+    cpm::ReaderAbstract<LaneGraphTrajectoryPubSubType> reader_laneGraphTrajectory(
             "laneGraphTrajectory");
     
     
@@ -274,13 +273,13 @@ int main(int argc, char *argv[]) {
 
     // Set reader/writers of planner so it can communicate with other planners
     planner->set_writer(
-    std::unique_ptr<cpm::Writer<LaneGraphTrajectory>>(
-        new cpm::Writer<LaneGraphTrajectory>("laneGraphTrajectory")
+    std::unique_ptr<cpm::Writer<LaneGraphTrajectoryPubSubType>>(
+        new cpm::Writer<LaneGraphTrajectoryPubSubType>("laneGraphTrajectory")
         )
     );
     planner->set_reader(
-    std::unique_ptr<cpm::ReaderAbstract<LaneGraphTrajectory>>(
-        new cpm::ReaderAbstract<LaneGraphTrajectory>("laneGraphTrajectory")
+    std::unique_ptr<cpm::ReaderAbstract<LaneGraphTrajectoryPubSubType>>(
+        new cpm::ReaderAbstract<LaneGraphTrajectoryPubSubType>("laneGraphTrajectory")
         )
     );
 
@@ -290,13 +289,16 @@ int main(int argc, char *argv[]) {
      */
     // TODO: Why do we need this 5 seconds wait? We do, but why and what would be a better solution?
     std::this_thread::sleep_for(std::chrono::seconds(5));
-    // Create arbitrary timestamp as per ReadyStatus.idl
-    TimeStamp timestamp(11111);
+    // Create arbitrary TimeStamp as per ReadyStatus.idl
+    TimeStamp TimeStamp;
+    TimeStamp.nanoseconds(11111);
     // The middleware expects a message like "hlc_${vehicle_id}", e.g. hlc_1
     std::string hlc_identification("hlc_");
     hlc_identification.append(std::to_string(vehicle_id));
-    ReadyStatus readyStatus(hlc_identification, timestamp);
-    writer_readyStatus.write(readyStatus);
+    ReadyStatus ReadyStatus;
+    ReadyStatus.source_id(hlc_identification);
+    ReadyStatus.next_start_stamp(TimeStamp);
+    writer_ReadyStatus.write(ReadyStatus);
 
     /* ---------------------------------------------------------------------------------
      * main loop to regularly send commands
@@ -315,7 +317,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     while( !stop ) {
-        auto state_samples = reader_vehicleStateList.take();
+        auto state_samples = reader_VehicleStateList.take();
         for(auto sample : state_samples) {
             // We received a StateList, which is our timing signal
             // to send commands to vehicle
@@ -443,8 +445,8 @@ int main(int argc, char *argv[]) {
         }
 
         // Check if we received a SystemTrigger to stop
-        auto systemTrigger_samples = reader_systemTrigger.take();
-        for (auto sample : systemTrigger_samples) {
+        auto SystemTrigger_samples = reader_systemTrigger.take();
+        for (auto sample : SystemTrigger_samples) {
             if (sample.next_start().nanoseconds() == trigger_stop) {
                 cpm::Logging::Instance().write(
                     2,
@@ -457,7 +459,8 @@ int main(int argc, char *argv[]) {
         // Check if the planner encountered a problem
         if( planner->is_crashed() ) {
             stop = true;
-            StopRequest request(vehicle_id);
+            StopRequest request;
+            request.vehicle_id(vehicle_id);
             writer_stopRequest.write(request);
         }
 

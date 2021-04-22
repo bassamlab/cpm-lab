@@ -35,8 +35,8 @@
 #include "cpm/Writer.hpp"
 #include "cpm/ReaderAbstract.hpp"
 
-#include "VehicleCommandTrajectory.hpp"
-#include "LaneGraphTrajectory.hpp"
+#include "VehicleCommandTrajectoryPubSubTypes.h"
+#include "LaneGraphTrajectoryPubSubTypes.h"
 
 #include "VehicleTrajectoryPlanningState.hpp"
 #include "CouplingGraph.hpp"
@@ -55,9 +55,9 @@ class VehicleTrajectoryPlanner
     //! TODO
     std::map<uint8_t, std::map<size_t, std::pair<size_t, size_t>>> other_vehicles_buffer;
     //! TODO
-    std::unique_ptr< cpm::Writer<LaneGraphTrajectory> > writer_laneGraphTrajectory;
+    std::unique_ptr< cpm::Writer<LaneGraphTrajectoryPubSubType> > writer_laneGraphTrajectory;
     //! TODO
-    std::unique_ptr< cpm::ReaderAbstract<LaneGraphTrajectory> > reader_laneGraphTrajectory;
+    std::unique_ptr< cpm::ReaderAbstract<LaneGraphTrajectoryPubSubType> > reader_laneGraphTrajectory;
     //! TODO
     bool started = false;
     //! TODO
@@ -188,13 +188,13 @@ public:
      * \brief TODO
      * \param writer TODO
      */
-    void set_writer(std::unique_ptr< cpm::Writer<LaneGraphTrajectory> > writer);
+    void set_writer(std::unique_ptr< cpm::Writer<LaneGraphTrajectoryPubSubType> > writer);
 
     /**
      * \brief TODO
      * \param reader TODO
      */
-    void set_reader(std::unique_ptr< cpm::ReaderAbstract<LaneGraphTrajectory> > reader);
+    void set_reader(std::unique_ptr< cpm::ReaderAbstract<LaneGraphTrajectoryPubSubType> > reader);
 
     /**
      * \brief TODO

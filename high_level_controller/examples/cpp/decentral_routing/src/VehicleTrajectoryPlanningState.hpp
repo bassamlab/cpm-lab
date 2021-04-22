@@ -31,8 +31,8 @@
 #include <utility>
 #include <cstdint>
 #include "cpm/Logging.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include "LaneGraphTrajectory.hpp"
+#include "LaneGraphTrajectoryPubSubTypes.h"
+#include "VehicleCommandTrajectoryPubSubTypes.h"
 
 using std::vector;
 using std::array;

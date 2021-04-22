@@ -26,7 +26,7 @@
 
 #pragma once
 #include "lane_graph.hpp"
-#include "Pose2D.hpp"
+#include "Pose2DPubSubTypes.h"
 #include <vector>
 using std::vector;
 

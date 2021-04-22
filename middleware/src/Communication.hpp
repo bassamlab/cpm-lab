@@ -136,7 +136,7 @@ class Communication {
             std::shared_ptr<cpm::Timer> _timer,
             std::vector<uint8_t> vehicle_ids
         ) 
-        :hlcParticipant(hlcDomainNumber, "QOS_LOCAL_COMMUNICATION.xml", "MatlabLibrary::LocalCommunicationProfile")
+        :hlcParticipant(hlcDomainNumber, true)
         ,hlcStateWriter(hlcParticipant.get_participant(), vehicleStateListTopicName)
         ,hlc_ready_status_reader(hlcParticipant.get_participant(), "readyStatus", true, true, true)
 
