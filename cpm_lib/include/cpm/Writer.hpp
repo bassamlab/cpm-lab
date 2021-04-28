@@ -26,8 +26,10 @@
 
 #pragma once
 
-#include <dds/pub/DataWriter.hpp>
 #include <fastdds/dds/publisher/DataWriterListener.hpp>
+#include <fastdds/dds/topic/Topic.hpp>
+#include <fastdds/dds/publisher/Publisher.hpp>
+#include <fastdds/dds/publisher/DataWriter.hpp>
 
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_topic.hpp"

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(cpmlib)
 option(BUILD_ARM OFF)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 add_definitions(-Wall -Wextra -Werror=return-type -O2)
 include_directories(src)
 include_directories(include)
@@ -67,13 +67,19 @@ set(SOURCE_CPM
 
 
 # Configuration for eProsima Fast-DDS 
-option(THIRDPARTY "" ON)
-option(BUILD_TESTING "" OFF)
-add_subdirectory(thirdparty/Fast-DDS/)
+# Find requirements
+if(NOT fastcdr_FOUND)
+    find_package(fastcdr REQUIRED)
+endif()
 
-#include_directories(SYSTEM $ENV{NDDSHOME}/include)
-#include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-#include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
+if(NOT foonathan_memory_FOUND)
+    find_package(foonathan_memory REQUIRED)
+endif()
+
+if(NOT fastrtps_FOUND)
+    find_package(fastrtps REQUIRED)
+endif()
+
 #link_libraries(dl nsl m pthread rt)
 #link_libraries(nddscpp2 nddsc nddscore)
 include_directories(dds_idl_cpp)
@@ -93,7 +99,7 @@ add_library(cpm SHARED
 #include_directories(${CMAKE_SOURCE_DIR}/build/thirdparty/Fast-DDS/include)
 #include_directories(${CMAKE_SOURCE_DIR}/thirdparty/Fast-DDS/include)
 
-target_link_libraries(cpm fastrtps fastcdr)
+target_link_libraries(cpm fastrtps fastcdr foonathan_memory)
 
 
 if(NOT BUILD_ARM)
@@ -121,5 +127,5 @@ if(NOT BUILD_ARM)
         test/test_InternalConfiguration.cpp
     )
 
-    target_link_libraries(unittest cpm fastrtps fastcdr)
+    target_link_libraries(unittest cpm fastrtps fastcdr foonathan_memory)
 endif()

@@ -5,7 +5,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 mkdir -p dds_idl_cpp
 
 # Generate IDL C++
-find dds_idl/ -type f | xargs -n 1 $DIR/thirdparty/Fast-DDS-Gen/scripts/fastrtpsgen -replace -d ./dds_idl_cpp/
+find dds_idl/ -type f | xargs -n 1 $DIR/thirdparty/Fast-DDS-Gen/scripts/fastddsgen -replace -d ./dds_idl_cpp/
 
 # Copy headers to public inclues
 mkdir -p include/cpm/dds

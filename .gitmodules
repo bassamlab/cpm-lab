@@ -7,3 +7,6 @@
 [submodule "cpm_lib/thirdparty/foonathan_memory_vendor"]
 	path = cpm_lib/thirdparty/foonathan_memory_vendor
 	url = https://github.com/eProsima/foonathan_memory_vendor.git
+[submodule "cpm_lib/thirdparty/Fast-CDR"]
+	path = cpm_lib/thirdparty/Fast-CDR
+	url = https://github.com/eProsima/Fast-CDR.git

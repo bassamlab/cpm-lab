@@ -33,11 +33,11 @@
 #include <vector>
 #include <future>
 
-#include <dds/sub/Subscriber.hpp>
-#include <dds/sub/DataReader.hpp>
-
 #include <fastdds/dds/topic/Topic.hpp>
 #include <fastdds/dds/subscriber/SampleInfo.hpp>
+#include <fastdds/dds/subscriber/Subscriber.hpp>
+#include <fastdds/dds/subscriber/DataReader.hpp>
+#include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Participant.hpp"

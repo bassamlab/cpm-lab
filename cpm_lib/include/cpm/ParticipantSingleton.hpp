@@ -26,8 +26,7 @@
 
 #pragma once
 
-#include <dds/domain/DomainParticipant.hpp>
-#include <mutex>
+#include <fastdds/dds/domain/DomainParticipant.hpp>
 
 namespace cpm 
 {

@@ -28,7 +28,6 @@
 
 
 
-#include <dds/topic/Topic.hpp>
 #include <string>
 #include <mutex>
 #include "cpm/ParticipantSingleton.hpp"
