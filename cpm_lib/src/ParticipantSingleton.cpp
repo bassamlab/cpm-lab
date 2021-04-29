@@ -52,20 +52,20 @@ namespace cpm
     }
 
     ParticipantSingleton::~ParticipantSingleton(){
-      eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);
+        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);
     }
 
     void ParticipantSingleton::Remove(){
 
-      // Remove DataReader
+        // Remove DataReader
 
-      // Remove Subscriber
+        // Remove Subscriber
 
-      // Remove DataWriter
+        // Remove DataWriter
 
-      // Remove Publisher
- 
-      auto retcode = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);
+        // Remove Publisher
+  
+        auto retcode = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);
 
     }
 

@@ -50,7 +50,7 @@ namespace cpm
      * \ingroup cpmlib
      */
     template<class T>
-    class Writer : public eprosima::fastdds::dds::DataWriterListener
+    class Writer
     {
     private:
         T topic_data_type;
@@ -61,6 +61,29 @@ namespace cpm
         eprosima::fastdds::dds::DataWriter* writer = nullptr;
         eprosima::fastdds::dds::DomainParticipant* participant_ = nullptr;
 
+        class PubListener : public eprosima::fastdds::dds::DataWriterListener
+        {
+        public:
+
+            PubListener()
+                : matched_(0)
+            {
+            }
+
+            ~PubListener() override
+            {
+            }
+
+            void on_publication_matched(
+                    eprosima::fastdds::dds::DataWriter*,
+                    const eprosima::fastdds::dds::PublicationMatchedStatus& info) override
+            {
+                matched_ = info.total_count;
+            }
+
+            std::atomic_int matched_;
+
+        } listener_;
 
         //dds::pub::DataWriter<typename T::type> dds_writer;
 
@@ -68,14 +91,6 @@ namespace cpm
         Writer& operator=(const Writer&) = delete;
         Writer(const Writer&&) = delete;
         Writer& operator=(const Writer&&) = delete;
-
-        unsigned int active_matches = 0;
-
-        void on_publication_matched(
-            eprosima::fastdds::dds::DataWriter* reader,
-            const eprosima::fastdds::dds::PublicationMatchedStatus& info) override{
-              active_matches = info.total_count;
-        }
 
         /**
          * \brief Returns qos for the settings s.t. the constructor becomes more readable
@@ -127,12 +142,25 @@ namespace cpm
 
     public:
 
-        ~Writer(){
-          std::cout << "Deleting cpm::Writer" << std::endl;
-          publisher->delete_datawriter(writer);
-          participant_->delete_publisher(publisher);
-          participant_->delete_topic(topic);
+        /**
+         * \brief Destructor to clear eProsima data
+         * Virtual makes sure that for derived classes this destructor still gets called
+         */
+        virtual ~Writer(){
+            std::cout << "Deleting cpm::Writer" << std::endl;
           
+            if (writer != nullptr)
+            {
+                publisher->delete_datawriter(writer);
+            }
+            if (publisher != nullptr)
+            {
+                participant_->delete_publisher(publisher);
+            }
+            if (topic != nullptr)
+            {
+                participant_->delete_topic(topic);
+            }
         }
 
         /**
@@ -147,6 +175,7 @@ namespace cpm
         : Writer(ParticipantSingleton::Instance(), topic_name, reliable, history_keep_all, transient_local)
         {       
         }
+
         /**
          * \brief Constructor for a writer which is communicating within the ParticipantSingleton
          * Allows to set the topic name and some QoS settings
@@ -177,36 +206,40 @@ namespace cpm
             bool transient_local = false
         ) : type_support(new T()), participant_(&_participant)
         {
-          std::cout << "Creating Writer " << topic_name << " : " << topic_data_type.getName() << std::endl;
-          // Check if Type is already registered
-          auto find_type_ret = _participant.find_type(topic_data_type.getName());
-          std::cout << "Checking if type exists: " << topic_data_type.getName() << std::endl;
-          if(find_type_ret.empty()){
-            std::cout << "Type does not exist, creating type" << std::endl;
-            auto ret = _participant.register_type(type_support);
-            assert(ret == ReturnCode_t::RETCODE_OK);
-          }
+            std::cout << "Creating Writer " << topic_name << " : " << topic_data_type.getName() << std::endl;
 
-          assert(_participant.find_type(topic_data_type.getName()).empty() == false);
-          std::cout << "Double check: " << _participant.find_type(topic_data_type.getName()).get_type_name() << std::endl;
+            // Check if Type is already registered, create type
+            auto find_type_ret = _participant.find_type(topic_data_type.getName());
+            std::cout << "Checking if type exists: " << topic_data_type.getName() << std::endl;
+            if(find_type_ret.empty()){
+                std::cout << "Type does not exist, creating type" << std::endl;
+                auto ret = type_support.register_type(&_participant);
+                assert(ret == eprosima::fastdds::dds::TypeSupport::ReturnCode_t::RETCODE_OK);
+            }
 
-          // Create Topic
-          auto find_topic = _participant.lookup_topicdescription(topic_name);
-          if(find_topic == nullptr){
-            std::string type_name_str = topic_data_type.getName();
-            topic = _participant.create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
-          }else{
-            topic = (eprosima::fastdds::dds::Topic*)find_topic;
-          }
+            assert(_participant.find_type(topic_data_type.getName()).empty() == false);
+            std::cout << "Double check: " << _participant.find_type(topic_data_type.getName()).get_type_name() << std::endl;
 
-          std::cout << "Double check topic " <<  topic->get_type_name() << " " << topic->get_name() << std::endl;
-          assert(topic != nullptr);
-          assert(_participant.find_type(topic->get_type_name()).empty() == false);
+            // Create Topic
+            auto find_topic = _participant.lookup_topicdescription(topic_name);
+            if(find_topic == nullptr){
+                std::string type_name_str = topic_data_type.getName();
+                topic = _participant.create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
+            }else{
+                topic = (eprosima::fastdds::dds::Topic*)find_topic;
+            }
 
-          publisher = _participant.create_publisher(eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT);
-          writer = publisher->create_datawriter(topic, get_qos(reliable, history_keep_all, transient_local), this);
+            std::cout << "Double check topic " <<  topic->get_type_name() << " " << topic->get_name() << std::endl;
+            assert(topic != nullptr);
+            assert(_participant.find_type(topic->get_type_name()).empty() == false);
 
-          assert(writer != nullptr);                      
+            //Create Publisher
+            publisher = _participant.create_publisher(eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT);
+
+            //Create Writer
+            writer = publisher->create_datawriter(topic, get_qos(reliable, history_keep_all, transient_local), &listener_);
+
+            assert(writer != nullptr);                      
         }
         
         /**
@@ -224,7 +257,7 @@ namespace cpm
          */
         size_t matched_subscriptions_size()
         {
-            return active_matches;
+            return static_cast<size_t>(listener_.matched_.load());
         }
     };
 }

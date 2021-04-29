@@ -57,7 +57,7 @@ namespace cpm
         ParticipantSingleton& operator=(ParticipantSingleton const&) = delete;
         ParticipantSingleton& operator=(ParticipantSingleton &&) = delete;
 
-        ~ParticipantSingleton();
+        virtual ~ParticipantSingleton();
 
     private:
 
