@@ -175,8 +175,8 @@ namespace cpm {
             this), vehicle_id_filter_(vehicle_id_filter)
         {
             typename T::type topic_type;
-            //assert(typeof(topic_type.header().create_stamp().nanoseconds()) == uint64_t);
-            //static_assert(std::is_same<decltype(&topic_type.header().create_stamp().nanoseconds()), uint64_t>::value, "IDL type must have a Header.");
+            //assert(typeof(topic_type._header().create_stamp().nanoseconds()) == uint64_t);
+            static_assert(std::is_same<decltype(topic_type.header().create_stamp().nanoseconds()), uint64_t&>::value, "IDL type must have a Header.");
         }
 
         std::vector<typename T::type> get_all_samples(){
