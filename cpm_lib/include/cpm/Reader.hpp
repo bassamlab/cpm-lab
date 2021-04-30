@@ -68,28 +68,22 @@ namespace cpm {
 
         int vehicle_id_filter_ = -1;
 
-        /**
-         * \brief Store all received messages since the last call to get_samples in the data structure
-         * The current time is used to determine whether a message should be stored at all
-         * \param t_now Current time
-         */
-        void flush_dds_reader()
+        void on_data_available(
+                eprosima::fastdds::dds::DataReader* reader) override
         {
-
-          eprosima::fastdds::dds::SampleInfo info;
-          typename T::type data;
-          while(async_reader.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
-          {
-              if (info.instance_state == eprosima::fastdds::dds::ALIVE)
-              {
-                if(vehicle_id_filter_ == -1 || vehicle_id_filter_ == data.vehicle_id()){
-                  messages_buffer.push_back(data);
-                }else{
-                  std::cout << "message for vehicle ID " << (int)data.vehicle_id() << " discarded" << std::endl;
+            eprosima::fastdds::dds::SampleInfo info;
+            typename T::type data;
+            if (reader->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
+            {
+                if (info.instance_state == eprosima::fastdds::dds::ALIVE)
+                {
+                    if(vehicle_id_filter_ == -1 || vehicle_id_filter_ == data.vehicle_id()){
+                        messages_buffer.push_back(data);
+                    }else{
+                    std::cout << "message for vehicle ID " << (int)data.vehicle_id() << " discarded" << std::endl;
+                    }
                 }
-              }
-          }
-
+            }
         }
 
         /**
@@ -180,7 +174,6 @@ namespace cpm {
         }
 
         std::vector<typename T::type> get_all_samples(){
-          flush_dds_reader();
           return messages_buffer;
         }
              
@@ -196,9 +189,7 @@ namespace cpm {
         {
             //Lock mutex to make whole get_sample function thread safe
             std::lock_guard<std::mutex> lock(m_mutex);
-
-            flush_dds_reader();
-
+            
             get_newest_sample(t_now, sample_out, sample_age_out);
 
             //Delete samples that are older than the selected sample (regarding valid_after)

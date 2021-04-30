@@ -69,7 +69,6 @@ namespace cpm
          * \return A participant
          */
         static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> Instance();
-        static void Remove();
 
     };
 }

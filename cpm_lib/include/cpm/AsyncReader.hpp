@@ -59,9 +59,9 @@ namespace cpm
     {
     private:
         //Reader and waitset for receiving data and calling the callback function
-        eprosima::fastdds::dds::Subscriber* sub = nullptr;
-        eprosima::fastdds::dds::DataReader* reader = nullptr;
-        eprosima::fastdds::dds::TopicDescription* topic = nullptr;
+        std::shared_ptr<eprosima::fastdds::dds::Subscriber> sub = nullptr;
+        std::shared_ptr<eprosima::fastdds::dds::DataReader> reader = nullptr;
+        std::shared_ptr<eprosima::fastdds::dds::TopicDescription> topic = nullptr;
         eprosima::fastdds::dds::TypeSupport type_support;
 
         std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant_;
@@ -78,7 +78,7 @@ namespace cpm
         
         void on_data_available(
           eprosima::fastdds::dds::DataReader* reader) override {
-          buffer.clear();              
+          buffer.clear();           
 
           eprosima::fastdds::dds::SampleInfo info;
           typename MessageType::type data;
@@ -208,15 +208,6 @@ namespace cpm
         virtual ~AsyncReader(){
           
           std::cout << "Removing AsyncReader" << std::endl;
-          sub->delete_datareader(reader);
-          participant_->delete_subscriber(sub);
-          //if(topic != nullptr){
-          //  delete topic;
-          //}
-          //auto desc = participant_->lookup_topicdescription(topic_name);
-          //if(desc != nullptr){
-            auto ret = participant_->delete_topic((eprosima::fastdds::dds::Topic*)topic);   
-          //}
         }
 
         /**
@@ -224,7 +215,7 @@ namespace cpm
          */
         size_t matched_publications_size();
 
-        eprosima::fastdds::dds::DataReader* get_reader(){
+        std::shared_ptr<eprosima::fastdds::dds::DataReader> get_reader(){
           return reader;
         }
     };
@@ -263,41 +254,82 @@ namespace cpm
     {
 
       buffer.reserve(100);
-      sub = participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT);
-      assert(sub != nullptr);
+      sub = std::shared_ptr<eprosima::fastdds::dds::Subscriber>(
+          participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT),
+          [participant_ = participant_] (eprosima::fastdds::dds::Subscriber* sub)
+          {
+              if (sub != nullptr)
+              {
+                  participant_->delete_subscriber(sub);
+              }
+          }
+      );
+      assert(sub);
 
-      // Register Type      
-      // Check if Type Name already registered
+      // Check if Type is already registered, create type
       auto find_type_ret = participant_->find_type(topic_data_type.getName());
       std::cout << "Checking if type exists: " << topic_data_type.getName() << std::endl;
       if(find_type_ret.empty()){
-        std::cout << "Type does not exist, creating type" << std::endl;
-        auto ret = participant_->register_type(type_support);
-        assert(ret == ReturnCode_t::RETCODE_OK);
+          std::cout << "Type does not exist, creating type" << std::endl;
+          auto ret = type_support.register_type(participant_.get());
+          assert(ret == eprosima::fastdds::dds::TypeSupport::ReturnCode_t::RETCODE_OK);
       }
 
       assert(participant_->find_type(topic_data_type.getName()).empty() == false);
+      std::cout << "Double check: " << participant_->find_type(topic_data_type.getName()).get_type_name() << std::endl;
 
       // Create Topic
       auto find_topic = participant_->lookup_topicdescription(topic_name);
       if(find_topic == nullptr){
-        std::string type_name_str = topic_data_type.getName();
-        topic = participant_->create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
+          std::string type_name_str = topic_data_type.getName();
+          topic = std::shared_ptr<eprosima::fastdds::dds::Topic>(
+              participant_->create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT),
+              [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
+                  if (topic != nullptr)
+                  {
+                      participant_->delete_topic(topic);
+                  }
+              }
+          );
       }else{
-        topic = find_topic; 
+          topic = std::shared_ptr<eprosima::fastdds::dds::Topic>(
+              (eprosima::fastdds::dds::Topic*)find_topic,
+              [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
+                  if (topic != nullptr)
+                  {
+                      participant_->delete_topic(topic);
+                  }
+              }
+          );
       }
   
-      assert(topic != nullptr);
+      assert(topic);
 
       // Create Reader
       if(custom_listener == nullptr){
         std::cout << "Creating AsyncReader WITHOUT custom listener" << std::endl;
-        reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local, history_keep_all), this);
+        reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
+            sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), this),
+            [sub = sub](eprosima::fastdds::dds::DataReader* reader) {
+                if (sub != nullptr)
+                {
+                    sub->delete_datareader(reader);
+                }
+            }
+        );
       }else{
         std::cout << "Creating AsyncReader WITH custom listener " << custom_listener  << std::endl;
-        reader = sub->create_datareader(topic, get_qos(is_reliable, is_transient_local, history_keep_all), custom_listener);
+        reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
+            sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), custom_listener),
+            [sub = sub](eprosima::fastdds::dds::DataReader* reader) {
+                if (sub != nullptr)
+                {
+                    sub->delete_datareader(reader);
+                }
+            }
+        );
       }
-      assert(reader != nullptr);      
+      assert(reader);      
     }
 
     template<class MessageType> 

@@ -73,18 +73,10 @@ namespace cpm
     {
     }
 
-    ParameterReceiver* ParameterReceiver::instance_ = nullptr;
-
     ParameterReceiver& ParameterReceiver::Instance() {
         // Thread-safe in C++11
-        if(instance_ == nullptr){
-          instance_ = new ParameterReceiver();
-        }
-        return *instance_;
-    }
-
-    void ParameterReceiver::Remove(){
-      delete instance_;
+        static ParameterReceiver instance;
+        return instance;
     }
 
     bool ParameterReceiver::parameter_bool(std::string parameter_name) {

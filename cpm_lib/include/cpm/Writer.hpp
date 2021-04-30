@@ -218,9 +218,7 @@ namespace cpm
                     [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
                         if (topic != nullptr)
                         {
-                            std::cout << "PDL A" << std::endl;
                             participant_->delete_topic(topic);
-                            std::cout << "PDL A end" << std::endl;
                         }
                     }
                 );
@@ -230,9 +228,7 @@ namespace cpm
                     [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
                         if (topic != nullptr)
                         {
-                            std::cout << "PDL B" << std::endl;
                             participant_->delete_topic(topic);
-                            std::cout << "PDL B end" << std::endl;
                         }
                     }
                 );
@@ -248,9 +244,7 @@ namespace cpm
                 [participant_ = participant_](eprosima::fastdds::dds::Publisher* publisher) {
                     if (publisher != nullptr)
                     {
-                        std::cout << "PDL C" << std::endl;
                         participant_->delete_publisher(publisher);
-                        std::cout << "PDL C end" << std::endl;
                     }
                 }
             );
@@ -261,9 +255,7 @@ namespace cpm
                 [publisher = publisher](eprosima::fastdds::dds::DataWriter* writer) {
                     if (writer != nullptr)
                     {
-                        std::cout << "PDL d" << std::endl;
                         publisher->delete_datawriter(writer);
-                        std::cout << "PDL d end" << std::endl;
                     }
                 }
             );

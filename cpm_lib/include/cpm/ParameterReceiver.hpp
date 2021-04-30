@@ -56,7 +56,6 @@ namespace cpm
     public:
         //! Provides access to the parameter receiver Singleton
         static ParameterReceiver& Instance();
-        static void Remove();
 
         //Delete move and copy op
         ParameterReceiver(ParameterReceiver const&) = delete;
@@ -114,8 +113,6 @@ namespace cpm
         std::vector<double> parameter_doubles(std::string parameter_name);
 
     private:
-
-        static ParameterReceiver* instance_;
 
         /**
          * \brief Constructor. Creates a reliable DataWriter and uses the "is_reliable" parameter of the AsyncReader to create a reliable DataReader as well. Also binds the callback function / passes it to the AsyncReader.

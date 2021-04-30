@@ -33,8 +33,6 @@
 
 namespace cpm {
 
-    Logging* Logging::instance_ = nullptr;
-
     Logging::Logging() :
         logger("log", true), log_level_reader(cpm::AsyncReader<LogLevelPubSubType>(
             [this](std::vector<LogLevel>& samples){
@@ -73,14 +71,8 @@ namespace cpm {
     }
 
     Logging& Logging::Instance() {
-      if(instance_ == nullptr){
-        instance_ = new Logging();
-      }
-      return *instance_;
-    }
-
-    void Logging::Remove(){
-      delete instance_;
+      static Logging instance;
+      return instance;
     }
 
     uint64_t Logging::get_time() {

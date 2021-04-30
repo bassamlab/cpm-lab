@@ -96,8 +96,26 @@ target_link_libraries(cpm fastrtps fastcdr)
 if(NOT BUILD_ARM)
     add_executable(unittest
         test/catch.cpp
+        test/test_logging.cpp
+        test/test_AsyncReader.cpp
+        test/test_rtt.cpp
+        test/test_parameter.cpp
+        test/test_simple_timer.cpp
+        test/test_simple_timer_stop.cpp
+        test/test_timer.cpp
+        test/test_timer_stop.cpp
+        test/test_timer_stop_running.cpp
+        test/test_timer_start_again.cpp
+        test/test_timer_simulated.cpp
+        test/test_VehicleIDFilteredTopic.cpp
         test/test_Participant.cpp
+        test/test_Reader.cpp
+        test/test_ReaderAbstract.cpp
         test/test_Writer.cpp
+        test/test_MultiVehicleReader.cpp
+        test/test_CommandLineReader.cpp
+        test/test_InternalConfiguration.cpp
+
     )
 
     target_link_libraries(unittest cpm fastrtps fastcdr)

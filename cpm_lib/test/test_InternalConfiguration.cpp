@@ -47,9 +47,4 @@ TEST_CASE("InternalConfiguration") {
 
   CHECK(cpm::InternalConfiguration::Instance().get_dds_domain() == 31);
   CHECK(cpm::InternalConfiguration::Instance().get_logging_id() == "hello");
-
-  cpm::ParameterReceiver::Remove();
-  cpm::Logging::Remove();
-  cpm::RTTTool::Remove();
-  cpm::ParticipantSingleton::Remove();
 }

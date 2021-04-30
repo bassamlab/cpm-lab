@@ -76,8 +76,6 @@ namespace cpm
          */
         RTTTool();
 
-        static RTTTool* instance_;
-
     public:
         RTTTool(RTTTool const&) = delete;
         RTTTool(RTTTool&&) = delete; 
@@ -88,8 +86,6 @@ namespace cpm
          * \brief Interface to create / get access to the singleton
          */ 
         static RTTTool& Instance();
-
-        static void Remove();
 
         /**
          * \brief Activate the RTT measurement for this participant

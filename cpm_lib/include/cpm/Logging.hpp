@@ -91,8 +91,6 @@ namespace cpm {
              */
             void check_id();
 
-            static Logging* instance_;
-
         public:
             Logging(Logging const&) = delete;
             Logging(Logging&&) = delete; 
@@ -103,7 +101,6 @@ namespace cpm {
              * \brief Singleton constructor / method to access the Logging Singleton Instance; from there, the Logging functionality can be accessed
              */
             static Logging& Instance();
-            static void Remove();
 
             /**
              * \brief Function to set the Logging ID - must be called at the start of your program! 

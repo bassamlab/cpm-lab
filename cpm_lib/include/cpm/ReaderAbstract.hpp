@@ -121,7 +121,7 @@ namespace cpm
           return reader->matched_publications_size();
         }
 
-        eprosima::fastdds::dds::DataReader* get_reader(){
+        std::shared_ptr<eprosima::fastdds::dds::DataReader> get_reader(){
           return reader.get_reader();
         }
     };

@@ -58,16 +58,13 @@ namespace cpm
         //! Vehicle IDs to listen for
         std::vector<uint8_t> vehicle_ids;
 
-        /**
-         * \brief Function to go through all samples received since the last call of get_samples.
-         * These are put in the ring buffer vehicle_buffers for each vehicle
-         */
-        void flush_dds_reader()
+        void on_data_available(
+                eprosima::fastdds::dds::DataReader* reader) override
         {
             eprosima::fastdds::dds::SampleInfo info;
             typename T::type data;
             
-            while(dds_reader.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
+            while(reader->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
             {
                 if(info.instance_state == eprosima::fastdds::dds::ALIVE) 
                 {
@@ -80,7 +77,6 @@ namespace cpm
                 }
             }
         }
-
 
         static void dummyCallback(std::vector<typename T::type>&){}
 
@@ -147,7 +143,6 @@ namespace cpm
         )
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            flush_dds_reader();
 
             sample_out.clear();
             sample_age_out.clear();
