@@ -53,6 +53,8 @@ using std::vector;
 #include "cpm/TimeMeasurement.hpp"
 #include "cpm/Writer.hpp"
 
+#include <fastrtps/rtps/exceptions/Exception.h>
+
 #include "SensorCalibration.hpp"
 #include "Localization.hpp"
 #include "Controller.hpp"
@@ -298,9 +300,8 @@ int main(int argc, char *argv[])
 
                 auto end_process = cpm::get_time_ns();
                 //std::cout << "Process Time " << end_process - start_process << std::endl;
-
             }
-            catch(const dds::core::Exception& e)
+            catch(const eprosima::fastrtps::rtps::Exception& e)
             {
                 //std::cerr << "Exception: " << e.what() << std::endl;
                 std::string err_message = e.what();
