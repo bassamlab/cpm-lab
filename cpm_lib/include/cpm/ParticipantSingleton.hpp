@@ -61,14 +61,14 @@ namespace cpm
 
     private:
 
-      static eprosima::fastdds::dds::DomainParticipant* instance_;
+      static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> instance_;
 
     public:
         /**
          * \brief Retrieve the participant singleton with this function
          * \return A participant
          */
-        static eprosima::fastdds::dds::DomainParticipant& Instance();
+        static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> Instance();
         static void Remove();
 
     };

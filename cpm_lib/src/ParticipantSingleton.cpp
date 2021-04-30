@@ -36,37 +36,24 @@
  */
 namespace cpm 
 {
+    std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> ParticipantSingleton::Instance() {
 
-    eprosima::fastdds::dds::DomainParticipant* ParticipantSingleton::instance_ = nullptr;
+        //This part is not clean yet
+        eprosima::fastdds::dds::DomainParticipantQos pqos;
+        pqos.name("Participant_sub");
 
-    eprosima::fastdds::dds::DomainParticipant& ParticipantSingleton::Instance() {
-
-        if(instance_ == nullptr)
-        {
-
-            eprosima::fastdds::dds::DomainParticipantQos pqos;
-            pqos.name("Participant_sub");
-            instance_ = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(eprosima::fastdds::dds::DomainId_t(0), pqos);
-        }
-        return *instance_;
+        //This is thread-safe - the former version was not and actually lead to a segfault after quit
+        static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> instance_(
+            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(eprosima::fastdds::dds::DomainId_t(0), pqos),
+            [] (eprosima::fastdds::dds::DomainParticipant* instance_) {
+                if (instance_ != nullptr)
+                    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);
+            }
+        );
+        return instance_;
     }
 
     ParticipantSingleton::~ParticipantSingleton(){
-        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);
-    }
-
-    void ParticipantSingleton::Remove(){
-
-        // Remove DataReader
-
-        // Remove Subscriber
-
-        // Remove DataWriter
-
-        // Remove Publisher
-  
-        auto retcode = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);
-
     }
 
 

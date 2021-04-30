@@ -47,17 +47,17 @@
 TEST_CASE("Participant") {
   cpm::Logging::Instance().set_id("test_participant");
 
-  cpm::Participant* p = new cpm::Participant(
+  cpm::Participant p(
       5, "../test/QOS_TEST.xml");  // The path depends on from where the program
                                    // is called
 
   {
     cpm::ReaderAbstract<VehicleStatePubSubType> vehicle_state_reader(
-        p->get_participant(), "sadfhasdflkasdhf", true, true, true);
+        p.get_participant(), "sadfhasdflkasdhf", true, true, true);
 
     // Test the participant, find out if sample gets received
     cpm::Writer<VehicleStatePubSubType> vehicle_state_writer(
-        p->get_participant(), "sadfhasdflkasdhf", true, true, true);
+        p.get_participant(), "sadfhasdflkasdhf", true, true, true);
 
     //It usually takes some time for all instances to see each other - wait until then
     std::cout << "Waiting for DDS entity match in Participant test" << std::endl << "\t";
@@ -94,6 +94,4 @@ TEST_CASE("Participant") {
     REQUIRE(samples.size() == 1);
     REQUIRE(samples.begin()->vehicle_id() == 99);
   }
-
-  delete p;
 }

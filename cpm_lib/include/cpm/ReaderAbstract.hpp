@@ -86,7 +86,7 @@ namespace cpm
          * \param transient_local Receive messages sent before joining (true) or not (false, default)
          */
         ReaderAbstract(
-            eprosima::fastdds::dds::DomainParticipant & _participant, 
+            std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> _participant, 
             std::string topic, 
             bool reliable = false, 
             bool history_keep_all = false, 

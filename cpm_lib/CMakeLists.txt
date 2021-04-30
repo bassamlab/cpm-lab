@@ -67,18 +67,9 @@ set(SOURCE_CPM
 
 
 # Configuration for eProsima Fast-DDS 
-# Find requirements
-if(NOT fastcdr_FOUND)
-    find_package(fastcdr REQUIRED)
-endif()
-
-if(NOT foonathan_memory_FOUND)
-    find_package(foonathan_memory REQUIRED)
-endif()
-
-if(NOT fastrtps_FOUND)
-    find_package(fastrtps REQUIRED)
-endif()
+option(THIRDPARTY "" ON)
+option(BUILD_TESTING "" OFF)
+add_subdirectory(thirdparty/Fast-DDS/)
 
 #link_libraries(dl nsl m pthread rt)
 #link_libraries(nddscpp2 nddsc nddscore)
@@ -99,33 +90,15 @@ add_library(cpm SHARED
 #include_directories(${CMAKE_SOURCE_DIR}/build/thirdparty/Fast-DDS/include)
 #include_directories(${CMAKE_SOURCE_DIR}/thirdparty/Fast-DDS/include)
 
-target_link_libraries(cpm fastrtps fastcdr foonathan_memory)
+target_link_libraries(cpm fastrtps fastcdr)
 
 
 if(NOT BUILD_ARM)
     add_executable(unittest
         test/catch.cpp
-        test/test_VehicleIDFilteredTopic.cpp
-        test/test_Reader.cpp
-        test/test_timer.cpp
-        test/test_timer_simulated.cpp
-        test/test_logging.cpp
-        test/test_AsyncReader.cpp
-        test/test_rtt.cpp
-        test/test_parameter.cpp
-        test/test_simple_timer.cpp
-        test/test_simple_timer_stop.cpp
-        test/test_timer_stop.cpp
-        test/test_timer_stop_running.cpp
-        test/test_timer_start_again.cpp
-        test/test_ReaderAbstract.cpp
-        test/test_Writer.cpp
-        test/test_MultiVehicleReader.cpp
-        test/test_CommandLineReader.cpp
         test/test_Participant.cpp
-
-        test/test_InternalConfiguration.cpp
+        test/test_Writer.cpp
     )
 
-    target_link_libraries(unittest cpm fastrtps fastcdr foonathan_memory)
+    target_link_libraries(unittest cpm fastrtps fastcdr)
 endif()

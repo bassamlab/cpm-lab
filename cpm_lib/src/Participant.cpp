@@ -42,8 +42,14 @@ namespace cpm
     Participant::Participant(int domain_number)
     { 
         auto qos = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_default_participant_qos();
-        participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos);
-        assert(participant != nullptr);
+        participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
+            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos),
+            [] (eprosima::fastdds::dds::DomainParticipant* participant) {
+                if (participant != nullptr)
+                    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+            }
+        );
+        assert(participant);
     }
 
     /**
@@ -63,19 +69,26 @@ namespace cpm
       if(ret_pf != ReturnCode_t::RETCODE_OK){
         throw std::invalid_argument("unable to create participant from xml profile");
       }
-      participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos);
-      if(participant == nullptr){
+      
+      participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
+          eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos),
+          [] (eprosima::fastdds::dds::DomainParticipant* participant) {
+              if (participant != nullptr)
+                  eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+          }
+      );
+
+      if(! participant){
         throw std::invalid_argument("failed to create participant");
       }
     }
 
     Participant::~Participant(){
-      eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
     }
     
-    eprosima::fastdds::dds::DomainParticipant& Participant::get_participant()
+    std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> Participant::get_participant()
     {
-        return *participant;
+        return participant;
     }
 
 }

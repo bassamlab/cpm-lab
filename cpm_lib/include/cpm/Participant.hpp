@@ -38,9 +38,9 @@ namespace cpm
      */
     class Participant
     {
-    private:
-        //! Internal DDS participant that is abstracted by this class    
-        eprosima::fastdds::dds::DomainParticipant* participant = nullptr;
+    private:    
+        //! Internal DDS participant that is abstracted by this class
+        std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant;
 
     public:
         Participant(const Participant&) = delete;
@@ -63,6 +63,6 @@ namespace cpm
 
         ~Participant();
         
-        eprosima::fastdds::dds::DomainParticipant& get_participant();
+        std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> get_participant();
     };
 }

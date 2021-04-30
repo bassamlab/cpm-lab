@@ -43,9 +43,6 @@
 TEST_CASE("Writer") {
   cpm::Logging::Instance().set_id("test_writer");
 
-  cpm::ReaderAbstract<VehicleStatePubSubType> vehicle_state_reader(
-      "sadfhasdflkasdhf", true, true, true);
-
   // Test the writer, find out if sample gets received
   cpm::Writer<VehicleStatePubSubType> vehicle_state_writer("sadfhasdflkasdhf",
                                                            true, true, true);

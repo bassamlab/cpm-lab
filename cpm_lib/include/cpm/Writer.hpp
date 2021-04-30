@@ -31,6 +31,8 @@
 #include <fastdds/dds/publisher/Publisher.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
 
+#include <memory>
+
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_topic.hpp"
 
@@ -56,10 +58,10 @@ namespace cpm
         T topic_data_type;
         
         eprosima::fastdds::dds::TypeSupport type_support;
-        eprosima::fastdds::dds::Publisher* publisher = nullptr;
-        eprosima::fastdds::dds::Topic* topic = nullptr;
-        eprosima::fastdds::dds::DataWriter* writer = nullptr;
-        eprosima::fastdds::dds::DomainParticipant* participant_ = nullptr;
+        std::shared_ptr<eprosima::fastdds::dds::Publisher> publisher;
+        std::shared_ptr<eprosima::fastdds::dds::Topic> topic;
+        std::shared_ptr<eprosima::fastdds::dds::DataWriter> writer;
+        std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant_;
 
         class PubListener : public eprosima::fastdds::dds::DataWriterListener
         {
@@ -148,19 +150,6 @@ namespace cpm
          */
         virtual ~Writer(){
             std::cout << "Deleting cpm::Writer" << std::endl;
-          
-            if (writer != nullptr)
-            {
-                publisher->delete_datawriter(writer);
-            }
-            if (publisher != nullptr)
-            {
-                participant_->delete_publisher(publisher);
-            }
-            if (topic != nullptr)
-            {
-                participant_->delete_topic(topic);
-            }
         }
 
         /**
@@ -199,47 +188,87 @@ namespace cpm
          * \param transient_local Resent messages sent before a new participant joined to that participant (true) or not (false, default)
          */
         Writer(
-            eprosima::fastdds::dds::DomainParticipant& _participant, 
+            std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> _participant, 
             std::string topic_name, 
             bool reliable = false, 
             bool history_keep_all = false, 
             bool transient_local = false
-        ) : type_support(new T()), participant_(&_participant)
+        ) : type_support(new T()), participant_(_participant)
         {
             std::cout << "Creating Writer " << topic_name << " : " << topic_data_type.getName() << std::endl;
 
             // Check if Type is already registered, create type
-            auto find_type_ret = _participant.find_type(topic_data_type.getName());
+            auto find_type_ret = participant_->find_type(topic_data_type.getName());
             std::cout << "Checking if type exists: " << topic_data_type.getName() << std::endl;
             if(find_type_ret.empty()){
                 std::cout << "Type does not exist, creating type" << std::endl;
-                auto ret = type_support.register_type(&_participant);
+                auto ret = type_support.register_type(participant_.get());
                 assert(ret == eprosima::fastdds::dds::TypeSupport::ReturnCode_t::RETCODE_OK);
             }
 
-            assert(_participant.find_type(topic_data_type.getName()).empty() == false);
-            std::cout << "Double check: " << _participant.find_type(topic_data_type.getName()).get_type_name() << std::endl;
+            assert(participant_->find_type(topic_data_type.getName()).empty() == false);
+            std::cout << "Double check: " << participant_->find_type(topic_data_type.getName()).get_type_name() << std::endl;
 
             // Create Topic
-            auto find_topic = _participant.lookup_topicdescription(topic_name);
+            auto find_topic = participant_->lookup_topicdescription(topic_name);
             if(find_topic == nullptr){
                 std::string type_name_str = topic_data_type.getName();
-                topic = _participant.create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
+                topic = std::shared_ptr<eprosima::fastdds::dds::Topic>(
+                    participant_->create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT),
+                    [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
+                        if (topic != nullptr)
+                        {
+                            std::cout << "PDL A" << std::endl;
+                            participant_->delete_topic(topic);
+                            std::cout << "PDL A end" << std::endl;
+                        }
+                    }
+                );
             }else{
-                topic = (eprosima::fastdds::dds::Topic*)find_topic;
+                topic = std::shared_ptr<eprosima::fastdds::dds::Topic>(
+                    (eprosima::fastdds::dds::Topic*)find_topic,
+                    [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
+                        if (topic != nullptr)
+                        {
+                            std::cout << "PDL B" << std::endl;
+                            participant_->delete_topic(topic);
+                            std::cout << "PDL B end" << std::endl;
+                        }
+                    }
+                );
             }
 
             std::cout << "Double check topic " <<  topic->get_type_name() << " " << topic->get_name() << std::endl;
-            assert(topic != nullptr);
-            assert(_participant.find_type(topic->get_type_name()).empty() == false);
+            assert(topic);
+            assert(participant_->find_type(topic->get_type_name()).empty() == false);
 
             //Create Publisher
-            publisher = _participant.create_publisher(eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT);
+            publisher = std::shared_ptr<eprosima::fastdds::dds::Publisher>(
+                participant_->create_publisher(eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT),
+                [participant_ = participant_](eprosima::fastdds::dds::Publisher* publisher) {
+                    if (publisher != nullptr)
+                    {
+                        std::cout << "PDL C" << std::endl;
+                        participant_->delete_publisher(publisher);
+                        std::cout << "PDL C end" << std::endl;
+                    }
+                }
+            );
 
             //Create Writer
-            writer = publisher->create_datawriter(topic, get_qos(reliable, history_keep_all, transient_local), &listener_);
+            writer = std::shared_ptr<eprosima::fastdds::dds::DataWriter>(
+                publisher->create_datawriter(topic.get(), get_qos(reliable, history_keep_all, transient_local), &listener_),
+                [publisher = publisher](eprosima::fastdds::dds::DataWriter* writer) {
+                    if (writer != nullptr)
+                    {
+                        std::cout << "PDL d" << std::endl;
+                        publisher->delete_datawriter(writer);
+                        std::cout << "PDL d end" << std::endl;
+                    }
+                }
+            );
 
-            assert(writer != nullptr);                      
+            assert(writer);                      
         }
         
         /**

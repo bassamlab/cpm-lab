@@ -64,7 +64,7 @@ namespace cpm
         eprosima::fastdds::dds::TopicDescription* topic = nullptr;
         eprosima::fastdds::dds::TypeSupport type_support;
 
-        eprosima::fastdds::dds::DomainParticipant* participant_ = nullptr;
+        std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant_;
 
         MessageType topic_data_type;
 
@@ -197,7 +197,7 @@ namespace cpm
 
         AsyncReader(
             std::function<void(std::vector<typename MessageType::type>&)> func, 
-            eprosima::fastdds::dds::DomainParticipant&,
+            std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>,
             std::string topic_name, 
             bool is_reliable = false,
             bool is_transient_local = false,
@@ -252,38 +252,37 @@ namespace cpm
     template<class MessageType> 
     AsyncReader<MessageType>::AsyncReader(
         std::function<void(std::vector<typename MessageType::type>&)> func, 
-        eprosima::fastdds::dds::DomainParticipant& participant,
+        std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant,
         std::string topic_name, 
         bool is_reliable,
         bool is_transient_local,
         bool history_keep_all,
         eprosima::fastdds::dds::DataReaderListener* custom_listener
     )
-    : target(func), type_support(new MessageType()), participant_(&participant), topic_name(topic_name)
+    : target(func), type_support(new MessageType()), participant_(participant), topic_name(topic_name)
     {
 
       buffer.reserve(100);
-      eprosima::fastdds::dds::DomainParticipant& p_impl = dynamic_cast<eprosima::fastdds::dds::DomainParticipant&>(participant);
-      sub = p_impl.create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT);
+      sub = participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT);
       assert(sub != nullptr);
 
       // Register Type      
       // Check if Type Name already registered
-      auto find_type_ret = p_impl.find_type(topic_data_type.getName());
+      auto find_type_ret = participant_->find_type(topic_data_type.getName());
       std::cout << "Checking if type exists: " << topic_data_type.getName() << std::endl;
       if(find_type_ret.empty()){
         std::cout << "Type does not exist, creating type" << std::endl;
-        auto ret = p_impl.register_type(type_support);
+        auto ret = participant_->register_type(type_support);
         assert(ret == ReturnCode_t::RETCODE_OK);
       }
 
-      assert(p_impl.find_type(topic_data_type.getName()).empty() == false);
+      assert(participant_->find_type(topic_data_type.getName()).empty() == false);
 
       // Create Topic
-      auto find_topic = p_impl.lookup_topicdescription(topic_name);
+      auto find_topic = participant_->lookup_topicdescription(topic_name);
       if(find_topic == nullptr){
         std::string type_name_str = topic_data_type.getName();
-        topic = p_impl.create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
+        topic = participant_->create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
       }else{
         topic = find_topic; 
       }
