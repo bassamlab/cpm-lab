@@ -205,11 +205,6 @@ namespace cpm
             eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
         );
 
-        virtual ~AsyncReader(){
-          
-          std::cout << "Removing AsyncReader" << std::endl;
-        }
-
         /**
          * \brief Returns # of matched writers
          */

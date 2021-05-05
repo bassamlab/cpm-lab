@@ -40,6 +40,7 @@
 
 #include "cpm/exceptions.hpp"
 #include "cpm/get_time_ns.hpp"
+#include "cpm/ReaderAbstract.hpp"
 #include "cpm/Writer.hpp"
 
 #include <atomic>
@@ -68,12 +69,8 @@ namespace cpm {
         //! ID of the timer, e.g. middleware, e.g. for identification in the timer tab of the LCC
         std::string node_id;
 
-        //Cannot be substituted by other cpm classes and was not abstracted
         //! Used to receive start and stop signals
-        cpm::AsyncReader<SystemTriggerPubSubType> reader_system_trigger;
-
-        // this is actually never called...fix Writer API
-        static void dummyCallback(std::vector<SystemTrigger> trigger){}
+        cpm::ReaderAbstract<SystemTriggerPubSubType> reader_system_trigger;
 
         //! Writer for ready status, telling the network that the timer exists and is ready to operate
         cpm::Writer<ReadyStatusPubSubType> writer_ready_status;

@@ -57,8 +57,6 @@ namespace cpm
         ParticipantSingleton& operator=(ParticipantSingleton const&) = delete;
         ParticipantSingleton& operator=(ParticipantSingleton &&) = delete;
 
-        virtual ~ParticipantSingleton();
-
     private:
 
       static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> instance_;

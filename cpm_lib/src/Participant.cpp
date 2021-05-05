@@ -82,9 +82,6 @@ namespace cpm
         throw std::invalid_argument("failed to create participant");
       }
     }
-
-    Participant::~Participant(){
-    }
     
     std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> Participant::get_participant()
     {

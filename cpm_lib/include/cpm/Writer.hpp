@@ -145,14 +145,6 @@ namespace cpm
     public:
 
         /**
-         * \brief Destructor to clear eProsima data
-         * Virtual makes sure that for derived classes this destructor still gets called
-         */
-        virtual ~Writer(){
-            std::cout << "Deleting cpm::Writer" << std::endl;
-        }
-
-        /**
          * \brief Constructor for a writer which is communicating within the ParticipantSingleton
          * Allows to set the topic name and some QoS settings
          * \param topic Name of the topic to write in

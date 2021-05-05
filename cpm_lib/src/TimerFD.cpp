@@ -57,7 +57,7 @@ namespace cpm {
     ,wait_for_start(_wait_for_start)
     ,stop_signal(_stop_signal),
     writer_ready_status("readyStatus", true),
-    reader_system_trigger(&TimerFD::dummyCallback,"systemTrigger",true,false, this)
+    reader_system_trigger("systemTrigger",true,true, false)
     {
 
         //writer_ready_status = new cpm::Writer<ReadyStatusPubSubType>;
@@ -155,13 +155,8 @@ namespace cpm {
             }
             eprosima::fastdds::dds::SampleInfo info;
             SystemTrigger data;
-            while(reader_system_trigger.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
-              if (info.instance_state == eprosima::fastdds::dds::ALIVE)
-              {
-                    nsec_ret = data.next_start().nanoseconds();
-              }else{
-                  break;
-              }
+            for(auto& data : reader_system_trigger.take()) {
+                nsec_ret = data.next_start().nanoseconds();
             }
 
             return nsec_ret;
@@ -350,14 +345,10 @@ namespace cpm {
                   
       eprosima::fastdds::dds::SampleInfo info;
       SystemTrigger data;
-      while(reader_system_trigger.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
-        if (info.instance_state == eprosima::fastdds::dds::ALIVE)
-        {
-            if(data.next_start().nanoseconds() == stop_signal){
-              return true;
-            }
-              return data.next_start().nanoseconds();
-        } 
+      for (auto& data : reader_system_trigger.take()) {
+        if(data.next_start().nanoseconds() == stop_signal){
+            return true;
+        }
       }
 
       return false;

@@ -52,9 +52,4 @@ namespace cpm
         );
         return instance_;
     }
-
-    ParticipantSingleton::~ParticipantSingleton(){
-    }
-
-
 }
