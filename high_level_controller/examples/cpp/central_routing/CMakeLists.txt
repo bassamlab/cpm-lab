@@ -2,9 +2,19 @@ cmake_minimum_required(VERSION 3.1)
 add_definitions(-Wall -Wextra -Werror=return-type -O2)
 set (CMAKE_CXX_STANDARD 11)
 
-option(THIRDPARTY "" ON)
-option(BUILD_TESTING "" OFF)
-add_subdirectory(../../../../cpm_lib/thirdparty/Fast-DDS/ build)
+# Fast DDS / eProsima
+if(NOT fastcdr_FOUND)
+    find_package(fastcdr REQUIRED)
+endif()
+
+if(NOT foonathan_memory_FOUND)
+    find_package(foonathan_memory REQUIRED)
+endif()
+
+if(NOT fastrtps_FOUND)
+    find_package(fastrtps REQUIRED)
+endif()
+
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
 
 
@@ -30,7 +40,7 @@ add_executable(central_routing
 )
 target_include_directories(central_routing PUBLIC
     include/lane_graph_full)
-target_link_libraries(central_routing cpm fastrtps)
+target_link_libraries(central_routing cpm fastrtps fastcdr foonathan_memory)
 
 add_executable(central_routing_reduced
     src/main.cpp
@@ -44,7 +54,7 @@ add_executable(central_routing_reduced
 )
 target_include_directories(central_routing_reduced PUBLIC 
     include/lane_graph_one_lane)
-target_link_libraries(central_routing_reduced cpm fastrtps)
+target_link_libraries(central_routing_reduced cpm fastrtps fastcdr foonathan_memory)
 
 add_executable(150_jahre_RWTH_szenario
     src/main.cpp
@@ -58,7 +68,7 @@ add_executable(150_jahre_RWTH_szenario
 )
 target_include_directories(150_jahre_RWTH_szenario PUBLIC 
     include/150_jahre_RWTH_szenario)
-target_link_libraries(150_jahre_RWTH_szenario cpm fastrtps)
+target_link_libraries(150_jahre_RWTH_szenario cpm fastrtps fastcdr foonathan_memory)
 
 add_executable(outer_circle
     src/main.cpp
@@ -73,7 +83,7 @@ add_executable(outer_circle
 
 target_include_directories(outer_circle PUBLIC 
     include/lane_graph_outer_circle)
-target_link_libraries(outer_circle cpm fastrtps)
+target_link_libraries(outer_circle cpm fastrtps fastcdr foonathan_memory)
 
 add_executable(tests
     src/tests.cpp
@@ -83,4 +93,4 @@ add_executable(tests
 )
 target_include_directories(tests PUBLIC
     include/lane_graph_full)
-target_link_libraries(tests cpm fastrtps)
+target_link_libraries(tests cpm fastrtps fastcdr foonathan_memory)

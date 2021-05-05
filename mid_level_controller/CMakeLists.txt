@@ -14,9 +14,17 @@ include_directories(../cpm_lib/include/)
 include_directories(../cpm_lib/include/cpm/)
 
 # Fast-DDS
-option(THIRDPARTY "" ON)
-option(BUILD_TESTING "" OFF)
-add_subdirectory(../cpm_lib/thirdparty/Fast-DDS/ build)
+if(NOT fastcdr_FOUND)
+    find_package(fastcdr REQUIRED)
+endif()
+
+if(NOT foonathan_memory_FOUND)
+    find_package(foonathan_memory REQUIRED)
+endif()
+
+if(NOT fastrtps_FOUND)
+    find_package(fastrtps REQUIRED)
+endif()
 
 
 set(SOURCE_BASE
@@ -90,4 +98,4 @@ if(BUILD_SIMULATION)
     target_compile_options(vehicle_rpi_firmware  PUBLIC -DVEHICLE_SIMULATION)
 endif()
 
-target_link_libraries(vehicle_rpi_firmware cpm fastrtps)
+target_link_libraries(vehicle_rpi_firmware cpm fastrtps fastcdr foonathan_memory)

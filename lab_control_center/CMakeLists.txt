@@ -15,16 +15,18 @@ if(SIMULATION)
 endif()
 
 # Fast-DDS# Fast-DDS
-option(THIRDPARTY "" ON)
-option(BUILD_TESTING "" OFF)
-add_subdirectory(../cpm_lib/thirdparty/Fast-DDS/ build)
+if(NOT fastcdr_FOUND)
+    find_package(fastcdr REQUIRED)
+endif()
 
-# RTI DDS
-#add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
-#include_directories(SYSTEM $ENV{NDDSHOME}/include)
-#include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-#include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
-#link_libraries(nddscpp2z nddscz nddscorez)
+if(NOT foonathan_memory_FOUND)
+    find_package(foonathan_memory REQUIRED)
+endif()
+
+if(NOT fastrtps_FOUND)
+    find_package(fastrtps REQUIRED)
+endif()
+
 #link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
 include_directories(src)
 include_directories(.)
@@ -221,9 +223,9 @@ add_executable(lab_control_center
 
 
 if(NOT SIMULATION)
-    target_link_libraries(lab_control_center cpm yaml-cpp stdc++fs labcamlib ${LibXML++_LIBRARIES} ${GTKMM_LIBRARIES} fastrtps)
+    target_link_libraries(lab_control_center cpm yaml-cpp stdc++fs labcamlib ${LibXML++_LIBRARIES} ${GTKMM_LIBRARIES} fastrtps fastcdr foonathan_memory)
 else()
-    target_link_libraries(lab_control_center cpm yaml-cpp stdc++fs ${LibXML++_LIBRARIES} ${GTKMM_LIBRARIES} fastrtps)
+    target_link_libraries(lab_control_center cpm yaml-cpp stdc++fs ${LibXML++_LIBRARIES} ${GTKMM_LIBRARIES} fastrtps fastcdr foonathan_memory)
 endif()
 
 target_include_directories(lab_control_center PUBLIC ${GTKMM_INCLUDE_DIRS})
@@ -233,16 +235,16 @@ add_executable(TimerTestSimulated
     test/TimerTestSimulated.cpp
 )
 
-target_link_libraries(TimerTestSimulated cpm fastrtps)
+target_link_libraries(TimerTestSimulated cpm fastrtps fastcdr foonathan_memory)
 
 add_executable(TimerTestRealtime
     test/TimerTestRealtime.cpp
 )
 
-target_link_libraries(TimerTestRealtime cpm fastrtps)
+target_link_libraries(TimerTestRealtime cpm fastrtps fastcdr foonathan_memory)
 
 add_executable(VisualizationTest
     test/VisualizationTest.cpp
 )
 
-target_link_libraries(VisualizationTest cpm fastrtps)
+target_link_libraries(VisualizationTest cpm fastrtps fastcdr foonathan_memory)

@@ -67,9 +67,21 @@ set(SOURCE_CPM
 
 
 # Configuration for eProsima Fast-DDS 
-option(THIRDPARTY "" ON)
-option(BUILD_TESTING "" OFF)
-add_subdirectory(thirdparty/Fast-DDS/)
+# Find requirements
+# For this to work, the current (2.3.x) version of Fast-DDS (and CDR, foonathan_memory) must be installed
+# Do this by creating a build folder in the thirdparty folders for each of those projects
+# There: cmake .., then sudo cmake --build . --target install
+if(NOT fastcdr_FOUND)
+    find_package(fastcdr REQUIRED)
+endif()
+
+if(NOT foonathan_memory_FOUND)
+    find_package(foonathan_memory REQUIRED)
+endif()
+
+if(NOT fastrtps_FOUND)
+    find_package(fastrtps REQUIRED)
+endif()
 
 #link_libraries(dl nsl m pthread rt)
 #link_libraries(nddscpp2 nddsc nddscore)
@@ -90,7 +102,7 @@ add_library(cpm SHARED
 #include_directories(${CMAKE_SOURCE_DIR}/build/thirdparty/Fast-DDS/include)
 #include_directories(${CMAKE_SOURCE_DIR}/thirdparty/Fast-DDS/include)
 
-target_link_libraries(cpm fastrtps fastcdr)
+target_link_libraries(cpm fastrtps fastcdr foonathan_memory)
 
 
 if(NOT BUILD_ARM)
@@ -118,5 +130,5 @@ if(NOT BUILD_ARM)
 
     )
 
-    target_link_libraries(unittest cpm fastrtps fastcdr)
+    target_link_libraries(unittest cpm fastrtps fastcdr foonathan_memory)
 endif()
