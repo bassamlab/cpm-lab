@@ -41,6 +41,7 @@
 
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Participant.hpp"
+#include "cpm/ReaderParent.hpp"
 
 /**
  * \file AsyncReader.hpp
@@ -55,281 +56,101 @@ namespace cpm
      * \ingroup cpmlib
      */ 
     template<class MessageType> 
-    class AsyncReader : public eprosima::fastdds::dds::DataReaderListener
+    class AsyncReader : TODO inherit ReaderParent instead!
     {
     private:
-        //Reader and waitset for receiving data and calling the callback function
-        std::shared_ptr<eprosima::fastdds::dds::Subscriber> sub = nullptr;
-        std::shared_ptr<eprosima::fastdds::dds::DataReader> reader = nullptr;
-        std::shared_ptr<eprosima::fastdds::dds::TopicDescription> topic = nullptr;
-        eprosima::fastdds::dds::TypeSupport type_support;
+        //! Internally used reader
+        cpm::ReaderParent reader;
 
-        std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant_;
-
-        MessageType topic_data_type;
-
-        std::vector<typename MessageType::type> buffer;
-
-        std::string topic_name;
-
-        std::function<void(std::vector<typename MessageType::type>&)> target;
-
-        unsigned int active_matches = 0;
-        
-        void on_data_available(
-          eprosima::fastdds::dds::DataReader* reader) override {
-          buffer.clear();           
-
-          eprosima::fastdds::dds::SampleInfo info;
-          typename MessageType::type data;
-          while(reader->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
-          {
-              if (info.instance_state == eprosima::fastdds::dds::ALIVE)
-              {
-                  buffer.push_back(data);
-              }
-          }
-
-          if(buffer.size() > 0){
-            target(buffer);
-          }
-        }
-
-
-        void on_subscription_matched(
-            eprosima::fastdds::dds::DataReader* reader,
-            const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override{
-              (void)reader;
-              active_matches = info.total_count;
-        }
-
-
-        /**
-         * \brief Returns qos for the settings s.t. the constructor becomes more readable
-         * \param is_reliable If the QoS for DDS messages should be set to reliable (true) or best effort (false) messaging
-         * \param is_transient_local If true, and if the Writer is still present, the Reader receives data that was sent before it went online
-         */
-        eprosima::fastdds::dds::DataReaderQos get_qos(bool is_reliable, bool is_transient_local, bool history_keep_all)
-        {
-            eprosima::fastdds::dds::DataReaderQos data_reader_qos;
-
-            //Initialize reader
-            if (is_transient_local)
-            {
-                auto reliable_policy = eprosima::fastdds::dds::ReliabilityQosPolicy();
-                reliable_policy.kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
-
-                auto durability_policy = eprosima::fastdds::dds::DurabilityQosPolicy();
-                durability_policy.kind = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
-
-                data_reader_qos.reliability(reliable_policy);
-                data_reader_qos.durability(durability_policy);
-            }
-            else if (is_reliable)
-            {
-                auto reliable_policy = eprosima::fastdds::dds::ReliabilityQosPolicy();
-                reliable_policy.kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
-                data_reader_qos.reliability(reliable_policy);
-            }
-            else
-            {
-                auto policy = eprosima::fastdds::dds::ReliabilityQosPolicy();
-                policy.kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
-
-                data_reader_qos.reliability(policy);
-            }
-
-            if(history_keep_all){
-              auto policy = eprosima::fastdds::dds::HistoryQosPolicy();
-              policy.kind = eprosima::fastdds::dds::KEEP_ALL_HISTORY_QOS;
-
-              data_reader_qos.history(policy);
-            }
-
-            return data_reader_qos;
-        }
-
-        /**
-         * \brief Handler that takes unread samples, releases the waitset and calls the callback function provided by the user
-         * \param func The callback function provided by the user
-         */
-        //void handler(std::function<void(dds::sub::LoanedSamples<MessageType>&)> func);
-
-        /**
-         * \brief Handler that takes unread samples, copies them to a vector, releases the waitset and calls the callback function provided by the user
-         * \param func The callback function provided by the user
-         */
-        //void handler_vec(std::function<void(std::vector<MessageType>&)> func);
+        //! Callback function to be called whenever messages get received, takes std::vector of messages as argument, is void
+        std::function<void(std::vector<typename MessageType::type>&)> registered_callback;
     public:
         /**
          * \brief Constructor for the AsynReader. This constructor is simpler and creates subscriber, topic etc on the cpm domain participant
          * The reader always uses History::KeepAll
-         * \param func Callback function that is called by the reader if new data is available. Samples are passed to the function to be processed further.
+         * \param on_read_callback Callback function that is called by the reader if new data is available. Samples are passed to the function to be processed further.
          * \param topic_name The name of the topic that is supposed to be used by the reader
          * \param is_reliable If true, the used reader is set to be reliable, else best effort is expected
          * \param is_transient_local If true, the used reader is set to be transient local - in this case, it is also set to reliable and keep all
          */
         AsyncReader(
-            std::function<void(std::vector<typename MessageType::type>&)> func, 
+            std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
             std::string topic_name, 
             bool is_reliable = false,
-            bool is_transient_local = false,
-            eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
+            bool is_transient_local = false
         );
 
         /**
          * \brief Constructor for the AsynReader. This constructor is simpler and creates subscriber, topic etc on the cpm domain participant
          * The reader always uses History::KeepAll
-         * \param func Callback function that is called by the reader if new data is available. Samples are passed to the function to be processed further.
+         * \param on_read_callback Callback function that is called by the reader if new data is available. Samples are passed to the function to be processed further.
          * \param participant Domain participant to specify in which domain the reader should operate
          * \param topic_name The name of the topic that is supposed to be used by the reader
          * \param is_reliable If true, the used reader is set to be reliable, else best effort is expected
          * \param is_transient_local If true, the used reader is set to be transient local - in this case, it is also set to reliable and keep all
          */
         AsyncReader(
-            std::function<void(std::vector<typename MessageType::type>&)> func,
+            std::function<void(std::vector<typename MessageType::type>&)> on_read_callback,
             cpm::Participant& participant, 
             std::string topic_name, 
             bool is_reliable = false,
-            bool is_transient_local = false,
-            eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
+            bool is_transient_local = false
         );
 
         AsyncReader(
-            std::function<void(std::vector<typename MessageType::type>&)> func, 
+            std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
             std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>,
             std::string topic_name, 
             bool is_reliable = false,
             bool is_transient_local = false,
-            bool history_keep_all = true,
-            eprosima::fastdds::dds::DataReaderListener* custom_listener = nullptr
+            bool history_keep_all = true
         );
+
+        std::shared_ptr<eprosima::fastdds::dds::DataReader> get_reader(){
+          return reader.get_reader();
+        }
 
         /**
          * \brief Returns # of matched writers
          */
         size_t matched_publications_size();
-
-        std::shared_ptr<eprosima::fastdds::dds::DataReader> get_reader(){
-          return reader;
-        }
     };
 
     template<class MessageType> 
     AsyncReader<MessageType>::AsyncReader(
-        std::function<void(std::vector<typename MessageType::type>&)> func, 
+        std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
         std::string topic_name, 
         bool is_reliable,
-        bool is_transient_local,
-        eprosima::fastdds::dds::DataReaderListener* custom_listener
-    ) : AsyncReader(func, cpm::ParticipantSingleton::Instance(), topic_name, is_reliable, is_transient_local, false, custom_listener)
+        bool is_transient_local
+    ) : AsyncReader(on_read_callback, cpm::ParticipantSingleton::Instance(), topic_name, is_reliable, is_transient_local, false)
     {}
 
     template<class MessageType> 
     AsyncReader<MessageType>::AsyncReader(
-        std::function<void(std::vector<typename MessageType::type>&)> func, 
+        std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
         cpm::Participant& participant,
         std::string topic_name, 
         bool is_reliable,
-        bool is_transient_local,
-        eprosima::fastdds::dds::DataReaderListener* custom_listener
-    ) :  AsyncReader(func, participant.get_participant(), topic_name, is_reliable, is_transient_local, false, custom_listener) {}
+        bool is_transient_local
+    ) :  AsyncReader(on_read_callback, participant.get_participant(), topic_name, is_reliable, is_transient_local, false) {}
 
     template<class MessageType> 
     AsyncReader<MessageType>::AsyncReader(
-        std::function<void(std::vector<typename MessageType::type>&)> func, 
+        std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
         std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant,
         std::string topic_name, 
         bool is_reliable,
         bool is_transient_local,
-        bool history_keep_all,
-        eprosima::fastdds::dds::DataReaderListener* custom_listener
+        bool history_keep_all
     )
-    : target(func), type_support(new MessageType()), participant_(participant), topic_name(topic_name)
+    : registered_callback(on_read_callback), reader(on_read_callback, participant, topic_name, is_reliable, is_transient_local, history_keep_all)
     {
-
-      buffer.reserve(100);
-      sub = std::shared_ptr<eprosima::fastdds::dds::Subscriber>(
-          participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT),
-          [participant_ = participant_] (eprosima::fastdds::dds::Subscriber* sub)
-          {
-              if (sub != nullptr)
-              {
-                  participant_->delete_subscriber(sub);
-              }
-          }
-      );
-      assert(sub);
-
-      // Check if Type is already registered, create type
-      auto find_type_ret = participant_->find_type(topic_data_type.getName());
-      std::cout << "Checking if type exists: " << topic_data_type.getName() << std::endl;
-      if(find_type_ret.empty()){
-          std::cout << "Type does not exist, creating type" << std::endl;
-          auto ret = type_support.register_type(participant_.get());
-          assert(ret == eprosima::fastdds::dds::TypeSupport::ReturnCode_t::RETCODE_OK);
-      }
-
-      assert(participant_->find_type(topic_data_type.getName()).empty() == false);
-      std::cout << "Double check: " << participant_->find_type(topic_data_type.getName()).get_type_name() << std::endl;
-
-      // Create Topic
-      auto find_topic = participant_->lookup_topicdescription(topic_name);
-      if(find_topic == nullptr){
-          std::string type_name_str = topic_data_type.getName();
-          topic = std::shared_ptr<eprosima::fastdds::dds::Topic>(
-              participant_->create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT),
-              [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
-                  if (topic != nullptr)
-                  {
-                      participant_->delete_topic(topic);
-                  }
-              }
-          );
-      }else{
-          topic = std::shared_ptr<eprosima::fastdds::dds::Topic>(
-              (eprosima::fastdds::dds::Topic*)find_topic,
-              [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
-                  if (topic != nullptr)
-                  {
-                      participant_->delete_topic(topic);
-                  }
-              }
-          );
-      }
-  
-      assert(topic);
-
-      // Create Reader
-      if(custom_listener == nullptr){
-        std::cout << "Creating AsyncReader WITHOUT custom listener" << std::endl;
-        reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
-            sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), this),
-            [sub = sub](eprosima::fastdds::dds::DataReader* reader) {
-                if (sub != nullptr)
-                {
-                    sub->delete_datareader(reader);
-                }
-            }
-        );
-      }else{
-        std::cout << "Creating AsyncReader WITH custom listener " << custom_listener  << std::endl;
-        reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
-            sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), custom_listener),
-            [sub = sub](eprosima::fastdds::dds::DataReader* reader) {
-                if (sub != nullptr)
-                {
-                    sub->delete_datareader(reader);
-                }
-            }
-        );
-      }
-      assert(reader);      
+      
     }
 
     template<class MessageType> 
     size_t AsyncReader<MessageType>::matched_publications_size()
     {
-        return active_matches;
+        return reader.matched_publications_size();
     }
 }

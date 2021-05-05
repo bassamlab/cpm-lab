@@ -20,6 +20,7 @@ set(SOURCE_CPM
     include/cpm/Participant.hpp
     src/Participant.cpp
 
+    include/cpm/ReaderParent.hpp
     include/cpm/AsyncReader.hpp
 
     include/cpm/Parameter.hpp
