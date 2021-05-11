@@ -54,7 +54,7 @@ struct LaneGraphTrajectory
     //! TODO
     octet vehicle_id; //@key
     //! TODO
-    Header header;
+    Header _header;
     //! TODO
     sequence<LaneGraphPosition> lane_graph_positions;
 };

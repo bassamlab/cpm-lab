@@ -73,16 +73,13 @@ namespace cpm
         //! Topic name, e.g. "system_trigger"
         std::string topic_name;
 
-        //! Callback function to be called whenever messages get received, takes std::vector of messages as argument, is void
-        std::function<void(std::vector<typename MessageType::type>&)> registered_callback;
-
         //! Listener class that invokes the callback function whenever data is received & counts the number of matched subscriptions
         class SubListener : public eprosima::fastdds::dds::DataReaderListener
         {
         public:
             //! Constructor, init. active_matches count
-            SubListener()
-                : active_matches(0)
+            SubListener(std::function<void(std::vector<typename MessageType::type>&)> _registered_callback)
+                : active_matches(0), registered_callback(_registered_callback)
             {
             }
 
@@ -127,7 +124,11 @@ namespace cpm
                 }
             }
 
+            //! Counts the matches of the data reader
             std::atomic_int active_matches;
+
+            //! Callback function to be called whenever messages get received, takes std::vector of messages as argument, is void
+            std::function<void(std::vector<typename MessageType::type>&)> registered_callback;
 
         } listener_;
 
@@ -186,15 +187,8 @@ namespace cpm
          * \param topic_name The name of the topic that is supposed to be used by the reader
          * \param is_reliable If true, the used reader is set to be reliable, else best effort is expected
          * \param is_transient_local If true, the used reader is set to be transient local - in this case, it is also set to reliable
+         * \param history_keep_all If true, the internal DDS Reader tries to keep all messages, else only the latest message is kept
          */
-        ReaderParent(
-            std::function<void(std::vector<typename MessageType::type>&)> on_read_callback,
-            cpm::Participant& participant, 
-            std::string topic_name, 
-            bool is_reliable = false,
-            bool is_transient_local = false
-        );
-
         ReaderParent(
             std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
             std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>,
@@ -217,22 +211,13 @@ namespace cpm
     template<class MessageType> 
     ReaderParent<MessageType>::ReaderParent(
         std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
-        cpm::Participant& participant,
-        std::string topic_name, 
-        bool is_reliable,
-        bool is_transient_local
-    ) :  ReaderParent(on_read_callback, participant.get_participant(), topic_name, is_reliable, is_transient_local, false) {}
-
-    template<class MessageType> 
-    ReaderParent<MessageType>::ReaderParent(
-        std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
         std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant,
         std::string topic_name, 
         bool is_reliable,
         bool is_transient_local,
         bool history_keep_all
     )
-    : registered_callback(on_read_callback), type_support(new MessageType()), participant_(participant), topic_name(topic_name)
+    : listener_(on_read_callback), type_support(new MessageType()), participant_(participant), topic_name(topic_name)
     {
         sub = std::shared_ptr<eprosima::fastdds::dds::Subscriber>(
             participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT),
@@ -288,7 +273,7 @@ namespace cpm
         // Create Reader
         std::cout << "Creating ReaderParent" << std::endl;
         reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
-            sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), listener_),
+            sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), &listener_),
             [sub = sub](eprosima::fastdds::dds::DataReader* reader) {
                 if (sub != nullptr)
                 {

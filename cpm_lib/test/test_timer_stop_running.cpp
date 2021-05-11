@@ -61,6 +61,9 @@ TEST_CASE("TimerFD_stop_signal_when_running") {
   cpm::Writer<SystemTriggerPubSubType> writer_SystemTrigger("systemTrigger",
                                                             true);
 
+  // Reader to receive ready signals from the timer
+  cpm::ReaderAbstract<ReadyStatusPubSubType> reader("readyStatus", true);
+
   //It usually takes some time for all instances to see each other - wait until then
   std::cout << "Waiting for DDS entity match in Timer Stop Signal While Running test" << std::endl << "\t";
   bool wait = true;
@@ -69,9 +72,7 @@ TEST_CASE("TimerFD_stop_signal_when_running") {
       usleep(100000); //Wait 100ms
       std::cout << "." << std::flush;
 
-      auto matched_pub = dds::sub::matched_publications(reader_ReadyStatus);
-
-      if (writer_SystemTrigger.matched_subscriptions_size() >= 1 && matched_pub.size() >= 1)
+      if (writer_SystemTrigger.matched_subscriptions_size() >= 1 && reader.matched_publications_size() >= 1)
           wait = false;
   }
   std::cout << std::endl;
@@ -79,8 +80,6 @@ TEST_CASE("TimerFD_stop_signal_when_running") {
   // Thread to receive the ready signal, send a start signal and then a stop
   // signal after 100ms
   std::thread signal_thread = std::thread([&]() {
-    cpm::ReaderAbstract<ReadyStatusPubSubType> reader("readyStatus", true);
-
     while (reader.take().size() == 0) {
       usleep(1000);
       continue;

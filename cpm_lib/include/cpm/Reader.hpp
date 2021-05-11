@@ -31,8 +31,9 @@
 #include <vector>
 
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/AsyncReader.hpp"
-#include "cpm/AsyncReader.hpp"
+#include "cpm/ReaderParent.hpp"
+
+using namespace std::placeholders;
 
 namespace cpm {
     /**
@@ -56,32 +57,31 @@ namespace cpm {
      * \ingroup cpmlib
      */
     template<typename T>
-    class Reader : public eprosima::fastdds::dds::DataReaderListener
+    class Reader : public ReaderParent<T>
     {
     private:    
-        //! Internal DDS Reader to receive messages of type T
-        cpm::AsyncReader<T> async_reader;
         //! Mutex for access to get_sample and removing old messages
         std::mutex m_mutex;
         //! Internal buffer that stores flushed messages until they are (partially) removed in get_sample
         std::vector<typename T::type> messages_buffer;
 
+        //! Remembers by which vehicle ID to filter
         int vehicle_id_filter_ = -1;
 
-        void on_data_available(
-                eprosima::fastdds::dds::DataReader* reader) override
+        /**
+         * \brief Callback that is called whenever new data is available in the DDS Reader
+         * \param samples Samples read by the reader
+         */
+        void on_data_available(std::vector<typename T::type> &samples)
         {
-            eprosima::fastdds::dds::SampleInfo info;
-            typename T::type data;
-            if (reader->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
+            std::lock_guard<std::mutex> lock(m_mutex);
+
+            for (auto &sample : samples)
             {
-                if (info.instance_state == eprosima::fastdds::dds::ALIVE)
-                {
-                    if(vehicle_id_filter_ == -1 || vehicle_id_filter_ == data.vehicle_id()){
-                        messages_buffer.push_back(data);
-                    }else{
-                    std::cout << "message for vehicle ID " << (int)data.vehicle_id() << " discarded" << std::endl;
-                    }
+                if(vehicle_id_filter_ == -1 || vehicle_id_filter_ == sample.vehicle_id()){
+                    messages_buffer.push_back(sample);
+                }else{
+                std::cout << "message for vehicle ID " << (int)sample.vehicle_id() << " discarded" << std::endl;
                 }
             }
         }
@@ -122,8 +122,6 @@ namespace cpm {
          */
         void get_newest_sample(const uint64_t t_now, typename T::type& sample_out, uint64_t& sample_age_out)
         {
-            std::lock_guard<std::mutex> lock(m_mutex);
-
             sample_out = typename T::type();
             sample_out.header().create_stamp().nanoseconds(0);
             sample_age_out = t_now;
@@ -151,8 +149,6 @@ namespace cpm {
         Reader& operator=(const Reader&) = delete;
         Reader(const Reader&&) = delete;
         Reader& operator=(const Reader&&) = delete;
-
-        static void dummyCallback(std::vector<typename T::type> trigger){ assert(false); }
     public:
         /**
          * \brief Constructor using a topic to create a Reader
@@ -160,13 +156,13 @@ namespace cpm {
          * \return The DDS Reader
          */
         Reader(std::string topic_name, int vehicle_id_filter = -1):
-          async_reader(&Reader::dummyCallback,
+          ReaderParent<T>(
+            std::bind(&Reader::on_data_available, this, _1),
             ParticipantSingleton::Instance(),
             topic_name, 
             false,
             false,
-            true,
-            this), vehicle_id_filter_(vehicle_id_filter)
+            true), vehicle_id_filter_(vehicle_id_filter)
         {
             typename T::type topic_type;
             //assert(typeof(topic_type._header().create_stamp().nanoseconds()) == uint64_t);
@@ -196,15 +192,6 @@ namespace cpm {
             //TODO: At reviewer: Should messages that are too old regarding their creation stamp be deleted as well?
             //      If so: A 'timeout' for this could be set in the constructor
             remove_old_msgs(sample_out);
-        }
-
-        /**
-         * \brief Returns # of matched writers, needs template parameter for topic type
-         */
-        size_t matched_publications_size()
-        {
-            auto matched_pub = dds::sub::matched_publications(dds_reader);
-            return matched_pub.size();
         }
     };
 

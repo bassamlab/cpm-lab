@@ -33,9 +33,9 @@
 #include <algorithm>
 
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/AsyncReader.hpp"
+#include "cpm/ReaderParent.hpp"
 
-#define CPM_READER_RING_BUFFER_SIZE (64)
+using namespace std::placeholders;
 
 namespace cpm
 {
@@ -46,11 +46,9 @@ namespace cpm
      * \ingroup cpmlib
      */
     template<typename T>
-    class MultiVehicleReader : public eprosima::fastdds::dds::DataReaderListener
+    class MultiVehicleReader : public ReaderParent<T>
     {
     private:
-        //! Internal DDS Reader for reading vehicle data
-        cpm::AsyncReader<T> dds_reader;
         //! Internal mutex for get_samples and copy constructor
         std::mutex m_mutex;
         //! Used as buffer to store vehicle data for each vehicle seperately, gets filled in flush_dds_reader and (partially) cleared in get_samples
@@ -58,27 +56,24 @@ namespace cpm
         //! Vehicle IDs to listen for
         std::vector<uint8_t> vehicle_ids;
 
-        void on_data_available(
-                eprosima::fastdds::dds::DataReader* reader) override
+        /**
+         * \brief Callback that is called whenever new data is available in the DDS Reader
+         * \param samples Samples read by the reader
+         */
+        void on_data_available(std::vector<typename T::type> &samples)
         {
-            eprosima::fastdds::dds::SampleInfo info;
-            typename T::type data;
-            
-            while(reader->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
-            {
-                if(info.instance_state == eprosima::fastdds::dds::ALIVE) 
-                {
-                    uint8_t vehicle = data.vehicle_id();
-                    long pos = std::distance(vehicle_ids.begin(), std::find(vehicle_ids.begin(), vehicle_ids.end(), vehicle));
+            std::lock_guard<std::mutex> lock(m_mutex);
 
-                    if (pos < static_cast<long>(vehicle_ids.size()) && pos >= 0) {
-                        vehicle_buffers.at(pos).push_back(data);
-                    }
+            for (auto& data : samples)
+            {
+                uint8_t vehicle = data.vehicle_id();
+                long pos = std::distance(vehicle_ids.begin(), std::find(vehicle_ids.begin(), vehicle_ids.end(), vehicle));
+
+                if (pos < static_cast<long>(vehicle_ids.size()) && pos >= 0) {
+                    vehicle_buffers.at(pos).push_back(data);
                 }
             }
         }
-
-        static void dummyCallback(std::vector<typename T::type>&){}
 
     public:
         /**
@@ -88,7 +83,7 @@ namespace cpm
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
         MultiVehicleReader(std::string topic, int num_of_vehicles) : 
-          dds_reader(&dummyCallback, cpm::ParticipantSingleton::Instance(), topic, false, false, true, this)
+          ReaderParent<T>(std::bind(&MultiVehicleReader::on_data_available, this, _1), cpm::ParticipantSingleton::Instance(), topic, false, false, true)
         { 
             //Set size for buffers
             vehicle_buffers.resize(num_of_vehicles);
@@ -106,26 +101,13 @@ namespace cpm
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
         MultiVehicleReader(std::string topic, std::vector<uint8_t> _vehicle_ids) : 
-          dds_reader(&dummyCallback, cpm::ParticipantSingleton::Instance(), topic, false, false, true, this)
+          ReaderParent<T>(std::bind(&MultiVehicleReader::on_data_available, this, _1), cpm::ParticipantSingleton::Instance(), topic, false, false, true)
         {             
             //Set size for buffers
             int num_of_vehicles = _vehicle_ids.size();
             vehicle_buffers.resize(num_of_vehicles);
 
             vehicle_ids = _vehicle_ids;
-        }
-
-        /**
-         * \brief Copy Constructor
-         * \param other the reader to copy
-         */
-        MultiVehicleReader(const MultiVehicleReader &other) 
-        {
-            std::lock_guard<std::mutex> lock(m_mutex);
-
-            dds_reader = other.dds_reader;
-            vehicle_buffers = other.vehicle_buffers;
-            vehicle_ids = other.vehicle_ids;
         }
         
         /**

@@ -55,10 +55,10 @@ TEST_CASE("VehicleIDFilteredTopic") {
         usleep(10000); //Wait 10ms
         std::cout << "." << std::flush;
 
-        auto matched_pub_1 = dds::sub::matched_publications(reader_vehicle42);
-        auto matched_pub_2 = dds::sub::matched_publications(reader_vehicle11);
-
-        if (writer_vehicleState.matched_subscriptions_size() > 0 && matched_pub_1.size() >=1 && matched_pub_2.size() >= 1)
+        if  (writer_vehicleState.matched_subscriptions_size() > 0 && 
+                reader_vehicle11.matched_publications_size() >=1 && 
+                reader_vehicle42.matched_publications_size() >= 1
+            )
             wait = false;
     }
     std::cout << std::endl;
@@ -97,17 +97,8 @@ TEST_CASE("VehicleIDFilteredTopic") {
     std::vector<VehicleState> reader_samples42;
     for (int i = 0; i < 10; ++i)
     {
-        auto reader_samples11_dds = reader_vehicle11.take();
-        auto reader_samples42_dds = reader_vehicle42.take();
-
-        for (auto& sample : reader_samples11_dds)
-        {
-            if (sample.info().valid()) reader_samples11.push_back(sample.data());
-        }
-        for (auto& sample : reader_samples42_dds)
-        {
-            if (sample.info().valid()) reader_samples42.push_back(sample.data());
-        }
+        auto reader_samples11_dds = reader_vehicle11.get_all_samples();
+        auto reader_samples42_dds = reader_vehicle42.get_all_samples();
 
         //Abort early if condition is fulfilled, else wait and repeat read
         if (reader_samples11.size() >=1 && reader_samples42.size() >= 2) break;

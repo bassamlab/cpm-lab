@@ -51,7 +51,7 @@ namespace cpm {
     ,offset_nanoseconds(_offset_nanoseconds)
     ,node_id(_node_id)
     ,current_time(0),
-    reader_system_trigger(cpm::AsyncReader<SystemTriggerPubSubType>(&dummyCallback, "systemTrigger", true, false, this)),
+    reader_system_trigger(cpm::AsyncReader<SystemTriggerPubSubType>(&dummyCallback, "systemTrigger", true, false)),
     writer_ready_status("readyStatus", true)
     {
         //Offset is allowed to be greater than period!

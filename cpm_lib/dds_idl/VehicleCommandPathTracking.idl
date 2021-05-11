@@ -53,7 +53,7 @@ struct VehicleCommandPathTracking
     //! TODO
     octet vehicle_id;   //@key
     //! TODO
-    Header header;
+    Header _header;
     //! TODO
     sequence<PathPoint> path;
     //! TODO

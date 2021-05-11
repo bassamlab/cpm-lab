@@ -58,7 +58,7 @@ namespace cpm {
      * the run (real or simulated). This could be GUI tools, periodic tasks etc... 
      * \ingroup cpmlib
      */
-    class TimerFD : public cpm::Timer, public eprosima::fastdds::dds::DataReaderListener
+    class TimerFD : public cpm::Timer
     {
     private:
     

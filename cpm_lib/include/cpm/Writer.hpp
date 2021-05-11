@@ -36,10 +36,6 @@
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/get_topic.hpp"
 
-#include <dds/core/QosProvider.hpp>
-#include <dds/dds.hpp>
-#include <dds/core/ddscore.hpp>
-
 // #include <experimental/filesystem>
 
 namespace cpm
@@ -155,19 +151,6 @@ namespace cpm
         Writer(std::string topic_name, bool reliable = false, bool history_keep_all = false, bool transient_local = false)
         : Writer(ParticipantSingleton::Instance(), topic_name, reliable, history_keep_all, transient_local)
         {       
-        }
-
-        /**
-         * \brief Constructor for a writer which is communicating within the ParticipantSingleton
-         * Allows to set the topic name and some QoS settings
-         * \param topic Name of the topic to write in
-         * \param qos_xml_path Path for setting additional QoS
-         * \param library The loaded library to use
-         */
-        Writer(std::string topic, std::string qos_xml_path, std::string library)
-        :dds_writer(dds::pub::Publisher(ParticipantSingleton::Instance()), cpm::get_topic<T>(topic), dds::core::QosProvider(qos_xml_path, library).datawriter_qos())
-        { 
-        
         }
 
         /**

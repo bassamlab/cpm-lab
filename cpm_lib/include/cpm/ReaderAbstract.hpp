@@ -26,7 +26,14 @@
 
 #pragma once
 
-#include "cpm/AsyncReader.hpp"
+//For waiting
+#include <chrono>
+#include <condition_variable>
+
+#include "cpm/ReaderParent.hpp"
+
+using namespace std::chrono_literals;
+using namespace std::placeholders;
 
 namespace cpm
 {
@@ -38,23 +45,38 @@ namespace cpm
      * \ingroup cpmlib
      */
     template<typename T>
-    class ReaderAbstract : public eprosima::fastdds::dds::DataReaderListener
+    class ReaderAbstract : public ReaderParent<T>
     {
     private:   
-        AsyncReader<T> reader;
+        //! Mutex for access to get_sample and removing old messages
+        std::mutex m_mutex;
+        //! Internal buffer that stores flushed messages until they are (partially) removed in get_sample
+        std::vector<typename T::type> messages_buffer;
 
-        //! Internal DDS reader that is abstracted by this class
-        dds::sub::DataReader<T> dds_reader;
+        //! Condition variable for waiting for new data
+        std::condition_variable cv;
 
-        // this is actually never called...fix Writer API
-        static void dummyCallback(std::vector<typename T::type> trigger){}
+        //! Must be remembered internally to know if the buffer used must be reset when new data is taken from the internal DDS reader
+        bool history_keep_all;
 
-        void on_data_available(
-          eprosima::fastdds::dds::DataReader* reader) override {}
+        /**
+         * \brief Callback that is called whenever new data is available in the DDS Reader
+         * \param samples Samples read by the reader
+         */
+        void on_data_available(std::vector<typename T::type> &samples)
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
 
-        void on_subscription_matched(
-          eprosima::fastdds::dds::DataReader* reader,
-          const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override {}
+            if (! history_keep_all)
+                messages_buffer.clear();
+
+            for (auto &sample : samples)
+            {
+                messages_buffer.push_back(sample);
+            }
+
+            cv.notify_all();
+        }
 
 
     public:
@@ -89,9 +111,11 @@ namespace cpm
             std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> _participant, 
             std::string topic, 
             bool reliable = false, 
-            bool history_keep_all = false, 
+            bool _history_keep_all = false, 
             bool transient_local = false
-        ) : reader(cpm::AsyncReader<T>(&dummyCallback, _participant, topic, reliable, transient_local, history_keep_all, this))
+        ) : 
+          ReaderParent<T>(std::bind(&ReaderAbstract::on_data_available, this, _1), _participant, topic, reliable, transient_local, _history_keep_all),
+          history_keep_all(_history_keep_all)
         {}
         
         /**
@@ -99,30 +123,34 @@ namespace cpm
          */
         std::vector<typename T::type> take()
         {
-            //Only take() could be a cause for not being thread-safe, but the DDS APIs should be implemented thread-safe (is the case for RTI DDS)
-            std::vector<typename T::type> samples;
+            std::lock_guard<std::mutex> lock(m_mutex);
 
-            eprosima::fastdds::dds::SampleInfo info;
-            typename T::type data;
-            while(reader.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
-              if (info.instance_state == eprosima::fastdds::dds::ALIVE)
-              {
-                samples.push_back(data);
-              }
-            }
-            return samples;
+            auto return_buffer = messages_buffer;
+            messages_buffer.clear();
+
+            return return_buffer;
         }
 
         /**
-         * \brief Returns # of matched writers, needs template parameter for topic type
+         * \brief Waits for unread messages up to timeout_ms milliseconds.
+         * Custom implementation of the eProsma equivalent, 
+         * due to different usage of the reader internally.
+         * \param timeout_ms Max. time in milliseconds to wait until return
+         * \return True if new data is available, else false
          */
-        size_t matched_publications_size()
+        bool wait_for_unread_message(unsigned int timeout_ms)
         {
-          return reader->matched_publications_size();
-        }
+            std::unique_lock<std::mutex> lock(m_mutex);
 
-        std::shared_ptr<eprosima::fastdds::dds::DataReader> get_reader(){
-          return reader.get_reader();
+            cv.wait_for(lock, timeout_ms * 1ms, [this] 
+              {
+                  //In case of spurious wake up, check if it should still be waiting
+                  return messages_buffer.size() > 0;
+              }
+            );
+
+            //After timeout or wait exits: Return if messages were actually received
+            return messages_buffer.size() > 0;
         }
     };
 }

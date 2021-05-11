@@ -70,6 +70,7 @@ TEST_CASE("TimerFD_accuracy") {
   cpm::Writer<SystemTriggerPubSubType> timer_system_trigger_writer(
       "systemTrigger", true);
   
+  // Reader to receive ready signals from the timer
   cpm::ReaderAbstract<ReadyStatusPubSubType> reader("readyStatus", true);
 
   //It usually takes some time for all instances to see each other - wait until then
@@ -80,9 +81,7 @@ TEST_CASE("TimerFD_accuracy") {
       usleep(100000); //Wait 100ms
       std::cout << "." << std::flush;
 
-      auto matched_pub = dds::sub::matched_publications(timer_ready_signal_ready);
-
-      if (timer_system_trigger_writer.matched_subscriptions_size() >= 1 && matched_pub.size() >= 1)
+      if (timer_system_trigger_writer.matched_subscriptions_size() >= 1 && reader.matched_publications_size() >= 1)
           wait = false;
   }
   std::cout << std::endl;
@@ -92,7 +91,7 @@ TEST_CASE("TimerFD_accuracy") {
 
   // Thread to receive the ready signal and send a start signal afterwards
   std::thread signal_thread = std::thread([&]() {
-    reader.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(std::numeric_limits<int32_t>::max()));
+    reader.wait_for_unread_message(std::numeric_limits<unsigned int>::max());
     source_id = reader.take().front().source_id();
     // Send start signal
     SystemTrigger trigger;

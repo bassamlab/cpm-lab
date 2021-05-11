@@ -71,9 +71,7 @@ TEST_CASE("SimpleTimer_custom_stop_signal") {
       usleep(100000); //Wait 100ms
       std::cout << "." << std::flush;
 
-      auto matched_pub = dds::sub::matched_publications(reader_ReadyStatus);
-
-      if (writer_SystemTrigger.matched_subscriptions_size() >= 1 && matched_pub.size() >= 1)
+      if (writer_SystemTrigger.matched_subscriptions_size() >= 1 && reader.matched_publications_size() >= 1)
           wait = false;
   }
   std::cout << std::endl;
@@ -81,7 +79,7 @@ TEST_CASE("SimpleTimer_custom_stop_signal") {
   // Thread to send a stop signal after the ready signal was received
   std::thread signal_thread = std::thread([&]() {
 
-    reader.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(std::numeric_limits<int32_t>::max()));
+    reader.wait_for_unread_message(std::numeric_limits<unsigned int>::max());
     // Send stop signal
     SystemTrigger trigger;
     TimeStamp timestamp;

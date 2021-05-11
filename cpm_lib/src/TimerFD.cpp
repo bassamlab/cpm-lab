@@ -150,7 +150,7 @@ namespace cpm {
         while(active.load()) {
             writer_ready_status.write(ready_status);
 
-            if(!reader_system_trigger.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(2))){
+            if(!reader_system_trigger.wait_for_unread_message(2000)){
                 continue;
             }
             eprosima::fastdds::dds::SampleInfo info;

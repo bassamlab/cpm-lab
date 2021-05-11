@@ -56,14 +56,8 @@ namespace cpm
      * \ingroup cpmlib
      */ 
     template<class MessageType> 
-    class AsyncReader : TODO inherit ReaderParent instead!
+    class AsyncReader : public ReaderParent<MessageType>
     {
-    private:
-        //! Internally used reader
-        cpm::ReaderParent reader;
-
-        //! Callback function to be called whenever messages get received, takes std::vector of messages as argument, is void
-        std::function<void(std::vector<typename MessageType::type>&)> registered_callback;
     public:
         /**
          * \brief Constructor for the AsynReader. This constructor is simpler and creates subscriber, topic etc on the cpm domain participant
@@ -105,15 +99,6 @@ namespace cpm
             bool is_transient_local = false,
             bool history_keep_all = true
         );
-
-        std::shared_ptr<eprosima::fastdds::dds::DataReader> get_reader(){
-          return reader.get_reader();
-        }
-
-        /**
-         * \brief Returns # of matched writers
-         */
-        size_t matched_publications_size();
     };
 
     template<class MessageType> 
@@ -143,14 +128,8 @@ namespace cpm
         bool is_transient_local,
         bool history_keep_all
     )
-    : registered_callback(on_read_callback), reader(on_read_callback, participant, topic_name, is_reliable, is_transient_local, history_keep_all)
+    : ReaderParent<MessageType>(on_read_callback, participant, topic_name, is_reliable, is_transient_local, history_keep_all)
     {
       
-    }
-
-    template<class MessageType> 
-    size_t AsyncReader<MessageType>::matched_publications_size()
-    {
-        return reader.matched_publications_size();
     }
 }

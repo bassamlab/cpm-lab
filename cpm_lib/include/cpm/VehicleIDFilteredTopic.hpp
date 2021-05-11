@@ -31,12 +31,12 @@
 namespace cpm
 {
     /**
-     * \class VehicleIDFilteredTopic
+     * \class VehicleIDFilter
      * \brief Filters vehicle IDs (more or less deprecated)
      * \ingroup cpmlib
      */
     template<class T>
-    struct VehicleIDFilteredTopic
+    struct VehicleIDFilter
     {
         uint8_t vehicle_id_;
 

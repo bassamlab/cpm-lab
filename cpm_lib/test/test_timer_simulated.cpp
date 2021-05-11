@@ -67,6 +67,7 @@ TEST_CASE("TimerSimulated_accuracy") {
   cpm::Writer<SystemTriggerPubSubType> writer_SystemTrigger("systemTrigger",
                                                             true);
 
+  // Reader to receive ready signals from the timer
   cpm::ReaderAbstract<ReadyStatusPubSubType> reader_ReadyStatus("readyStatus",
                                                             true);  
 
@@ -78,9 +79,7 @@ TEST_CASE("TimerSimulated_accuracy") {
       usleep(100000); //Wait 100ms
       std::cout << "." << std::flush;
 
-      auto matched_pub = dds::sub::matched_publications(reader_ReadyStatus);
-
-      if (writer_SystemTrigger.matched_subscriptions_size() >= 1 && matched_pub.size() >= 1)
+      if (writer_SystemTrigger.matched_subscriptions_size() >= 1 && reader_ReadyStatus.matched_publications_size() >= 1)
           wait = false;
   }
   std::cout << std::endl;                                                          

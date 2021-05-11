@@ -68,7 +68,9 @@ TEST_CASE("SimpleTimer functionality") {
   // Writer to send system triggers to the timer
   cpm::Writer<SystemTriggerPubSubType> timer_system_trigger_writer(
       "systemTrigger", true);
+
   // Reader to receive ready signals from the timer
+  cpm::ReaderAbstract<ReadyStatusPubSubType> reader("readyStatus", true);
 
   // Variables for CHECKs - only to identify the timer by its id
   std::string source_id;
@@ -81,17 +83,13 @@ TEST_CASE("SimpleTimer functionality") {
       usleep(100000); //Wait 100ms
       std::cout << "." << std::flush;
 
-      auto matched_pub = dds::sub::matched_publications(timer_ready_signal_ready);
-
-      if (timer_system_trigger_writer.matched_subscriptions_size() >= 1 && matched_pub.size() >= 1)
+      if (timer_system_trigger_writer.matched_subscriptions_size() >= 1 && reader.matched_publications_size() >= 1)
           wait = false;
   }
   std::cout << std::endl;
 
   // Thread to receive the ready signal and send a start signal afterwards
   std::thread signal_thread = std::thread([&]() {
-    cpm::ReaderAbstract<ReadyStatusPubSubType> reader("readyStatus", true);
-
     std::vector<ReadyStatus> samples;
     while (1) {
       samples = reader.take();
@@ -118,6 +116,8 @@ TEST_CASE("SimpleTimer functionality") {
   uint64_t period_ns = period * 1000000;
 
   timer.start([&](uint64_t t_start) {
+    std::cout << "B" << std::endl;
+
     uint64_t now = timer.get_time();
 
     // Curent timer should match the expectation regarding starting time and
