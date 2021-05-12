@@ -37,7 +37,7 @@
 #include <sstream>
 #include "commonroad_classes/SpecificationError.hpp"
 
-#include "CommonroadDDSGoalState.hpp"
+#include "CommonroadDDSGoalStatePubSubTypes.h"
 
 /**
  * \class Interval

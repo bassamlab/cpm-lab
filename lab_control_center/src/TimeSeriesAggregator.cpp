@@ -329,8 +329,8 @@ void TimeSeriesAggregator::reset_all_data()
     vehicle_commandTrajectory_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandTrajectoryPubSubType>>("vehicleCommandTrajectory",
         vehicle_ids
     );
-    vehicle_commandPathTracking_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandPathTracking>>(
-        cpm::get_topic<VehicleCommandPathTracking>("vehicleCommandPathTracking"),
+    vehicle_commandPathTracking_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandPathTrackingPubSubType>>(
+        "vehicleCommandPathTracking",
         vehicle_ids
     );
 }

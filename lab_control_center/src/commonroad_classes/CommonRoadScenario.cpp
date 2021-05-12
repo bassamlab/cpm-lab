@@ -1221,7 +1221,7 @@ std::pair<double, double> CommonRoadScenario::get_lanelet_center(int id)
 /******************                 DDS Functions               **************************/
 /*****************************************************************************************/
 
-void CommonRoadScenario::send_planning_problems(std::shared_ptr<cpm::Writer<CommonroadDDSGoalState>> writer_planning_problems)
+void CommonRoadScenario::send_planning_problems(std::shared_ptr<cpm::Writer<CommonroadDDSGoalStatePubSubType>> writer_planning_problems)
 {
     assert(writer_planning_problems);
 

@@ -402,10 +402,10 @@ CommonroadDDSPositionInterval Position::to_dds_position_interval()
         vector_lanelet_refs.push_back(static_cast<int32_t>(lanelet_ref));
     }
 
-    position_interval.circles(rti::core::vector<CommonroadDDSCircle>(vector_circles));
-    position_interval.polygons(rti::core::vector<CommonroadDDSPolygon>(vector_polygons));
-    position_interval.rectangles(rti::core::vector<CommonroadDDSRectangle>(vector_rectangles));
-    position_interval.lanelet_refs(rti::core::vector<int32_t>(vector_lanelet_refs));
+    position_interval.circles(vector_circles);
+    position_interval.polygons(vector_polygons);
+    position_interval.rectangles(vector_rectangles);
+    position_interval.lanelet_refs(vector_lanelet_refs);
 
     return position_interval;
 }

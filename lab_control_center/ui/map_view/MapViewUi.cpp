@@ -579,7 +579,7 @@ void MapViewUi::draw_received_path_tracking_commands(const DrawingContext& ctx)
     {
         const auto& command = entry.second;
 
-        rti::core::vector<PathPoint> path = command.path();
+        auto path = command.path();
         
         if(path.size() < 2 ) continue;
 
@@ -1228,12 +1228,12 @@ void MapViewUi::draw_commonroad_obstacles(const DrawingContext& ctx)
         {
             //Make vehicle a bit transparent if the position is not exact
             //Don't do this for environment obstacles, which do not have a pose definition
-            if (!(entry.pose_is_exact()) && entry.obstacle_class().underlying() != ObstacleClass::Environment)
+            if (!(entry.pose_is_exact()) && entry.obstacle_class() != ObstacleClass::Environment)
             {
                 ctx->set_source_rgba(.7,.2,.7,.8); //Color used for inexact values
             }
 
-            draw_vehicle_shape(ctx, entry.shape(), entry.obstacle_class().underlying());
+            draw_vehicle_shape(ctx, entry.shape(), entry.obstacle_class());
         }
         ctx->restore();
 

@@ -35,6 +35,7 @@
 #include <vector>
 #include "TrajectoryCommand.hpp"
 #include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
+#include "cpm/dds/VehicleCommandPathTrackingPubSubTypes.h"
 #include "cpm/dds/VisualizationPubSubTypes.h"
 #include "cpm/dds/Visualization.h"
 #include "cpm/dds/Pose2DPubSubTypes.h"

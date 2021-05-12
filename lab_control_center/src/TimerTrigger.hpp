@@ -47,6 +47,7 @@
 
 #include "cpm/dds/ReadyStatusPubSubTypes.h"
 #include "cpm/dds/SystemTriggerPubSubTypes.h"
+#include "cpm/dds/StopRequestPubSubTypes.h"
 
 /**
  * \enum ParticipantStatus
@@ -93,8 +94,15 @@ private:
      * \brief Get ReadyStatus messages and new start requests, if they are newer than the current time (mostly used for simulated time).
      * In real-time, this is only relevant for the initial ready messages, which are also displayed in the UI to see which timer is ready.
      */
-
     bool obtain_new_ready_signals();
+
+    /**
+     * \brief TODO
+     * \param samples
+     */
+    void stop_request_callback(std::vector<StopRequest>& samples);
+
+
     //! DDS Reader to obtain ReadyStatus messages sent within the network
     cpm::ReaderAbstract<ReadyStatusPubSubType> ready_status_reader;
     //! DDS Writer to send SystemTrigger messages, with which timers in the network can be started / controlled (simulated time) / stopped

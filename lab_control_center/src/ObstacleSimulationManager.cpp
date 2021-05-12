@@ -87,8 +87,10 @@ void ObstacleSimulationManager::stop_timers()
     auto t_now = cpm::get_time_ns();
     VehicleCommandTrajectory trajectory;
     Header header;
-    header.create_stamp(TimeStamp(t_now));
-    header.valid_after_stamp(TimeStamp(t_now));
+    TimeStamp create_stamp;
+    create_stamp.nanoseconds(t_now);
+    header.create_stamp(create_stamp);
+    header.valid_after_stamp(create_stamp);
     trajectory.header(header);
     
     std::lock_guard<std::mutex> lock(map_mutex);
