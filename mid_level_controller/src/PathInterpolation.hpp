@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "VehicleCommandPathTrackingPubSubTypes.h"
+#include "cpm/dds/VehicleCommandPathTrackingPubSubTypes.h"
 
 /**
  * \struct PathInterpolation

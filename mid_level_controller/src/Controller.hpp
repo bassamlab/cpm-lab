@@ -29,7 +29,7 @@
 #include "cpm/dds/VehicleCommandDirectPubSubTypes.h"
 #include "cpm/dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
 #include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
-#include "VehicleCommandPathTrackingPubSubTypes.h"
+#include "cpm/dds/VehicleCommandPathTrackingPubSubTypes.h"
 #include "cpm/dds/VehicleStateListPubSubTypes.h"
 #include <map>
 #include <memory>

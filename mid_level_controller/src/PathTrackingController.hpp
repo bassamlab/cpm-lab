@@ -26,9 +26,9 @@
 
 #pragma once
 #include <vector>
-#include "VehicleCommandPathTracking.hpp"
-#include "VehicleState.hpp"
-#include "Visualization.hpp"
+#include "cpm/dds/VehicleCommandPathTrackingPubSubTypes.h"
+#include "cpm/dds/VehicleStatePubSubTypes.h"
+#include "cpm/dds/VisualizationPubSubTypes.h"
 #include "cpm/Writer.hpp"
 
 
@@ -40,7 +40,7 @@
 class PathTrackingController
 {
     //! TOOD
-    cpm::Writer<Visualization> writer_Visualization;
+    cpm::Writer<VisualizationPubSubType> writer_Visualization;
     //! TOOD
     uint8_t vehicle_id;
 
