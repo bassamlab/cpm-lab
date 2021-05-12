@@ -34,6 +34,7 @@
 
 #include "cpm/exceptions.hpp"
 #include "cpm/get_topic.hpp"
+#include "cpm/ReaderAbstract.hpp"
 #include "cpm/Writer.hpp"
 
 #include <thread>
@@ -57,7 +58,7 @@ namespace cpm {
         //! Writer for ready status, telling the network that the timer exists and that it finished its current load and is ready for its next time step
         cpm::Writer<ReadyStatusPubSubType> writer_ready_status;
         //! Used to receive start, stop and intermediate timing signals
-        cpm::AsyncReader<SystemTriggerPubSubType> reader_system_trigger;
+        cpm::ReaderAbstract<SystemTriggerPubSubType> reader_system_trigger;
         
         // this is actually never called...fix Writer API
         static void dummyCallback(std::vector<SystemTrigger> trigger){}

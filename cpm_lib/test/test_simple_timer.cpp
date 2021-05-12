@@ -90,22 +90,17 @@ TEST_CASE("SimpleTimer functionality") {
 
   // Thread to receive the ready signal and send a start signal afterwards
   std::thread signal_thread = std::thread([&]() {
-    std::vector<ReadyStatus> samples;
-    while (1) {
-      samples = reader.take();
-      if (samples.size() == 0) {
-        usleep(1000);
-        continue;
-      } else {
-        source_id = samples.front().source_id();
-        break;
-      }
+    reader.wait_for_unread_message(std::numeric_limits<unsigned int>::max());
+    for (auto& data : reader.take())
+    {
+      source_id = data.source_id();
     }
 
     // Send start signal
     SystemTrigger trigger;
     TimeStamp timestamp;
     timestamp.nanoseconds(starting_time);
+    trigger.next_start(timestamp);
     timer_system_trigger_writer.write(trigger);
   });
 
@@ -116,8 +111,6 @@ TEST_CASE("SimpleTimer functionality") {
   uint64_t period_ns = period * 1000000;
 
   timer.start([&](uint64_t t_start) {
-    std::cout << "B" << std::endl;
-
     uint64_t now = timer.get_time();
 
     // Curent timer should match the expectation regarding starting time and

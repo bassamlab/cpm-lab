@@ -102,18 +102,9 @@ TEST_CASE("TimerSimulated_accuracy") {
     for (int i = 0; i < num_runs; ++i) {
       // Wait for ready signal
       ReadyStatus status;
-      std::vector<ReadyStatus> samples;
-      while (1) {
-        samples = reader_ReadyStatus.take();
-        if (samples.size() == 0) {
-          usleep(1000);
-          continue;
-        } else {
-          status = samples.front();
-          break;
-        }
-      }
+      reader_ReadyStatus.wait_for_unread_message(std::numeric_limits<unsigned int>::max());
 
+      status = reader_ReadyStatus.take().at(0);
       status_ready.push_back(status);
 
       uint64_t next_start = status.next_start_stamp().nanoseconds();
@@ -131,22 +122,25 @@ TEST_CASE("TimerSimulated_accuracy") {
       writer_SystemTrigger.write(trigger);
 
       // Wait, no new ready signal should be received
-      usleep(500000);  //?
-// waitset.wait(dds::core::Duration(0, 500000000));
+      reader_ReadyStatus.wait_for_unread_message(500);
+      // waitset.wait(dds::core::Duration(0, 500000000));
 
-// Ignore warning that sample is not used
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+      // Ignore warning that sample is not used
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 
-      if(reader_ReadyStatus.take().size() > 0) {
-        // No new sample should be received -> We never want to enter this loop
-        std::cout << "THIS SHOULD NOT BE CALLED" << std::endl;
-        CHECK(false);
-      }else{
-        std::cout << "Iteration okay" << std::endl;
+      if(reader_ReadyStatus.take().size() > 0) 
+      {
+          // No new sample should be received -> We never want to enter this loop
+          std::cout << "THIS SHOULD NOT BE CALLED" << std::endl;
+          CHECK(false);
+      }
+      else
+      {
+          std::cout << "Iteration okay" << std::endl;
       }
 
-#pragma GCC diagnostic pop
+      #pragma GCC diagnostic pop
 
       // Send correct start signal
       timestamp.nanoseconds(next_start);
@@ -156,9 +150,9 @@ TEST_CASE("TimerSimulated_accuracy") {
 
     // Send stop signal - after num_runs, the callback function should not be
     // called again
-    while (reader_ReadyStatus.take().size() == 0) {
-      continue;
-    }
+    std::cout << "Final wait" << std::endl;
+    reader_ReadyStatus.wait_for_unread_message(std::numeric_limits<unsigned int>::max());
+    std::cout << "Sending stop signals" << std::endl;
 
     SystemTrigger stop_trigger;
     TimeStamp timestamp;

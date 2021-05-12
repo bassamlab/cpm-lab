@@ -55,9 +55,9 @@ namespace cpm {
     ,offset_nanoseconds(_offset_nanoseconds)
     ,node_id(_node_id)
     ,wait_for_start(_wait_for_start)
-    ,stop_signal(_stop_signal),
-    writer_ready_status("readyStatus", true),
-    reader_system_trigger("systemTrigger",true,true, false)
+    ,stop_signal(_stop_signal)
+    ,writer_ready_status("readyStatus", true)
+    ,reader_system_trigger("systemTrigger",true,true, false)
     {
 
         //writer_ready_status = new cpm::Writer<ReadyStatusPubSubType>;
@@ -150,16 +150,15 @@ namespace cpm {
         while(active.load()) {
             writer_ready_status.write(ready_status);
 
-            if(!reader_system_trigger.wait_for_unread_message(2000)){
-                continue;
-            }
-            eprosima::fastdds::dds::SampleInfo info;
-            SystemTrigger data;
-            for(auto& data : reader_system_trigger.take()) {
+            reader_system_trigger.wait_for_unread_message(2000);
+
+            auto read_data = reader_system_trigger.take();
+            for(auto& data : read_data) {
                 nsec_ret = data.next_start().nanoseconds();
             }
 
-            return nsec_ret;
+            if (read_data.size() > 0)
+                return nsec_ret;
         }
 
         //Active is false, just return stop signal here
@@ -194,38 +193,36 @@ namespace cpm {
         if (wait_for_start) {
 
             start_point = receiveStartTime();
-            std::cout << "Received start_point from remote = " << start_point << std::endl;
+            //std::cout << "Received start_point from remote = " << start_point << std::endl;
             if (start_point == stop_signal) {
                 return;
             }
         }
         else {
-            std::cout << "setting start_point = this->get_time()" << std::endl;
+            //std::cout << "setting start_point = this->get_time()" << std::endl;
             start_point = this->get_time();
         }
 
         if ((start_point - offset_nanoseconds) % period_nanoseconds == 0) {
-            std::cout << "Setting deadline = start_point" << std::endl;
+            //std::cout << "Setting deadline = start_point" << std::endl;
             deadline = start_point;
         }
         else {
-            std::cout << "Setting deadline = (((start_point - offset_nanoseconds) / period_nanoseconds) + 1) * period_nanoseconds + offset_nanoseconds;" << std::endl;
+            //std::cout << "Setting deadline = (((start_point - offset_nanoseconds) / period_nanoseconds) + 1) * period_nanoseconds + offset_nanoseconds;" << std::endl;
             deadline = (((start_point - offset_nanoseconds) / period_nanoseconds) + 1) * period_nanoseconds + offset_nanoseconds;
         }
 
         start_point_initialized = true;
 
-        std::cout << "Deadline = " << deadline << std::endl;
-        std::cout << "Start Point = " << start_point << std::endl;
-        std::cout << "Offset Nanoseconds = " << offset_nanoseconds << std::endl;
+        // std::cout << "Deadline = " << deadline << std::endl;
+        // std::cout << "Start Point = " << start_point << std::endl;
+        // std::cout << "Offset Nanoseconds = " << offset_nanoseconds << std::endl;
 
 
         while(active.load()) {
             this->wait();
             if(this->get_time() >= deadline) {
-                auto start_cb = this->get_time();
                 if(m_update_callback) m_update_callback(deadline);
-                auto end_cb = this->get_time();
                 
                 deadline += period_nanoseconds;
 
@@ -341,12 +338,10 @@ namespace cpm {
 
     bool TimerFD::received_stop_signal() 
     {
-
-                  
-      eprosima::fastdds::dds::SampleInfo info;
-      SystemTrigger data;
-      for (auto& data : reader_system_trigger.take()) {
-        if(data.next_start().nanoseconds() == stop_signal){
+      for (auto& data : reader_system_trigger.take()) 
+      {
+        if(data.next_start().nanoseconds() == stop_signal)
+        {
             return true;
         }
       }

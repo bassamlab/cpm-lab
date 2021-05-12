@@ -100,6 +100,15 @@ TEST_CASE("VehicleIDFilteredTopic") {
         auto reader_samples11_dds = reader_vehicle11.get_all_samples();
         auto reader_samples42_dds = reader_vehicle42.get_all_samples();
 
+        for (auto& sample : reader_samples11_dds)
+        {
+            reader_samples11.push_back(sample);
+        }
+        for (auto& sample : reader_samples42_dds)
+        {
+            reader_samples42.push_back(sample);
+        }
+
         //Abort early if condition is fulfilled, else wait and repeat read
         if (reader_samples11.size() >=1 && reader_samples42.size() >= 2) break;
         else usleep(100000);

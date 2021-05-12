@@ -78,10 +78,13 @@ namespace cpm {
 
             for (auto &sample : samples)
             {
-                if(vehicle_id_filter_ == -1 || vehicle_id_filter_ == sample.vehicle_id()){
+                if(vehicle_id_filter_ == -1 || vehicle_id_filter_ == sample.vehicle_id())
+                {
                     messages_buffer.push_back(sample);
-                }else{
-                std::cout << "message for vehicle ID " << (int)sample.vehicle_id() << " discarded" << std::endl;
+                }
+                else
+                {
+                    std::cout << "message for vehicle ID " << (int)sample.vehicle_id() << " discarded" << std::endl;
                 }
             }
         }
@@ -170,7 +173,9 @@ namespace cpm {
         }
 
         std::vector<typename T::type> get_all_samples(){
-          return messages_buffer;
+            std::lock_guard<std::mutex> lock(m_mutex);
+
+            return messages_buffer;
         }
              
         /**

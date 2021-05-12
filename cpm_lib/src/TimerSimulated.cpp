@@ -50,9 +50,9 @@ namespace cpm {
     :period_nanoseconds(_period_nanoseconds)
     ,offset_nanoseconds(_offset_nanoseconds)
     ,node_id(_node_id)
-    ,current_time(0),
-    reader_system_trigger(cpm::AsyncReader<SystemTriggerPubSubType>(&dummyCallback, "systemTrigger", true, false)),
-    writer_ready_status("readyStatus", true)
+    ,current_time(0)
+    ,reader_system_trigger("systemTrigger", true, true, false)
+    ,writer_ready_status("readyStatus", true)
     {
         //Offset is allowed to be greater than period!
         active.store(false);
@@ -63,47 +63,45 @@ namespace cpm {
         bool got_valid = false;
         bool got_new_deadline = false;
 
-        eprosima::fastdds::dds::SampleInfo info;
-        SystemTrigger data;
-        while(reader_system_trigger.get_reader()->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
-        if (info.instance_state == eprosima::fastdds::dds::ALIVE)
+        for (auto& data : reader_system_trigger.take()) 
         {
-                got_valid = true;
+            got_valid = true;
 
-                if (data.next_start().nanoseconds() == deadline) {
-                    current_time = deadline;
+            if (data.next_start().nanoseconds() == deadline) {
+                current_time = deadline;
 
-                    //Current deadline reached -> perform calculation, call callback, update deadline
-                    if(m_update_callback) m_update_callback(deadline);
-                    deadline += period_nanoseconds;
+                //Current deadline reached -> perform calculation, call callback, update deadline
+                if(m_update_callback) m_update_callback(deadline);
+                deadline += period_nanoseconds;
 
-                    got_new_deadline = true;
+                got_new_deadline = true;
 
-                    // Current period finished -> Send next ready signal
-                    ReadyStatus ready_status;
-                    TimeStamp timestamp;
-                    timestamp.nanoseconds(deadline);
-                    ready_status.next_start_stamp(timestamp);
-                    ready_status.source_id(node_id);
-                    writer_ready_status.write(ready_status);
+                // Current period finished -> Send next ready signal
+                ReadyStatus ready_status;
+                TimeStamp timestamp;
+                timestamp.nanoseconds(deadline);
+                ready_status.next_start_stamp(timestamp);
+                ready_status.source_id(node_id);
+                writer_ready_status.write(ready_status);
+            }
+            else if (data.next_start().nanoseconds() == TRIGGER_STOP_SYMBOL) {
+                //Received stop signal - use the user's stop function or stop the timer if none was registered
+                if (m_stop_callback)
+                {
+                    m_stop_callback();
                 }
-                else if (data.next_start().nanoseconds() == TRIGGER_STOP_SYMBOL) {
-                    //Received stop signal - use the user's stop function or stop the timer if none was registered
-                    if (m_stop_callback)
-                    {
-                        m_stop_callback();
-                    }
-                    else
-                    {
-                        active.store(false);
-                    }
-                    
-                    return Answer::STOP;
+                else
+                {
+                    active.store(false);
                 }
-        }else{
-          std::cout << "Did not receive valid trigger" << std::endl;
+                
+                return Answer::STOP;
+            }
+            else
+            {
+                std::cout << "Did not receive valid trigger" << std::endl;
+            }
         }
-      }
 
         if (got_new_deadline) {
             return Answer::DEADLINE;
@@ -150,7 +148,9 @@ namespace cpm {
             ready_status.next_start_stamp(timestamp);
             ready_status.source_id(node_id);
             writer_ready_status.write(ready_status);
-            reader_system_trigger.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(2));
+
+            reader_system_trigger.wait_for_unread_message(2000);
+
             system_trigger = handle_system_trigger(deadline);
         }
 
@@ -159,7 +159,7 @@ namespace cpm {
             //Wait for the next signals until the next start signal has been received
             //dds::core::cond::WaitSet::ConditionSeq active_conditions = waitset.wait();
             std::cout << "Waiting for trigger - ";
-            reader_system_trigger.get_reader()->wait_for_unread_message(eprosima::fastrtps::Duration_t(std::numeric_limits<int32_t>::max()));
+            reader_system_trigger.wait_for_unread_message(std::numeric_limits<int32_t>::max());
             std::cout << "Done waiting for trigger" << std::endl;
             //Process new messages
             system_trigger = handle_system_trigger(deadline);
