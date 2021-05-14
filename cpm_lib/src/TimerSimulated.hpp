@@ -60,8 +60,6 @@ namespace cpm {
         //! Used to receive start, stop and intermediate timing signals
         cpm::ReaderAbstract<SystemTriggerPubSubType> reader_system_trigger;
         
-        // this is actually never called...fix Writer API
-        static void dummyCallback(std::vector<SystemTrigger> trigger){}
         //! ID of the timer, e.g. middleware, e.g. for identification in the timer tab of the LCC
         std::string node_id;
         //! Current simulated time, also used by get_time

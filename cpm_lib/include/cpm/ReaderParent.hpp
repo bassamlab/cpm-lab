@@ -94,7 +94,7 @@ namespace cpm
              * \param info Used to get total count of current matches / matched writers
              */
             void on_subscription_matched(
-                    eprosima::fastdds::dds::DataReader* reader,
+                    eprosima::fastdds::dds::DataReader*,
                     const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override
             {
                 active_matches = info.total_count;
@@ -113,7 +113,7 @@ namespace cpm
                 typename MessageType::type data;
                 while(reader->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
                 {
-                    if (info.instance_state == eprosima::fastdds::dds::ALIVE)
+                    if (info.instance_state == eprosima::fastdds::dds::ALIVE_INSTANCE_STATE)
                     {
                         buffer.push_back(data);
                     }
@@ -217,7 +217,7 @@ namespace cpm
         bool is_transient_local,
         bool history_keep_all
     )
-    : listener_(on_read_callback), type_support(new MessageType()), participant_(participant), topic_name(topic_name)
+    : type_support(new MessageType()), participant_(participant), topic_name(topic_name), listener_(on_read_callback)
     {
         sub = std::shared_ptr<eprosima::fastdds::dds::Subscriber>(
             participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT),

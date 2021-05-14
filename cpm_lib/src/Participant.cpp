@@ -24,17 +24,12 @@
 // 
 // Author: i11 - Embedded Software, RWTH Aachen University
 
-#pragma once
+#include "cpm/Participant.hpp"
 
 /**
- * \class Participant.hpp
- * \brief Creates a DDS Participant, use this for abstraction
- * Also allows for loading .xml QoS files
+ * \file Participant.cpp
+ * \ingroup cpmlib
  */
-
-#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
-#include "cpm/Participant.hpp"
-#include <fastrtps/xmlparser/XMLProfileManager.h>
 
 namespace cpm
 {

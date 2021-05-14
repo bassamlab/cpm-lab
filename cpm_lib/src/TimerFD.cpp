@@ -54,10 +54,10 @@ namespace cpm {
     :period_nanoseconds(_period_nanoseconds)
     ,offset_nanoseconds(_offset_nanoseconds)
     ,node_id(_node_id)
+    ,reader_system_trigger("systemTrigger",true,true, false)
+    ,writer_ready_status("readyStatus", true)
     ,wait_for_start(_wait_for_start)
     ,stop_signal(_stop_signal)
-    ,writer_ready_status("readyStatus", true)
-    ,reader_system_trigger("systemTrigger",true,true, false)
     {
 
         //writer_ready_status = new cpm::Writer<ReadyStatusPubSubType>;

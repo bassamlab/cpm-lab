@@ -27,6 +27,7 @@
 #pragma once
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastrtps/xmlparser/XMLProfileManager.h>
 
 namespace cpm
 {

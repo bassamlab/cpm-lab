@@ -49,10 +49,10 @@ namespace cpm {
     )
     :period_nanoseconds(_period_nanoseconds)
     ,offset_nanoseconds(_offset_nanoseconds)
+    ,writer_ready_status("readyStatus", true)
+    ,reader_system_trigger("systemTrigger", true, true, false)
     ,node_id(_node_id)
     ,current_time(0)
-    ,reader_system_trigger("systemTrigger", true, true, false)
-    ,writer_ready_status("readyStatus", true)
     {
         //Offset is allowed to be greater than period!
         active.store(false);
