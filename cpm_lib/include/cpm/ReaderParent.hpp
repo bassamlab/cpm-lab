@@ -188,14 +188,15 @@ namespace cpm
          * \param is_reliable If true, the used reader is set to be reliable, else best effort is expected
          * \param is_transient_local If true, the used reader is set to be transient local - in this case, it is also set to reliable
          * \param history_keep_all If true, the internal DDS Reader tries to keep all messages, else only the latest message is kept
+         * \param is_transient_local If true, the used reader is set to be transient local - in this case, it is also set to reliable
          */
         ReaderParent(
             std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
             std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>,
             std::string topic_name, 
             bool is_reliable = false,
-            bool is_transient_local = false,
-            bool history_keep_all = true
+            bool history_keep_all = true,
+            bool is_transient_local = false
         );
 
         /**
@@ -214,8 +215,8 @@ namespace cpm
         std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant,
         std::string topic_name, 
         bool is_reliable,
-        bool is_transient_local,
-        bool history_keep_all
+        bool history_keep_all,
+        bool is_transient_local
     )
     : type_support(new MessageType()), participant_(participant), topic_name(topic_name), listener_(on_read_callback)
     {

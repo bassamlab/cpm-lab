@@ -83,7 +83,7 @@ namespace cpm
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
         MultiVehicleReader(std::string topic, int num_of_vehicles) : 
-          ReaderParent<T>(std::bind(&MultiVehicleReader::on_data_available, this, _1), cpm::ParticipantSingleton::Instance(), topic, false, false, true)
+          ReaderParent<T>(std::bind(&MultiVehicleReader::on_data_available, this, _1), cpm::ParticipantSingleton::Instance(), topic, false, true, false)
         { 
             //Set size for buffers
             vehicle_buffers.resize(num_of_vehicles);
@@ -101,7 +101,7 @@ namespace cpm
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
         MultiVehicleReader(std::string topic, std::vector<uint8_t> _vehicle_ids) : 
-          ReaderParent<T>(std::bind(&MultiVehicleReader::on_data_available, this, _1), cpm::ParticipantSingleton::Instance(), topic, false, false, true)
+          ReaderParent<T>(std::bind(&MultiVehicleReader::on_data_available, this, _1), cpm::ParticipantSingleton::Instance(), topic, false, true, false)
         {             
             //Set size for buffers
             int num_of_vehicles = _vehicle_ids.size();

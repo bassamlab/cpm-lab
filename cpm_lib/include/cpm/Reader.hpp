@@ -164,8 +164,8 @@ namespace cpm {
             ParticipantSingleton::Instance(),
             topic_name, 
             false,
-            false,
-            true), vehicle_id_filter_(vehicle_id_filter)
+            true,
+            false), vehicle_id_filter_(vehicle_id_filter)
         {
             typename T::type topic_type;
             //assert(typeof(topic_type._header().create_stamp().nanoseconds()) == uint64_t);

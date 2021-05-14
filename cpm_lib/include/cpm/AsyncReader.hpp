@@ -96,8 +96,7 @@ namespace cpm
             std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>,
             std::string topic_name, 
             bool is_reliable = false,
-            bool is_transient_local = false,
-            bool history_keep_all = true
+            bool is_transient_local = false
         );
     };
 
@@ -107,7 +106,7 @@ namespace cpm
         std::string topic_name, 
         bool is_reliable,
         bool is_transient_local
-    ) : AsyncReader(on_read_callback, cpm::ParticipantSingleton::Instance(), topic_name, is_reliable, is_transient_local, false)
+    ) : AsyncReader(on_read_callback, cpm::ParticipantSingleton::Instance(), topic_name, is_reliable, is_transient_local)
     {}
 
     template<class MessageType> 
@@ -117,7 +116,7 @@ namespace cpm
         std::string topic_name, 
         bool is_reliable,
         bool is_transient_local
-    ) :  AsyncReader(on_read_callback, participant.get_participant(), topic_name, is_reliable, is_transient_local, false) {}
+    ) :  AsyncReader(on_read_callback, participant.get_participant(), topic_name, is_reliable, is_transient_local) {}
 
     template<class MessageType> 
     AsyncReader<MessageType>::AsyncReader(
@@ -125,10 +124,9 @@ namespace cpm
         std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant,
         std::string topic_name, 
         bool is_reliable,
-        bool is_transient_local,
-        bool history_keep_all
+        bool is_transient_local
     )
-    : ReaderParent<MessageType>(on_read_callback, participant, topic_name, is_reliable, is_transient_local, history_keep_all)
+    : ReaderParent<MessageType>(on_read_callback, participant, topic_name, is_reliable, false, is_transient_local)
     {
       
     }

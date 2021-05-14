@@ -114,7 +114,7 @@ namespace cpm
             bool _history_keep_all = false, 
             bool transient_local = false
         ) : 
-          ReaderParent<T>(std::bind(&ReaderAbstract::on_data_available, this, _1), _participant, topic, reliable, transient_local, _history_keep_all),
+          ReaderParent<T>(std::bind(&ReaderAbstract::on_data_available, this, _1), _participant, topic, reliable, _history_keep_all, transient_local),
           history_keep_all(_history_keep_all)
         {}
         
