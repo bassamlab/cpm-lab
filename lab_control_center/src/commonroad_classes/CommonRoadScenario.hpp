@@ -65,6 +65,9 @@
 #include "cpm/Writer.hpp"
 #include "CommonroadDDSGoalStatePubSubTypes.h"
 
+//Required because some Makro in eProsima defines a draw function, which makes compiling with our draw function impossible (depends on the compiler)
+#undef draw
+
 /**
  * \enum ObstacleRole
  * \brief Obstacle types according to spec, for 2018 specs Obstacle

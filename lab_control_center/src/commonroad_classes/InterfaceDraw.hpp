@@ -26,12 +26,14 @@
 
 #pragma once
 
+//Required because some Makro in eProsima defines a draw function, which makes compiling with our draw function impossible (depends on the compiler)
+#undef draw
+
 #include <gtkmm.h>
 
 #include <string>
 
 using DrawingContext = ::Cairo::RefPtr< ::Cairo::Context >;
-
 /**
  * \class InterfaceDraw
  * \brief This interface requires the deriving classes to implement a draw function

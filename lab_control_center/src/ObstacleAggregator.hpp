@@ -39,6 +39,9 @@
 #include "cpm/dds/CommonroadObstacleListPubSubTypes.h"
 #include "commonroad_classes/CommonRoadScenario.hpp"
 
+//Required because some Makro in eProsima defines a draw function, which makes compiling with our draw function impossible (depends on the compiler)
+#undef draw
+
 /**
  * \class ObstacleAggregator
  * \brief Keeps received data from commonroad obstacles in map that regards multiple messages + timestamps; analogous to TimeSeriesAggregator but for commonroad obstacles; ignores more than 2 seconds old data
