@@ -221,7 +221,7 @@ namespace cpm
     {
         sub = std::shared_ptr<eprosima::fastdds::dds::Subscriber>(
             participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT),
-            [participant_ = participant_] (eprosima::fastdds::dds::Subscriber* sub)
+            [&] (eprosima::fastdds::dds::Subscriber* sub)
             {
                 if (sub != nullptr)
                 {
@@ -249,7 +249,7 @@ namespace cpm
             std::string type_name_str = topic_data_type.getName();
             topic = std::shared_ptr<eprosima::fastdds::dds::Topic>(
                 participant_->create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT),
-                [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
+                [&](eprosima::fastdds::dds::Topic* topic) {
                     if (topic != nullptr)
                     {
                         participant_->delete_topic(topic);
@@ -259,7 +259,7 @@ namespace cpm
         }else{
             topic = std::shared_ptr<eprosima::fastdds::dds::Topic>(
                 (eprosima::fastdds::dds::Topic*)find_topic,
-                [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
+                [&](eprosima::fastdds::dds::Topic* topic) {
                     if (topic != nullptr)
                     {
                         participant_->delete_topic(topic);
@@ -274,7 +274,7 @@ namespace cpm
         std::cout << "Creating ReaderParent" << std::endl;
         reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
             sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), &listener_),
-            [sub = sub](eprosima::fastdds::dds::DataReader* reader) {
+            [&](eprosima::fastdds::dds::DataReader* reader) {
                 if (sub != nullptr)
                 {
                     sub->delete_datareader(reader);

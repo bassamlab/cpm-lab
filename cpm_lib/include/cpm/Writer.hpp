@@ -190,7 +190,7 @@ namespace cpm
                 std::string type_name_str = topic_data_type.getName();
                 topic = std::shared_ptr<eprosima::fastdds::dds::Topic>(
                     participant_->create_topic(topic_name, type_name_str, eprosima::fastdds::dds::TOPIC_QOS_DEFAULT),
-                    [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
+                    [&](eprosima::fastdds::dds::Topic* topic) {
                         if (topic != nullptr)
                         {
                             participant_->delete_topic(topic);
@@ -200,7 +200,7 @@ namespace cpm
             }else{
                 topic = std::shared_ptr<eprosima::fastdds::dds::Topic>(
                     (eprosima::fastdds::dds::Topic*)find_topic,
-                    [participant_ = participant_](eprosima::fastdds::dds::Topic* topic) {
+                    [&](eprosima::fastdds::dds::Topic* topic) {
                         if (topic != nullptr)
                         {
                             participant_->delete_topic(topic);
@@ -216,7 +216,7 @@ namespace cpm
             //Create Publisher
             publisher = std::shared_ptr<eprosima::fastdds::dds::Publisher>(
                 participant_->create_publisher(eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT),
-                [participant_ = participant_](eprosima::fastdds::dds::Publisher* publisher) {
+                [&](eprosima::fastdds::dds::Publisher* publisher) {
                     if (publisher != nullptr)
                     {
                         participant_->delete_publisher(publisher);
@@ -227,7 +227,7 @@ namespace cpm
             //Create Writer
             writer = std::shared_ptr<eprosima::fastdds::dds::DataWriter>(
                 publisher->create_datawriter(topic.get(), get_qos(reliable, history_keep_all, transient_local), &listener_),
-                [publisher = publisher](eprosima::fastdds::dds::DataWriter* writer) {
+                [&](eprosima::fastdds::dds::DataWriter* writer) {
                     if (writer != nullptr)
                     {
                         publisher->delete_datawriter(writer);
