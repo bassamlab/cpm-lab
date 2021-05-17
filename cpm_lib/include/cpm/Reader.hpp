@@ -54,6 +54,8 @@ namespace cpm {
      * to the current system time. Once the Reader is 
      * created, it can be used anytime to retrieve the 
      * newest valid sample, if one exist.
+     * 
+     * IMPORTANT: Only keeps the newest 2000 samples.
      * \ingroup cpmlib
      */
     template<typename T>
@@ -86,6 +88,15 @@ namespace cpm {
                 {
                     std::cout << "message for vehicle ID " << (int)sample.vehicle_id() << " discarded" << std::endl;
                 }
+            }
+
+            //We assume that that data becomes useless with time,
+            //so it makes sense to cap the max. amount of data that can be buffered
+            //In this case: 2000 messages
+            if (messages_buffer.size() > 2000)
+            {
+                auto diff = messages_buffer.size() - 2000;
+                messages_buffer.erase(messages_buffer.begin(), messages_buffer.begin() + diff);
             }
         }
 

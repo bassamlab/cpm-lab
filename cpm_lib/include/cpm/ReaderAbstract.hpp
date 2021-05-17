@@ -42,6 +42,8 @@ namespace cpm
      * \brief Creates a DDS Reader that provides the simple take() function for getting all samples received after the last call of "take()"
      * Abstraction from different DDS Reader implementations
      * Difference to cpm::Reader: That one is supposed to give the latest sample w.r.t. timing information in the header. ReaderAbstract works more general than that.
+     * 
+     * IMPORTANT: Only keeps the newest 2000 samples at max.!
      * \ingroup cpmlib
      */
     template<typename T>
@@ -75,6 +77,16 @@ namespace cpm
                 messages_buffer.push_back(sample);
             }
 
+            //We assume that that data becomes useless with time,
+            //so it makes sense to cap the max. amount of data that can be buffered
+            //In this case: 2000 messages
+            if (messages_buffer.size() > 2000)
+            {
+                auto diff = messages_buffer.size() - 2000;
+                messages_buffer.erase(messages_buffer.begin(), messages_buffer.begin() + diff);
+            }
+
+            //Used by wait_for_unread_message
             cv.notify_all();
         }
 

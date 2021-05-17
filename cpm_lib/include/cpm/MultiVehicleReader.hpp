@@ -43,6 +43,8 @@ namespace cpm
      * \brief Class MultiVehicleReader
      * Use this to get a reader for multiple vehicles that works like "Reader", but checks timestamps in the header for all of the vehicles separately
      * This reader always acts in the domain of ParticipantSingleton
+     * 
+     * IMPORTANT: Does not buffer more than 2000 samples per vector
      * \ingroup cpmlib
      */
     template<typename T>
@@ -71,6 +73,18 @@ namespace cpm
 
                 if (pos < static_cast<long>(vehicle_ids.size()) && pos >= 0) {
                     vehicle_buffers.at(pos).push_back(data);
+                }
+            }
+
+            for (auto& messages_buffer : vehicle_buffers)
+            {
+                //We assume that that data becomes useless with time,
+                //so it makes sense to cap the max. amount of data that can be buffered
+                //In this case: 2000 messages
+                if (messages_buffer.size() > 2000)
+                {
+                    auto diff = messages_buffer.size() - 2000;
+                    messages_buffer.erase(messages_buffer.begin(), messages_buffer.begin() + diff);
                 }
             }
         }
