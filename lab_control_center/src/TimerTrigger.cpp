@@ -36,6 +36,7 @@ TimerTrigger::TimerTrigger(bool simulated_time) :
     use_simulated_time(simulated_time),
     /*Set up communication*/
     ready_status_reader("readyStatus", true, true),
+    stop_request_reader([this](std::vector<StopRequest>& samples){stop_request_callback(samples);}, "stopRequest"),
     system_trigger_writer("systemTrigger", true)
 {    
     current_simulated_time = 0;

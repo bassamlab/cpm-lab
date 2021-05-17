@@ -105,6 +105,8 @@ private:
 
     //! DDS Reader to obtain ReadyStatus messages sent within the network
     cpm::ReaderAbstract<ReadyStatusPubSubType> ready_status_reader;
+    //! TODO
+    cpm::AsyncReader<StopRequestPubSubType> stop_request_reader;
     //! DDS Writer to send SystemTrigger messages, with which timers in the network can be started / controlled (simulated time) / stopped
     cpm::Writer<SystemTriggerPubSubType> system_trigger_writer;
     //! Always stores the highest timestamp that was sent by each participant
