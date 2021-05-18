@@ -39,9 +39,25 @@
 namespace cpm
 {
 
-    Participant::Participant(int domain_number)
+    Participant::Participant(int domain_number, bool use_shared_memory)
     { 
-        auto qos = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_default_participant_qos();
+        //Create new QoS
+        eprosima::fastdds::dds::DomainParticipantQos qos;
+
+        if (use_shared_memory)
+        {
+            //Create shared memory descriptor
+            auto shm_transport = std::make_shared<eprosima::fastdds::rtps::SharedMemTransportDescriptor>();
+            
+            //Try to set to shared memory transport only
+            qos.transport().use_builtin_transports = false;
+            qos.transport().user_transports.push_back(shm_transport);
+        }
+        {
+            //Else use default QoS
+            qos = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_default_participant_qos();
+        }
+
         participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
             eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos),
             [] (eprosima::fastdds::dds::DomainParticipant* participant) {
@@ -59,59 +75,28 @@ namespace cpm
      */
     Participant::Participant(int domain_number, std::string qos_file)
     {
-      auto ret_xml = eprosima::fastrtps::xmlparser::XMLProfileManager::loadXMLFile(qos_file);
-      if(ret_xml != eprosima::fastrtps::xmlparser::XMLP_ret::XML_OK){
-        throw std::invalid_argument("error loading xml profile");
-      }
+        auto ret_xml = eprosima::fastrtps::xmlparser::XMLProfileManager::loadXMLFile(qos_file);
+        if(ret_xml != eprosima::fastrtps::xmlparser::XMLP_ret::XML_OK){
+            throw std::invalid_argument("error loading xml profile");
+        }
 
-      eprosima::fastdds::dds::DomainParticipantQos qos;
-      auto ret_pf = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_participant_qos_from_profile("domainparticipant_profile_name", qos);
-      if(ret_pf != ReturnCode_t::RETCODE_OK){
-        throw std::invalid_argument("unable to create participant from xml profile");
-      }
-      
-      participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
-          eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos),
-          [] (eprosima::fastdds::dds::DomainParticipant* participant) {
-              if (participant != nullptr)
-                  eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
-          }
-      );
+        eprosima::fastdds::dds::DomainParticipantQos qos;
+        auto ret_pf = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_participant_qos_from_profile("domainparticipant_profile_name", qos);
+        if(ret_pf != ReturnCode_t::RETCODE_OK){
+            throw std::invalid_argument("unable to create participant from xml profile");
+        }
+        
+        participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
+            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos),
+            [] (eprosima::fastdds::dds::DomainParticipant* participant) {
+                if (participant != nullptr)
+                    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+            }
+        );
 
-      if(! participant){
-        throw std::invalid_argument("failed to create participant");
-      }
-    }
-
-    Participant::Participant(int domain_number, bool localhost)
-    {
-      if (!localhost)
-      {
-        std::cerr << "Experimental and bad implementation - crash imminent" << std::endl;
-        exit(1);
-      }
-
-      //Create new QoS for shared memory
-      eprosima::fastdds::dds::DomainParticipantQos qos;
-
-      //Create shared memory descriptor
-      auto shm_transport = std::make_shared<eprosima::fastdds::rtps::SharedMemTransportDescriptor>();
-      
-      //Try to set to shared memory transport only
-      qos.transport().use_builtin_transports = false;
-      qos.transport().user_transports.push_back(shm_transport);
-
-      participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
-          eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos),
-          [] (eprosima::fastdds::dds::DomainParticipant* participant) {
-              if (participant != nullptr)
-                  eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
-          }
-      );
-
-      if(! participant){
-        throw std::invalid_argument("failed to create participant");
-      }
+        if(! participant){
+            throw std::invalid_argument("failed to create participant");
+        }
     }
     
     std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> Participant::get_participant()

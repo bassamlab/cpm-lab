@@ -52,8 +52,10 @@ namespace cpm
         /**
          * \brief Constructor for a participant 
          * \param domain_number Set the domain ID of the domain within which the communication takes place
+         * \param use_shared_memory If true, the participant can only communicate on the local machine. 
+         * This may be interesting in case you do not want its messages to "pollute" the network, and is also faster.
          */
-        Participant(int domain_number);
+        Participant(int domain_number, bool use_shared_memory);
 
         /**
          * \brief Constructor for a participant 
@@ -61,11 +63,6 @@ namespace cpm
          * \param qos_file QoS settings to be imported from an .xml file
          */
         Participant(int domain_number, std::string qos_file);
-
-        /**
-         * \brief Just a test for the Middleware
-         */
-        Participant(int domain_number, bool localhost);
         
         std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> get_participant();
     };
