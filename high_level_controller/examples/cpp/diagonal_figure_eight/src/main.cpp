@@ -27,12 +27,12 @@
 #include "cpm/Logging.hpp"
 #include "cpm/CommandLineReader.hpp"
 #include "cpm/init.hpp"
-#include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Timer.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include <dds/pub/ddspub.hpp>
+#include "cpm/Writer.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include <iostream>
 #include <memory>
+#include <unistd.h>
 
 using std::vector;
 
@@ -91,10 +91,9 @@ int main(int argc, char *argv[])
 
     // Writer for sending trajectory commands, Writer writes the trajectory commands in the DDS "Cloud" so other programs can access them.
     //For more information see our documentation about RTI DDS
-    dds::pub::DataWriter<VehicleCommandTrajectory> writer_vehicleCommandTrajectory
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory
     (
-        dds::pub::Publisher(cpm::ParticipantSingleton::Instance()), 
-        cpm::get_topic<VehicleCommandTrajectory>("vehicleCommandTrajectory")
+        "vehicleCommandTrajectory"
     );
 
 
@@ -163,10 +162,9 @@ int main(int argc, char *argv[])
         }
 
         // Send the current trajectory 
-        rti::core::vector<TrajectoryPoint> rti_trajectory_points(trajectory_points);
         VehicleCommandTrajectory vehicle_command_trajectory;
         vehicle_command_trajectory.vehicle_id(vehicle_id);
-        vehicle_command_trajectory.trajectory_points(rti_trajectory_points);
+        vehicle_command_trajectory.trajectory_points(trajectory_points);
         vehicle_command_trajectory.header().create_stamp().nanoseconds(t_now);
         vehicle_command_trajectory.header().valid_after_stamp().nanoseconds(t_now + 1000000000ull);
         writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);

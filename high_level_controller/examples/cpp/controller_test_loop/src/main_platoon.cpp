@@ -40,9 +40,10 @@
 #include "cpm/Logging.hpp"
 #include "cpm/CommandLineReader.hpp"
 #include "cpm/init.hpp"
+#include "cpm/type_creation_helper.hpp"
 
-#include "VehicleState.hpp"
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/VehicleStatePubSubTypes.h"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 
 /**
  * \file main_platoon.cpp
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
     std::mutex _mutex;
     std::map<uint8_t, VehicleState> vehicleStates;
 
-    cpm::AsyncReader<VehicleState> vehicleStates_reader(
+    cpm::AsyncReader<VehicleStatePubSubType> vehicleStates_reader(
         [&](std::vector<VehicleState>& samples) {
             std::unique_lock<std::mutex> lock(_mutex);
             for(auto& data : samples) 
@@ -78,7 +79,7 @@ int main(int argc, char *argv[])
     );
 
 
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory("vehicleCommandTrajectory");
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory("vehicleCommandTrajectory");
 
 
     std::map<uint8_t, uint8_t> follower_vehicle_id_map;
@@ -110,10 +111,11 @@ int main(int argc, char *argv[])
             const double c = cos(state.pose().yaw());
             const double s = sin(state.pose().yaw());
 
+            TimeStamp stamp;
+            stamp.nanoseconds(t_state + 1200000000ull);
 
-
-            TrajectoryPoint trajectory_point(
-                TimeStamp(t_state + 1200000000ull), 
+            TrajectoryPoint trajectory_point = cpm::create_trajectory_point(
+                stamp, 
                 state.pose().x(), 
                 state.pose().y(),
                 c * state.speed(), 
@@ -121,7 +123,7 @@ int main(int argc, char *argv[])
             );
             VehicleCommandTrajectory vehicleCommandTrajectory;
             vehicleCommandTrajectory.vehicle_id(follower_vehicle_id_map[vehicle_id]);
-            vehicleCommandTrajectory.trajectory_points(rti::core::vector<TrajectoryPoint>(1, trajectory_point));
+            vehicleCommandTrajectory.trajectory_points(std::vector<TrajectoryPoint>(1, trajectory_point));
             writer_vehicleCommandTrajectory.write(vehicleCommandTrajectory);
 
         }

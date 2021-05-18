@@ -39,9 +39,9 @@
 #include "cpm/Timer.hpp"
 #include "cpm/get_topic.hpp"
 #include "cpm/Writer.hpp"
-#include "VehicleObservation.hpp"
+#include "cpm/dds/VehicleObservationPubSubTypes.h"
 #include "test_loop_trajectory.hpp"
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "cpm/Logging.hpp"
 #include "cpm/CommandLineReader.hpp"
 #include "cpm/init.hpp"
@@ -376,7 +376,7 @@ int main(int argc, char *argv[])
     TrajectoryIndex trajectory_index(trajectory_points, observation_mutex, vehicleObservations);
 
     // receive vehicle pose from IPS
-    cpm::AsyncReader<VehicleObservation> vehicleObservations_reader(
+    cpm::AsyncReader<VehicleObservationPubSubType> vehicleObservations_reader(
         [&](std::vector<VehicleObservation>& samples) {
             std::unique_lock<std::mutex> lock(observation_mutex);
             std::unique_lock<std::mutex> lock2(slot_mutex);
@@ -408,7 +408,7 @@ int main(int argc, char *argv[])
 
 
     // Writer for sending trajectory commands
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory("vehicleCommandTrajectory");
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory("vehicleCommandTrajectory");
 
 
 
@@ -465,7 +465,7 @@ int main(int argc, char *argv[])
                     // Send trajectory point on DDS
                     VehicleCommandTrajectory vehicleCommandTrajectory;
                     vehicleCommandTrajectory.vehicle_id(vehicle_id);
-                    vehicleCommandTrajectory.trajectory_points(rti::core::vector<TrajectoryPoint>(1, trajectory_point));
+                    vehicleCommandTrajectory.trajectory_points(std::vector<TrajectoryPoint>(1, trajectory_point));
 
                     writer_vehicleCommandTrajectory.write(vehicleCommandTrajectory);
                 }

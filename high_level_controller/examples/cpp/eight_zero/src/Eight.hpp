@@ -27,7 +27,7 @@
 #include <map>
 #include <iostream>
 #include <vector>
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 
 using std::vector;
 

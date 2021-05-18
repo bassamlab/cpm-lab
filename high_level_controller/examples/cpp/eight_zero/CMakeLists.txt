@@ -2,13 +2,19 @@ cmake_minimum_required(VERSION 3.1)
 add_definitions(-Wall -Wextra -Werror=return-type)
 set (CMAKE_CXX_STANDARD 11)
 
-# RTI DDS
-add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -DRTI_STATIC)
-include_directories(SYSTEM $ENV{NDDSHOME}/include)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds)
-include_directories(SYSTEM $ENV{NDDSHOME}/include/ndds/hpp)
-link_libraries(nddscpp2z nddscz nddscorez)
-link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
+# Fast DDS / eProsima
+if(NOT fastcdr_FOUND)
+    find_package(fastcdr REQUIRED)
+endif()
+
+if(NOT foonathan_memory_FOUND)
+    find_package(foonathan_memory REQUIRED)
+endif()
+
+if(NOT fastrtps_FOUND)
+    find_package(fastrtps REQUIRED)
+endif()
+
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
 
 
@@ -27,4 +33,4 @@ add_executable(eight_zero
     src/Eight.cpp
     src/Eight.hpp
 )
-target_link_libraries(eight_zero cpm)
+target_link_libraries(eight_zero cpm fastrtps fastcdr foonathan_memory)

@@ -31,9 +31,10 @@
 #include "cpm/Timer.hpp"
 #include "cpm/get_time_ns.hpp"
 #include "cpm/Writer.hpp"
-#include "VehicleCommandTrajectory.hpp"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include <iostream>
 #include <memory>
+#include <unistd.h>
 
 using std::vector;
 
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
 
 
     // Writer for sending trajectory commands
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory("vehicleCommandTrajectory");
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory("vehicleCommandTrajectory");
 
   
     vector<double> trajectory_px        = vector<double>{-0.5, 0,  0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0};
@@ -134,10 +135,9 @@ int main(int argc, char *argv[])
     }
 
     // Send the current trajectory 
-    rti::core::vector<TrajectoryPoint> rti_trajectory_points(trajectory_points);
     VehicleCommandTrajectory vehicle_command_trajectory;
     vehicle_command_trajectory.vehicle_id(vehicle_id);
-    vehicle_command_trajectory.trajectory_points(rti_trajectory_points);
+    vehicle_command_trajectory.trajectory_points(trajectory_points);
     vehicle_command_trajectory.header().create_stamp().nanoseconds(t_now);
     vehicle_command_trajectory.header().valid_after_stamp().nanoseconds(reference_trajectory_time);
     
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
         sleep(1);
     }
 
-    std::cout << "Sent: " << vehicle_command_trajectory << std::endl;
+    std::cout << "Trajectory sent" << std::endl;
 
     sleep(10);
 }
