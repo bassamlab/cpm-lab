@@ -36,5 +36,5 @@ if [ -z $SIMULATION ]; then
 fi
 
 # Perform unittest
-#cd ${BASH_DIR}/build 
-#./unittest
+cd ${BASH_DIR}/build 
+./unittest

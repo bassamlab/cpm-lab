@@ -38,8 +38,8 @@
 #include "cpm/Parameter.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Logging.hpp"
-#include "CommonroadDDSGoalState.hpp"
-#include "ReadyStatus.hpp"
+#include "cpm/dds/CommonroadDDSGoalStatePubSubTypes.h"
+#include "cpm/dds/ReadyStatusPubSubTypes.h"
 
 #include "Communication.hpp"
 
@@ -101,10 +101,16 @@ TEST_CASE( "GoalToHLCCommunication" ) {
     );
 
     //Initialize readers and writers to simulate HLC (ready messages) and LCC (goal state writer)
-    dds::domain::DomainParticipant hlcParticipant = dds::domain::find(hlcDomainNumber);
-    cpm::Writer<ReadyStatus> hlc_ready_status_writer(hlcParticipant, "readyStatus", true, true, true);
-    cpm::Writer<CommonroadDDSGoalState> vehicleWriter(goalStateTopicName, true, true, true);
-    cpm::ReaderAbstract<CommonroadDDSGoalState> hlc_goal_state_reader(hlcParticipant, goalStateTopicName, true, true, false);
+    auto hlcParticipant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
+        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->lookup_participant(hlcDomainNumber),
+        [] (eprosima::fastdds::dds::DomainParticipant* participant) {
+            if (participant != nullptr)
+                eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+        }
+    );
+    cpm::Writer<ReadyStatusPubSubType> hlc_ready_status_writer(hlcParticipant, "readyStatus", true, true, true);
+    cpm::Writer<CommonroadDDSGoalStatePubSubType> vehicleWriter(goalStateTopicName, true, true, true);
+    cpm::ReaderAbstract<CommonroadDDSGoalStatePubSubType> hlc_goal_state_reader(hlcParticipant, goalStateTopicName, true, true, false);
 
     //Sleep for some milliseconds just to make sure that the readers and writers have been initialized properly
     std::this_thread::sleep_for(std::chrono::milliseconds(100));

@@ -97,7 +97,7 @@ class Communication {
         //! DDS async reader for receiving Commonroad goal state information from the LCC (and passing it to the HLC)
         cpm::AsyncReader<CommonroadDDSGoalStatePubSubType> lcc_goal_state_reader;
         //! Before all HLCs have come online, remember goal states received so far
-        std::vector<CommonroadDDSGoalStatePubSubType> buffered_goal_states;
+        std::vector<CommonroadDDSGoalState> buffered_goal_states;
 
         //! DDS reader, for Vehicle communication, to receive states of vehicles and pass them on to the HLC
         cpm::MultiVehicleReader<VehicleStatePubSubType> vehicleReader;
@@ -402,6 +402,7 @@ class Communication {
             {
                 hlc_goal_state_writer.write(sample);
             }
+            std::cout << "Sent" << std::endl;
             buffered_goal_states.clear();
         }
 

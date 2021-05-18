@@ -80,7 +80,7 @@ template<> void TypedCommunication<VehicleCommandTrajectoryPubSubType>::type_spe
     }
 }
 
-template<> void TypedCommunication<VehicleCommandPathTracking>::type_specific_msg_check(VehicleCommandPathTracking msg)
+template<> void TypedCommunication<VehicleCommandPathTrackingPubSubType>::type_specific_msg_check(VehicleCommandPathTracking& msg)
 {
     auto set_id = msg.vehicle_id();
     auto path_length = msg.path().size();

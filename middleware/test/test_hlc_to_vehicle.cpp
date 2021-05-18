@@ -126,9 +126,15 @@ TEST_CASE( "HLCToVehicleCommunication" ) {
 
         //Send test data from a virtual HLC - only the round number matters here, which is transmitted using the timestamp value
         //The data is sent to the middleware (-> middleware participant, because of the domain ID), and the middleware should send it to the vehicle
-        auto participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->lookup_participant(hlcDomainNumber);
-        assert(participant != nullptr);
-        cpm::Writer<VehicleCommandSpeedCurvaturePubSubType> hlcWriter(*participant, vehicleSpeedCurvatureTopicName);
+        auto participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
+            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->lookup_participant(hlcDomainNumber),
+            [] (eprosima::fastdds::dds::DomainParticipant* participant) {
+                if (participant != nullptr)
+                    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+            }
+        );
+        assert(participant);
+        cpm::Writer<VehicleCommandSpeedCurvaturePubSubType> hlcWriter(participant, vehicleSpeedCurvatureTopicName);
         for (uint64_t i = 0; i <= max_rounds; ++i) {
             //Send data and wait
             std::this_thread::sleep_for(std::chrono::milliseconds(50));

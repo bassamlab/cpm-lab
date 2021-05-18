@@ -101,12 +101,17 @@ namespace cpm
       qos.transport().use_builtin_transports = false;
       qos.transport().user_transports.push_back(shm_transport);
 
-      participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos);
-      assert(participant != nullptr);
-    }
+      participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
+          eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos),
+          [] (eprosima::fastdds::dds::DomainParticipant* participant) {
+              if (participant != nullptr)
+                  eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+          }
+      );
 
-    Participant::~Participant(){
-      eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+      if(! participant){
+        throw std::invalid_argument("failed to create participant");
+      }
     }
     
     std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> Participant::get_participant()

@@ -35,8 +35,6 @@
 #include <vector>
 #include <chrono>
 
-#include "fastdds/domain/DomainParticipantImpl.hpp"
-
 #include "cpm/Timer.hpp"
 #include "cpm/Parameter.hpp"
 #include "cpm/ParticipantSingleton.hpp"
@@ -96,8 +94,14 @@ TEST_CASE( "MiddlewareToHLCCommunication" ) {
         vehicle_ids);
 
     //HLC Writer
-    auto participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->lookup_participant(hlcDomainNumber);
-    cpm::Writer<VehicleCommandSpeedCurvaturePubSubType> hlcWriter(*participant, vehicleSpeedCurvatureTopicName);
+    auto participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
+        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->lookup_participant(hlcDomainNumber),
+        [] (eprosima::fastdds::dds::DomainParticipant* participant) {
+            if (participant != nullptr)
+                eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+        }
+    );
+    cpm::Writer<VehicleCommandSpeedCurvaturePubSubType> hlcWriter(participant, vehicleSpeedCurvatureTopicName);
 
     //Data for checks
     std::vector<uint64_t> hlc_current_round_received;
@@ -154,7 +158,7 @@ TEST_CASE( "MiddlewareToHLCCommunication" ) {
         
         hlcWriter.write(curv);
     },
-    *participant, vehicleStateListTopicName);
+    participant, vehicleStateListTopicName);
 
     //Wait for setup
     std::this_thread::sleep_for(std::chrono::milliseconds(5));

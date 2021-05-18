@@ -66,8 +66,6 @@ namespace cpm
          * \brief Just a test for the Middleware
          */
         Participant(int domain_number, bool localhost);
-
-        ~Participant();
         
         std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> get_participant();
     };
