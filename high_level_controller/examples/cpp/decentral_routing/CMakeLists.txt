@@ -17,11 +17,6 @@ endif()
 
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
 
-# Fast-DDS
-option(THIRDPARTY "" ON)
-option(BUILD_TESTING "" OFF)
-add_subdirectory(../../../../cpm_lib/thirdparty/Fast-DDS/ build)
-
 # CPM lib
 include_directories(SYSTEM ../../../../cpm_lib/include/)
 include_directories(SYSTEM ../../../../cpm_lib/include/cpm/dds/)

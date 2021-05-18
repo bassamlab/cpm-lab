@@ -77,7 +77,7 @@ int main (int argc, char *argv[]) {
 
     std::cout << std::endl;
     //Communication parameters
-    int hlcDomainNumber = cpm::cmd_parameter_int("domain_number", 1, argc, argv); 
+    int hlcDomainNumber = cpm::cmd_parameter_int("middleware_domain", 1, argc, argv); 
     
     //Vehicle ID(s) set in command line, correspond to HLC IDs
     //Vehicle amount: Tell system amount of vehicles, IDs range from 1 to vehicle_amount

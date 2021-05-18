@@ -57,6 +57,8 @@
 #include <thread>
 #include <limits>                           // To get maximum integer value (for stop condition)
 
+#include <unistd.h>
+
 #include "CouplingGraph.hpp"
 // Planner
 #include "VehicleTrajectoryPlanner.hpp"    //sw-folder central routing
@@ -189,7 +191,7 @@ int main(int argc, char *argv[]) {
     // These QoS Settings are taken from the QOS_READY_TRIGGER.xml used in matlab example
     cpm::Writer<ReadyStatusPubSubType> writer_ReadyStatus(
             local_comms_participant.get_participant(),
-            "ReadyStatus",
+            "readyStatus",
             true,
             true,
             true
@@ -207,7 +209,7 @@ int main(int argc, char *argv[]) {
     // SystemTrigger Reader, QoS Settings taken from QOS_READY_TRIGGER.xml
     cpm::ReaderAbstract<SystemTriggerPubSubType> reader_systemTrigger(
             local_comms_participant.get_participant(),
-            "SystemTrigger",
+            "systemTrigger",
             true,
             true
     );
@@ -223,7 +225,7 @@ int main(int argc, char *argv[]) {
     // VehicleStateList is our timing signal from the middleware
     cpm::ReaderAbstract<VehicleStateListPubSubType> reader_VehicleStateList(
             local_comms_participant.get_participant(),
-            "VehicleStateList"
+            "vehicleStateList"
     );
 
     //dds::sub::DataReader<VehicleStateList> reader_VehicleStateList(
@@ -236,7 +238,7 @@ int main(int argc, char *argv[]) {
     // Writer to send trajectory to middleware
     cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory(
             local_comms_participant.get_participant(),
-            "VehicleCommandTrajectory"
+            "vehicleCommandTrajectory"
     );
 
     //dds::pub::DataWriter<VehicleCommandTrajectory> writer_VehicleCommandTrajectory(
@@ -251,7 +253,7 @@ int main(int argc, char *argv[]) {
     //        dds::pub::Publisher(cpm::ParticipantSingleton::Instance()), 
     //        cpm::get_topic<StopRequest>("StopRequest")
     //);
-    cpm::Writer<StopRequestPubSubType> writer_stopRequest("StopRequest");
+    cpm::Writer<StopRequestPubSubType> writer_stopRequest("stopRequest");
 
     /* 
      * Reader/Writers for comms between vehicles directly
