@@ -25,7 +25,7 @@
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 #include "ParameterServer.hpp"
-#include "cpm/get_topic.hpp"
+
 
 /**
  * \file ParameterServer.cpp

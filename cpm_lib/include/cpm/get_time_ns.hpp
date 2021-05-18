@@ -37,6 +37,7 @@ namespace cpm {
 
     /**
      * \brief Same as get_time_ns but allows specifying the clock type
+     * \param clockid ID of the clock to use, e.g. a real-time clock (see Linux manual)
      */
     uint64_t get_time_ns(clockid_t clockid);
 }

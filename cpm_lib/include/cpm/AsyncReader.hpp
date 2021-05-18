@@ -91,9 +91,18 @@ namespace cpm
             bool is_transient_local = false
         );
 
+        /**
+         * \brief Constructor for the AsynReader. This constructor is simpler and creates subscriber, topic etc on the cpm domain participant
+         * The reader always uses History::KeepAll
+         * \param on_read_callback Callback function that is called by the reader if new data is available. Samples are passed to the function to be processed further.
+         * \param participant Domain participant to specify in which domain the reader should operate
+         * \param topic_name The name of the topic that is supposed to be used by the reader
+         * \param is_reliable If true, the used reader is set to be reliable, else best effort is expected
+         * \param is_transient_local If true, the used reader is set to be transient local - in this case, it is also set to reliable and keep all
+         */
         AsyncReader(
             std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
-            std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>,
+            std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant,
             std::string topic_name, 
             bool is_reliable = false,
             bool is_transient_local = false

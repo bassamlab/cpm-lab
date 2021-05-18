@@ -48,6 +48,7 @@ namespace cpm
      * \class ReaderParent.hpp
      * \brief This class is used by all other reader functions to implement their own specific reader functionality.
      * The class itself is not supposed to be used as such.
+     * It does not buffer messages and solely relies on the callback function for message passing.
      */ 
 
     template<class MessageType> 
@@ -77,7 +78,11 @@ namespace cpm
         class SubListener : public eprosima::fastdds::dds::DataReaderListener
         {
         public:
-            //! Constructor, init. active_matches count
+            /**
+             * \brief Constructor, init. active_matches count & register the callback
+             * \param _registered_callback The callback that gets called whenever new messages are available.
+             * It gets passed all new message data.
+             */
             SubListener(std::function<void(std::vector<typename MessageType::type>&)> _registered_callback)
                 : active_matches(0), registered_callback(_registered_callback)
             {
@@ -204,8 +209,11 @@ namespace cpm
          */
         size_t matched_publications_size();
 
+        /**
+         * \brief Return the internally capsulated eProsima data reader in form of a shared_ptr
+         */
         std::shared_ptr<eprosima::fastdds::dds::DataReader> get_reader(){
-          return reader;
+            return reader;
         }
     };
 

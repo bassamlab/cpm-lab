@@ -31,7 +31,6 @@
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
-#include "cpm/get_topic.hpp"
 
 /**
  * \file SimpleTimer.cpp

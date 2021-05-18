@@ -25,7 +25,7 @@
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 #include "TimeSeriesAggregator.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/ParticipantSingleton.hpp"
 
 /**

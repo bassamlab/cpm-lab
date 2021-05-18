@@ -31,7 +31,7 @@
 #include "cpm/get_time_ns.hpp"
 #include "cpm/stamp_message.hpp"
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/TimerFD.hpp"
 
 /**

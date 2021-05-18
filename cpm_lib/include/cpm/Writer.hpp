@@ -34,7 +34,6 @@
 #include <memory>
 
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/get_topic.hpp"
 
 // #include <experimental/filesystem>
 
@@ -51,27 +50,39 @@ namespace cpm
     class Writer
     {
     private:
+        //! Data type of the message / used for the topic
         T topic_data_type;
-        
+        //! eProsima type support to create the right topic type
         eprosima::fastdds::dds::TypeSupport type_support;
+        //! DDS publisher to create the writer on
         std::shared_ptr<eprosima::fastdds::dds::Publisher> publisher;
+        //! Topic to communicate over
         std::shared_ptr<eprosima::fastdds::dds::Topic> topic;
+        //! Actual internal writer for sending messages over the given topic within the domain of the given participant
         std::shared_ptr<eprosima::fastdds::dds::DataWriter> writer;
+        //! DDS participant, defines the domain of messages (and also some QoS like shared memory usage)
         std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant_;
 
+        /**
+         * \brief Class used to count matched subscribers
+         */
         class PubListener : public eprosima::fastdds::dds::DataWriterListener
         {
         public:
-
+            //! Constructor
             PubListener()
                 : matched_(0)
             {
             }
 
+            //! Destructor
             ~PubListener() override
             {
             }
 
+            /**
+             * \brief Whenever a new publication gets (un)matched, the match count gets updated
+             */
             void on_publication_matched(
                     eprosima::fastdds::dds::DataWriter*,
                     const eprosima::fastdds::dds::PublicationMatchedStatus& info) override
@@ -79,11 +90,10 @@ namespace cpm
                 matched_ = info.total_count;
             }
 
+            //! Counts the amount of currently matched publications
             std::atomic_int matched_;
 
-        } listener_;
-
-        //dds::pub::DataWriter<typename T::type> dds_writer;
+        } listener_; //!< Listener to count currently matched subscripers
 
         Writer(const Writer&) = delete;
         Writer& operator=(const Writer&) = delete;
@@ -92,6 +102,9 @@ namespace cpm
 
         /**
          * \brief Returns qos for the settings s.t. the constructor becomes more readable
+         * \param is_reliable For reliable (true) or best effort (false)
+         * \param history_keep_all Keep all samples in the reader until takes gets called (true) or only the last one (false)
+         * \param is_transient_local Resend older data to newly joined participants (true) or don't (false)
          */
         eprosima::fastdds::dds::DataWriterQos get_qos(bool is_reliable, bool history_keep_all, bool is_transient_local)
         {
@@ -248,8 +261,8 @@ namespace cpm
             writer->write(&msg);
         }
 
-        /**<
-         * \brief Returns # of matched writers, needs template parameter for topic type
+        /**
+         * \brief Returns number of currently matched readers
          */
         size_t matched_subscriptions_size()
         {

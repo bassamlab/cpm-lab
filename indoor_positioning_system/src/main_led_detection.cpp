@@ -37,7 +37,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <ThreadSafeQueue.hpp>
 #include "cpm/dds/LedPointsPubSubTypes.h"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/CommandLineReader.hpp"
 #include "cpm/init.hpp"
 #include "cpm/Writer.hpp"

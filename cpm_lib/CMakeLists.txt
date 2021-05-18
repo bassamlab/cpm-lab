@@ -30,7 +30,6 @@ set(SOURCE_CPM
     
     include/cpm/CommandLineReader.hpp
     src/CommandLineReader.cpp
-    include/cpm/get_topic.hpp
 
     include/cpm/type_creation_helper.hpp
     src/type_creation_helper.cpp

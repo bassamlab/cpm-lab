@@ -29,7 +29,7 @@
 #include <list>
 #include <stdint.h>
 
-#include "cpm/get_topic.hpp"
+
 #include "cpm/Logging.hpp"
 #include "cpm/MultiVehicleReader.hpp"
 #include "cpm/ParticipantSingleton.hpp"

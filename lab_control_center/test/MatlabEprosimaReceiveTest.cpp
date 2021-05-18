@@ -32,7 +32,7 @@
 #include "cpm/init.hpp"
 #include "cpm/Logging.hpp"
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/get_time_ns.hpp"
 #include "cpm/ReaderAbstract.hpp"
 #include "cpm/dds/HLCHelloPubSubTypes.h"

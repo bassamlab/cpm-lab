@@ -59,7 +59,8 @@ namespace cpm
 
     private:
 
-      static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> instance_;
+        //! Internal instance / domain participant of the singleton
+        static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> instance_;
 
     public:
         /**

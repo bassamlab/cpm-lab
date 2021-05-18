@@ -32,7 +32,7 @@
 #include "cpm/AsyncReader.hpp"
 #include "cpm/dds/LedPointsPubSubTypes.h"
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/CommandLineReader.hpp"
 #include "cpm/Logging.hpp"
 #include "cpm/init.hpp"

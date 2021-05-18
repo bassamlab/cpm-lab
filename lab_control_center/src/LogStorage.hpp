@@ -43,7 +43,7 @@
 #include <glib.h>
 
 #include "cpm/AsyncReader.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/Timer.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 

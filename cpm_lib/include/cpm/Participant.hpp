@@ -64,6 +64,9 @@ namespace cpm
          */
         Participant(int domain_number, std::string qos_file);
         
+        /**
+         * \brief Returns a shared_ptr to the encapsulated eProsima domain participant
+         */
         std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> get_participant();
     };
 }

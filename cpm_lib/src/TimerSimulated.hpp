@@ -33,7 +33,6 @@
 #include "cpm/dds/SystemTriggerPubSubTypes.h"
 
 #include "cpm/exceptions.hpp"
-#include "cpm/get_topic.hpp"
 #include "cpm/ReaderAbstract.hpp"
 #include "cpm/Writer.hpp"
 

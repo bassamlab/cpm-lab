@@ -46,7 +46,7 @@
 #include "cpm/AsyncReader.hpp"
 #include "cpm/MultiVehicleReader.hpp"
 #include "cpm/Timer.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/VehicleIDFilteredTopic.hpp"
 #include "cpm/Writer.hpp"
 #include "cpm/ReaderAbstract.hpp"

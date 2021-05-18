@@ -27,7 +27,7 @@
 #include "VehicleManualControl.hpp"
 #include "cpm/stamp_message.hpp"
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/get_topic.hpp"
+
 
 /**
  * \file VehicleManualControl.cpp

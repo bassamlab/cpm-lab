@@ -33,7 +33,7 @@
 
 #include "cpm/AsyncReader.hpp"
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/TimerFD.hpp"
 #include "cpm/Logging.hpp"
 #include "cpm/RTTTool.hpp"

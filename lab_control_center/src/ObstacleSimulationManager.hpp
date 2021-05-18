@@ -33,7 +33,7 @@
 
 #include "cpm/Timer.hpp"
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/Writer.hpp"
 #include "cpm/dds/CommonroadObstacleListPubSubTypes.h"
 #include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"

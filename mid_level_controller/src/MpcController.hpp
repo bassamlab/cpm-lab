@@ -34,7 +34,7 @@
 #include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "cpm/dds/VehicleStateListPubSubTypes.h"
 #include "cpm/dds/VisualizationPubSubTypes.h"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/Writer.hpp"
 
 

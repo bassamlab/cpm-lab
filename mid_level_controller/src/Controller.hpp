@@ -38,7 +38,7 @@
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Reader.hpp"
 #include "cpm/AsyncReader.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "MpcController.hpp"
 #include "PathTrackingController.hpp"
 #include "TrajectoryInterpolation.hpp"

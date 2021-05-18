@@ -30,7 +30,7 @@
 #include "cpm/dds/Pose2DPubSubTypes.h"
 #include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "cpm/TimerFD.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/Writer.hpp"
 
 /**

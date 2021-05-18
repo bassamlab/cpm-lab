@@ -183,6 +183,10 @@ namespace cpm {
             static_assert(std::is_same<decltype(topic_type.header().create_stamp().nanoseconds()), uint64_t&>::value, "IDL type must have a Header.");
         }
 
+        /**
+         * \brief Returns all samples of the reader, without destroying them (you can still use get_sample afterwards)
+         * Should not be used. Is only present for test purposes.
+         */
         std::vector<typename T::type> get_all_samples(){
             std::lock_guard<std::mutex> lock(m_mutex);
 

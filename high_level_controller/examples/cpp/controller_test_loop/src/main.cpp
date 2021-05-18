@@ -37,7 +37,7 @@
 #include "cpm/AsyncReader.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Timer.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/Writer.hpp"
 #include "cpm/dds/VehicleObservationPubSubTypes.h"
 #include "test_loop_trajectory.hpp"

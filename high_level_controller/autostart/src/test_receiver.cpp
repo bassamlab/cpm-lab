@@ -38,7 +38,7 @@
 #include "cpm/dds/HLCHelloPubSubTypes.h"
 
 #include "cpm/ParticipantSingleton.hpp"
-#include "cpm/get_topic.hpp"
+
 #include "cpm/Logging.hpp"
 #include "cpm/CommandLineReader.hpp"
 #include "cpm/init.hpp"

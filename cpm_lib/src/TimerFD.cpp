@@ -34,7 +34,6 @@
 #include <sys/timerfd.h>
 #include <unistd.h>
 #include <stdint.h>
-#include "cpm/get_topic.hpp"
 #include "cpm/TimeMeasurement.hpp"
 
 /**

@@ -36,7 +36,7 @@
 #include "cpm/init.hpp"                         //->cpm_lib->include->cpm
 #include "cpm/ParticipantSingleton.hpp"         //->cpm_lib->include->cpm
 #include "cpm/Timer.hpp"                        //->cpm_lib->include->cpm
-#include "cpm/get_topic.hpp"
+
 #include "cpm/Writer.hpp"
 #include "cpm/ReaderAbstract.hpp"
 
