@@ -182,33 +182,33 @@ git submodule update --init --recursive
 ### 3.2.1 Install Foonathan memory vendor
 cd "$DIR/cpm_lib/thirdparty/"
 cd foonathan_memory_vendor
-sudo -u $real_user mkdir build
+mkdir -p ./build
 cd build
-sudo -u $real_user cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/ -DBUILD_SHARED_LIBS=ON
-sudo -u $real_user cmake --build . --target install
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/ -DBUILD_SHARED_LIBS=ON
+sudo cmake --build . --target install
 
 ### 3.2.2 Install Fast-CDR
 cd "$DIR/cpm_lib/thirdparty/"
 cd Fast-CDR
-sudo -u $real_user mkdir build
+mkdir -p ./build
 cd build
-sudo -u $real_user cmake ..
-sudo -u $real_user cmake --build . --target install
+cmake ..
+sudo cmake --build . --target install
 
 ### 3.2.3 Install Fast-DDS
 cd "$DIR/cpm_lib/thirdparty/"
 cd Fast-DDS
-sudo -u $real_user mkdir build
+mkdir -p ./build
 cd build
-sudo -u $real_user cmake ..
-sudo -u $real_user cmake --build . --target install
+cmake ..
+sudo cmake --build . --target install
 
 ## 3.3 Install FastDDS-Gen
 # Regarding Gradle: apt packages are "too new" for the currently used FastDDS-Gen, deprecated commands lead to build failure
 # Thus: Use the provided gradle script for a temporary download & install of Gradle
 cd "$DIR/cpm_lib/thirdparty/"
 cd Fast-DDS-Gen
-sudo -u $real_user ./gradlew assemble # TODO: Fails without sudo, but is this safe enough? Gradle is always downloaded and then get sudo priviliges
+sudo ./gradlew assemble # TODO: Fails without sudo, but is this safe enough? Gradle is always downloaded and then get sudo priviliges
 
 # Select a unique DDS domain! To avoid interference from other users in the same
 # network, you need to set a DDS domain ID that is different from everyone in
