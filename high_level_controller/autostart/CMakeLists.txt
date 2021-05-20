@@ -2,10 +2,22 @@ cmake_minimum_required(VERSION 3.1)
 add_definitions(-Wall -Wextra -Werror=return-type -O2)
 set (CMAKE_CXX_STANDARD 17)
 
-# FastRTPS
-option(THIRDPARTY "" ON)
-option(BUILD_TESTING "" OFF)
-add_subdirectory(../../cpm_lib/thirdparty/Fast-DDS/ build)
+# Configuration for eProsima Fast-DDS 
+# Find requirements
+# For this to work, the current (2.3.x) version of Fast-DDS (and CDR, foonathan_memory) must be installed
+# Do this by creating a build folder in the thirdparty folders for each of those projects
+# There: cmake .., then sudo cmake --build . --target install
+if(NOT fastcdr_FOUND)
+    find_package(fastcdr REQUIRED)
+endif()
+
+if(NOT foonathan_memory_FOUND)
+    find_package(foonathan_memory REQUIRED)
+endif()
+
+if(NOT fastrtps_FOUND)
+    find_package(fastrtps REQUIRED)
+endif()
 
 # CPM lib
 include_directories(SYSTEM ../../cpm_lib/include/)
