@@ -87,7 +87,6 @@ if(NOT fastrtps_FOUND)
 endif()
 
 #link_libraries(dl nsl m pthread rt)
-#link_libraries(nddscpp2 nddsc nddscore)
 include_directories(dds_idl_cpp)
 
 if(BUILD_ARM)
