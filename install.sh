@@ -148,6 +148,7 @@ sudo -u ${real_user} mkdir tmp
 eval "${PM}" "${UPDATE}"
 eval "${PM}" "${BUILD_ESSENTIALS}"
 eval "${PM}" "${BUILD_TOOLS}"
+eval "${PM}" "${OPENJDK}"
 if [ $SIMULATION == 0 ]; then
     eval "${PM}" "${DEP_NO_SIM}"
 fi
@@ -232,7 +233,6 @@ source /etc/profile.d/rti_connext_dds.sh
 if [ $SIMULATION == 0 ]
 then
     ## 4.1 OpenCV 4.0.0
-    eval "${PM}" "${OPENJDK}"
     cd /tmp
     sudo -u $real_user git clone https://github.com/opencv/opencv.git
     cd ./opencv
