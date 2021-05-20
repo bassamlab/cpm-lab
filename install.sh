@@ -53,14 +53,14 @@ if [[ ! -z $(which yum) ]]; then
     BUILD_ESSENTIALS="install gcc g++ glibc-devel libnsl2-devel make -y"
     # BUILD_ESSENTIALS="groupinstall \"Development Tools\" \"Development Libraries\" -y && dnf install libnsl2-devel g++ -y"
     # TODO Update if support for other OS is desired
-    BUILD_TOOLS="install ip expect apache2 git tmux openssh-client openssh-server cmake gtkmm30-devel sshpass ntp -y"
+    BUILD_TOOLS="install ip expect apache2 git asio-devel tinyxml2-devel openssl-devel tmux openssh-client openssh-server cmake gtkmm30-devel sshpass ntp -y"
     OPENJDK="install java-11-openjdk-devel -y"
     PYLON_URL="https://www.baslerweb.com/fp-1523350799/media/downloads/software/pylon_software/pylon-5.0.12.11829-x86_64.tar.gz"
 elif [[ ! -z $(which apt) ]]; then
     PM="apt"
     UPDATE="update && apt upgrade -y"
     BUILD_ESSENTIALS="install build-essential -y"
-    BUILD_TOOLS="install iproute2 git tmux cmake libgtkmm-3.0-dev libxml++2.6-dev ntp jstest-gtk openssh-client openssh-server sshpass -y"
+    BUILD_TOOLS="install iproute2 git libasio-dev libtinyxml2-dev libssl-dev tmux cmake libgtkmm-3.0-dev libxml++2.6-dev ntp jstest-gtk openssh-client openssh-server sshpass -y"
     DEP_NO_SIM="install apache2 libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-doc gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio -y"
     OPENJDK="install openjdk-11-jdk -y"
     PYLON_URL="https://www.baslerweb.com/fp-1523350893/media/downloads/software/pylon_software/pylon_5.0.12.11829-deb0_amd64.deb"
@@ -173,36 +173,41 @@ if [[ ! -z $(which yum) ]] || [[ ! -z $(which dnf) ]]; then
 fi
 
 
-### 3. RTI DDS #################################################################
-# RTI DDS is used for real-time communication between programs and devices. It
-# implements a publish-subscribe pattern and serialization/deserialization for
-# the messages.
-# https://cpm.embedded.rwth-aachen.de/doc/display/CLD/RTI+DDS
+### 3. Eprosima #################################################################
+## 3.1 Init submodules
+git submodule update --init --recursive
 
-## 3.1 Downloads
-cd $DIR/tmp
-sudo -u $real_user wget https://s3.amazonaws.com/RTI/Bundles/6.0.0/Evaluation/rti_connext_dds_secure-6.0.0-eval-x64Linux4gcc7.3.0.tar.gz
-sudo -u $real_user tar xvzf ./rti_connext_dds_secure-6.0.0-eval-x64Linux4gcc7.3.0.tar.gz
-if [ $SIMULATION == 0 ]; then
-    sudo -u $real_user wget https://s3.amazonaws.com/RTI/Community/ports/toolchains/raspbian-toolchain-gcc-4.7.2-linux64.tar.gz
-    sudo -u $real_user tar xvzf ./raspbian-toolchain-gcc-4.7.2-linux64.tar.gz
-    cp -R raspbian-toolchain-gcc-4.7.2-linux64 /opt
-    sudo -u $real_user wget https://community.rti.com/static/downloads/connext-dds/6.0.0/rti_connext_dds-6.0.0-core-target-armv6vfphLinux3.xgcc4.7.2.rtipkg
-fi
+## 3.2 Install FastDDS (system-wide, thus flags changed as specified in the note on the eProsima website)
+### 3.2.1 Install Foonathan memory vendor
+cd "$DIR/cpm_lib/thirdparty/"
+cd foonathan_memory_vendor
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/ -DBUILD_SHARED_LIBS=ON
+sudo cmake --build . --target install
 
-## 3.2 Installation
-mkdir /opt/rti_connext_dds-6.0.0
-if [ $CI == 1 ]; then
-    ${RTI_INSTALLER_AUTOMATION_PATH}
-else
-    echo "Unattended mode is not supported in the evaluation bundle thus you have to manually click through (click Forward, accecpt the license agreement and keep clicking Forward until you can click Finsih at the very last page)."
-    ./rti_connext_dds-6.0.0-eval-x64Linux4gcc7.3.0.run --prefix /opt/rti_connext_dds-6.0.0
-fi
-cp "$LICENSE_PATH" /opt/rti_connext_dds-6.0.0/rti_license.dat
+### 3.2.2 Install Fast-CDR
+cd "$DIR/cpm_lib/thirdparty/"
+cd Fast-CDR
+mkdir build
+cd build
+cmake ..
+sudo cmake --build . --target install
 
-## 3.3 Environment Setup
-echo "/opt/rti_connext_dds-6.0.0/lib/x64Linux4gcc7.3.0" > /etc/ld.so.conf.d/rti_connext_dds.conf
-ldconfig
+### 3.2.3 Install Fast-DDS
+cd "$DIR/cpm_lib/thirdparty/"
+cd Fast-DDS
+mkdir build
+cd build
+cmake ..
+sudo cmake --build . --target install
+
+## 3.3 Install FastDDS-Gen
+# Regarding Gradle: apt packages are "too new" for the currently used FastDDS-Gen, deprecated commands lead to build failure
+# Thus: Use the provided gradle script for a temporary download & install of Gradle
+cd "$DIR/cpm_lib/thirdparty/"
+cd Fast-DDS-Gen
+sudo ./gradlew assemble # TODO: Fails without sudo, but is this safe enough? Gradle is always downloaded and then get sudo priviliges
 
 # Select a unique DDS domain! To avoid interference from other users in the same
 # network, you need to set a DDS domain ID that is different from everyone in
@@ -210,20 +215,14 @@ ldconfig
 # DDS_DOMAIN.
 
 echo "export DDS_DOMAIN=""${DOMAIN_ID}" > /etc/profile.d/rti_connext_dds.sh
-echo "export PATH=\$PATH:/opt/rti_connext_dds-6.0.0/bin" >> /etc/profile.d/rti_connext_dds.sh
-echo "export PATH=\$PATH:/opt/raspbian-toolchain-gcc-4.7.2-linux64/bin" >> /etc/profile.d/rti_connext_dds.sh
-echo "export NDDSHOME=/opt/rti_connext_dds-6.0.0" >> /etc/profile.d/rti_connext_dds.sh
 echo "export RASPBIAN_TOOLCHAIN=/opt/raspbian-toolchain-gcc-4.7.2-linux64" >> /etc/profile.d/rti_connext_dds.sh
-echo "export RTI_LICENSE_FILE=/opt/rti_connext_dds-6.0.0/rti_license.dat" >> /etc/profile.d/rti_connext_dds.sh
 echo "export RPIPWD=cpmcpmcpm" >> /etc/profile.d/rti_connext_dds.sh
 # Reboot or source to apply the changes made to the environment variables.
 source /etc/profile.d/rti_connext_dds.sh
 
-## 3.4 Install RTI ARM libraries
+## 3.4 Install eProsima ARM libraries
 # only needed in real lab mode
-if [ $SIMULATION == 0 ]; then
-    yes | /opt/rti_connext_dds-6.0.0/bin/rtipkginstall rti_connext_dds-6.0.0-core-target-armv6vfphLinux3.xgcc4.7.2.rtipkg
-fi
+################## TODO ???????????????????????????????????????? ############################
 
 ### 4. Indoor Positioning System (Setup) #######################################
 # The Indoor Positioning System depends on the camera software Basler Pylon and
