@@ -55,7 +55,7 @@ namespace cpm
          * \param use_shared_memory If true, the participant can only communicate on the local machine. 
          * This may be interesting in case you do not want its messages to "pollute" the network, and is also faster.
          */
-        Participant(int domain_number, bool use_shared_memory);
+        Participant(int domain_number, bool use_shared_memory = false);
 
         /**
          * \brief Constructor for a participant 
