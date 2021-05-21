@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Creating receiver..." << std::endl;
 
-    std::shared_ptr<cpm::Participant> particpant_ptr = std::make_shared<cpm::Participant>(1);
+    std::shared_ptr<cpm::Participant> particpant_ptr = std::make_shared<cpm::Participant>(0);
     cpm::ReaderAbstract<VisualizationPubSubType> hello_receiver(particpant_ptr->get_participant(), "visualization");
     
     while(! hello_receiver.wait_for_unread_message(100))
