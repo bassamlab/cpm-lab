@@ -46,6 +46,14 @@ function main(vehicle_id)
     disp('Calling write');
     mex_test('write');
 
+    disp('Calling log multiple times');
+    pause(0.1);
+    mex_test('log');
+    pause(0.1);
+    mex_test('log');
+    pause(0.1);
+    mex_test('log');
+
     disp('Calling delete');
     mex_test('delete');
 end

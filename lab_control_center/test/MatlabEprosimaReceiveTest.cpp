@@ -35,7 +35,8 @@
 
 #include "cpm/get_time_ns.hpp"
 #include "cpm/ReaderAbstract.hpp"
-#include "cpm/dds/HLCHelloPubSubTypes.h"
+#include "cpm/Writer.hpp"
+#include "cpm/dds/VisualizationPubSubTypes.h"
 
 /**
  * \file VisualizationTest.cpp
@@ -49,16 +50,16 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Creating receiver..." << std::endl;
 
-    cpm::ReaderAbstract<HLCHelloPubSubType> hello_receiver("hlc_hello", false, true);
-    
-    std::cout << "Waiting for a message" << std::flush;
+    std::shared_ptr<cpm::Participant> particpant_ptr = std::make_shared<cpm::Participant>(1);
+    cpm::ReaderAbstract<VisualizationPubSubType> hello_receiver(particpant_ptr->get_participant(), "visualization");
     
     while(! hello_receiver.wait_for_unread_message(100))
     {
         std::cout << "." << std::flush;
     }
+    std::cout << std::endl;
 
-    std::cout << "Received message ID was: " << hello_receiver.take().begin()->source_id() << std::endl;
+    std::cout << "Received messages: " << hello_receiver.take().size() << std::endl;
 
     std::cout << "Shutting down..." << std::endl;
 
