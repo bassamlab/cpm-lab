@@ -30,16 +30,19 @@ function main(vehicle_id)
     script_directoy = fileparts([mfilename('fullpath') '.m']);
 
     % Add all libraries to the path
-    setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), '/home/leon/dev/software/cpm_lib/build/', '/usr/local/lib/']);
+    setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), ':/home/leon/dev/software/cpm_lib/build/', ':/usr/local/lib/']);
+    setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), ':/home/leon/dev/software/cpm_lib/build/', ':/usr/local/lib/']);
+    disp(getenv('LD_LIBRARY_PATH'));
 
     disp('Calling init.');
-    mex_test("create");
+    mex_test('create');
 
     disp('Waiting...');
+    pause(1);
 
     disp('Calling write');
-    mex_test("write");
+    mex_test('write');
 
     disp('Calling delete');
-    mex_test("delete");
+    mex_test('delete');
 end

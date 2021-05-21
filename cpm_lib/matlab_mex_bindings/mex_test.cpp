@@ -20,13 +20,19 @@
  * \param prhs Input, command
  */
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+    mexPrintf("Starting mex test\n");
+
     //Statically hold the cpm DataWriter, use mexLock to keep this (unlock to delete)
     static std::shared_ptr<cpm::Writer<VisualizationPubSubType>> writer_ptr = std::make_shared<cpm::Writer<VisualizationPubSubType>>("visualization");
+
+    mexPrintf("Object constructed\n");
     
     //Get input command
     auto input_buf = mxArrayToString(prhs[0]);
     std::string string_input(input_buf);
     mxFree(input_buf);
+
+    mexPrintf("Input read\n");
 
     if (string_input.compare("create"))
     {
@@ -41,4 +47,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         Visualization msg;
         writer_ptr->write(msg);
     }
+
+    mexPrintf("Finished\n");
 }
