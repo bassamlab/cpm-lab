@@ -51,4 +51,6 @@ function main(vehicle_id)
 
     % Testing the ready signal
     ready_signal_writer('hlc_1');
+
+    % TODO: clear mex 
 end
