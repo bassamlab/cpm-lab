@@ -46,6 +46,8 @@ namespace cpm
 
         if (use_shared_memory)
         {
+            std::cout << "Creating local communication participant..." << std::endl;
+
             //Create shared memory descriptor
             auto shm_transport = std::make_shared<eprosima::fastdds::rtps::SharedMemTransportDescriptor>();
             
@@ -53,6 +55,7 @@ namespace cpm
             qos.transport().use_builtin_transports = false;
             qos.transport().user_transports.push_back(shm_transport);
         }
+        else
         {
             //Else use default QoS
             qos = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_default_participant_qos();
