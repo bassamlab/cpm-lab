@@ -37,6 +37,7 @@
 #include "cpm/ReaderAbstract.hpp"
 #include "cpm/Writer.hpp"
 #include "cpm/dds/VisualizationPubSubTypes.h"
+#include "cpm/dds/ReadyStatusPubSubTypes.h"
 
 /**
  * \file VisualizationTest.cpp
@@ -50,16 +51,19 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Creating receiver..." << std::endl;
 
-    std::shared_ptr<cpm::Participant> particpant_ptr = std::make_shared<cpm::Participant>(0);
-    cpm::ReaderAbstract<VisualizationPubSubType> hello_receiver(particpant_ptr->get_participant(), "visualization");
+    // std::shared_ptr<cpm::Participant> particpant_ptr = std::make_shared<cpm::Participant>(0);
+    // cpm::ReaderAbstract<VisualizationPubSubType> reader(particpant_ptr->get_participant(), "visualization");
+
+    std::shared_ptr<cpm::Participant> particpant_ptr = std::make_shared<cpm::Participant>(1, true);
+    cpm::ReaderAbstract<ReadyStatusPubSubType> reader(particpant_ptr->get_participant(), "readyStatus", true, true, true);
     
-    while(! hello_receiver.wait_for_unread_message(100))
+    while(! reader.wait_for_unread_message(100))
     {
         std::cout << "." << std::flush;
     }
     std::cout << std::endl;
 
-    std::cout << "Received messages: " << hello_receiver.take().size() << std::endl;
+    std::cout << "Received messages: " << reader.take().size() << std::endl;
 
     std::cout << "Shutting down..." << std::endl;
 

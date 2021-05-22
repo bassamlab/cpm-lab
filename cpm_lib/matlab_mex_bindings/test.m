@@ -37,15 +37,18 @@ function main(vehicle_id)
     %%WARNING: THIS DOES NOT WORK - INSTEAD, CALL THIS BEFORE STARTING MATLAB (replace with your own file locations)
     %export LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/home/leon/dev/software/cpm_lib/build/libcpm.so:/usr/local/lib/libfastcdr.so::/usr/local/lib/libfastrtps.so"
 
-    disp('Calling init.');
-    mex_test_eprosima('create');
+    % disp('Calling init.');
+    % mex_test_eprosima('create');
 
-    disp('Waiting...');
-    pause(1);
+    % disp('Waiting...');
+    % pause(1);
 
-    disp('Calling write');
-    mex_test_eprosima('write');
+    % disp('Calling write');
+    % mex_test_eprosima('write');
 
-    disp('Calling delete');
-    mex_test_eprosima('delete');
+    % disp('Calling delete');
+    % mex_test_eprosima('delete');
+
+    % Testing the ready signal
+    ready_signal_writer('hlc_1');
 end
