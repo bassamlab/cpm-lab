@@ -32,7 +32,6 @@
 
 #include "cpm/ReaderParent.hpp"
 
-using namespace std::chrono_literals;
 using namespace std::placeholders;
 
 namespace cpm
@@ -154,7 +153,7 @@ namespace cpm
         {
             std::unique_lock<std::mutex> lock(m_mutex);
 
-            cv.wait_for(lock, timeout_ms * 1ms, [this] 
+            cv.wait_for(lock, std::chrono::milliseconds(timeout_ms), [this] 
               {
                   //In case of spurious wake up, check if it should still be waiting
                   return messages_buffer.size() > 0;
