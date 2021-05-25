@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     }
     std::cout << std::endl;
 
-    std::cout << "Received messages: " << reader.take().size() << std::endl;
+    std::cout << "Received messages: " << reader.take().begin()->source_id() << std::endl;
 
     std::cout << "Shutting down..." << std::endl;
 

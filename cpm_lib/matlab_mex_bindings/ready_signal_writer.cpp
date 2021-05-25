@@ -160,14 +160,9 @@ public:
         auto input_id = get_id_from_input(inputs);
 
         //Write message 5 times
-        for (int i = 0; i < 5; ++i)
-        {
-            ReadyStatus status;
-            status.source_id(input_id);
-            writer_->write(&status);
-
-            usleep(1000000);
-        }
+        ReadyStatus status;
+        status.source_id(input_id);
+        writer_->write(&status);
 
         //Return true
         //outputs[0] = factory.createScalar<bool>(true);

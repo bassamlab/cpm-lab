@@ -52,5 +52,7 @@ function main(vehicle_id)
     % Testing the ready signal
     ready_signal_writer('hlc_1');
 
-    % TODO: clear mex 
+    % Clear mex files etc. from system memory
+    % Else: The transient local ready signal etc. are still being sent
+    clear ready_signal_writer
 end
