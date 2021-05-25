@@ -49,10 +49,12 @@ function main(vehicle_id)
     % disp('Calling delete');
     % mex_test_eprosima('delete');
 
+    ready_status = ReadyStatus('hlc_1', 2021);
+
     % Testing the ready signal
-    ready_signal_writer('hlc_1');
+    ready_status_writer(ready_status);
 
     % Clear mex files etc. from system memory
     % Else: The transient local ready signal etc. are still being sent
-    clear ready_signal_writer
+    clear ready_status_writer
 end

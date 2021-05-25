@@ -25,7 +25,7 @@
 #include <unistd.h>
 
 //Kompilieren lässt sich die Datei zurzeit wie folgt: (Pfade bitte entsprechend anpassen)
-// /usr/local/MATLAB/R2021a/bin/mex ready_signal_writer.cpp -L/home/leon/dev/software/cpm_lib/build/ -lcpm -I/home/leon/dev/software/cpm_lib/include -L/usr/local/lib -lfastcdr -lfastrtps
+// /usr/local/MATLAB/R2021a/bin/mex ready_status_writer.cpp -L/home/leon/dev/software/cpm_lib/build/ -lcpm -I/home/leon/dev/software/cpm_lib/include -L/usr/local/lib -lfastcdr -lfastrtps
 
 class MexFunction : public matlab::mex::Function {
 private:
@@ -156,12 +156,8 @@ public:
         //Check if inputs match the expected input
         checkArguments(outputs, inputs);
 
-        //Read input
-        auto input_id = get_id_from_input(inputs);
-
-        //Write message 5 times
-        ReadyStatus status;
-        status.source_id(input_id);
+        //Write ready status msg
+        auto status = get_ready_status_from_input(inputs);
         writer_->write(&status);
 
         //Return true
@@ -177,44 +173,42 @@ public:
     void checkArguments(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
         matlab::data::ArrayFactory factory;
 
-        // Test output
-        // matlabPtr->feval(u"fprintf", 0, 
-        //             std::vector<matlab::data::Array>(
-        //                                  {factory.createScalar("Checking arguments %s\n"),
-        //                                   factory.createScalar("for real")}));
-
         if (inputs.size() != 1)
         {
             matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Input must be a string (ID)!") }));
+                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Input must be an object of type ReadyStatus!") }));
         }
 
-        if (inputs[0].getType() != matlab::data::ArrayType::MATLAB_STRING && 
-            inputs[0].getType() != matlab::data::ArrayType::CHAR)
-        {
+        //Test for correct class
+        std::vector<matlab::data::Array> args{ inputs[0], factory.createCharArray("ReadyStatus") };
+        matlab::data::TypedArray<bool> result = matlabPtr->feval(u"isa", args);
+        if (result[0] != true) {
             matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input type. Input must be a string (ID)!") }));
-        }
+               std::vector<matlab::data::Array>({ factory.createScalar("Input must be an object of type ReadyStatus!") }));
+        } 
     }
 
     /**
      * \brief Reads the ID to send within the ready signal from the input list
      * \param inputs Inputs from the Matlab script that called this object
      */
-    std::string get_id_from_input(matlab::mex::ArgumentList inputs)
+    ReadyStatus get_ready_status_from_input(matlab::mex::ArgumentList inputs)
     {
-        std::string out; 
+        ReadyStatus ready_status;
 
-        // Determine if input is MATLAB char or string
-        if (inputs[0].getType() == matlab::data::ArrayType::CHAR) {
-            matlab::data::CharArray in_array(inputs[0]);
-            out = in_array.toAscii();
-        }
-        else if (inputs[0].getType() == matlab::data::ArrayType::MATLAB_STRING) {
-            matlab::data::StringArray in_array(inputs[0]);
-            out = (std::string)in_array[0];
-        }
+        //Get "object" from input so that we can access it in C++
+        matlab::data::Array object = std::move(inputs[0]);
 
-        return out;
+        //Get source_id
+        matlab::data::StringArray source_id = matlabPtr->getProperty(object, u"source_id");
+        ready_status.source_id(source_id[0]);
+
+        //Get next_start_stamp
+        matlab::data::TypedArray<uint64_t> next_start_stamp = matlabPtr->getProperty(object, u"next_start_stamp");
+        TimeStamp stamp;
+        stamp.nanoseconds(next_start_stamp[0]);
+        ready_status.next_start_stamp(stamp);
+
+        return ready_status;
     }
 };

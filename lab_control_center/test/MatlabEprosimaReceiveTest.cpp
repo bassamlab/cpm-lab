@@ -63,7 +63,14 @@ int main(int argc, char *argv[]) {
     }
     std::cout << std::endl;
 
-    std::cout << "Received messages: " << reader.take().begin()->source_id() << std::endl;
+    auto result = reader.take();
+
+    std::cout 
+        << "Received messages: ID is " 
+        << result.begin()->source_id() 
+        << ", and the inital time stamp is "
+        << result.begin()->next_start_stamp().nanoseconds()
+        << std::endl;
 
     std::cout << "Shutting down..." << std::endl;
 
