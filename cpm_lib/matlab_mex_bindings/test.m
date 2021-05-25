@@ -54,7 +54,19 @@ function main(vehicle_id)
     % Testing the ready signal
     ready_status_writer(ready_status);
 
+    % What happens if no system trigger was yet sent?
+    system_trigger = SystemTrigger;
+    system_trigger = system_trigger_reader(system_trigger);
+    disp(system_trigger);
+    % -> As you can see: I added a value called is_valid to the system trigger, which is false if no msg was received
+
+    % Now wait for a msg
+    system_trigger = SystemTrigger;
+    system_trigger = system_trigger_reader(system_trigger, true);
+    disp(system_trigger);
+
     % Clear mex files etc. from system memory
     % Else: The transient local ready signal etc. are still being sent
     clear ready_status_writer
+    clear system_trigger_reader
 end

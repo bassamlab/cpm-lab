@@ -140,7 +140,7 @@ public:
     /**
      * \brief Actual function that gets called when ready_signal_writer gets called within Matlab
      * \param outputs Outputs sent to the calling Matlab script after execution. (Currently empty)
-     * \param inputs Inputs given by the calling Matlab script
+     * \param inputs Inputs given by the calling Matlab script. Here: The ReadyStatus Matlab Object to send.
      */
     void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {   
         //Required for data creation
