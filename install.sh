@@ -75,7 +75,6 @@ fi
 ### 0.4 Parse Command Line Arguments
 CI=0
 DOMAIN_ID="NONE"
-LICENSE_PATH=0
 SIMULATION=0
 while [[ $# -gt 0 ]] && [[ "$1" == "--"* ]] ;
 do
@@ -87,8 +86,6 @@ do
            CI="1";;
         "--domain_id="* )
            DOMAIN_ID="${opt#*=}";;
-        "--license_path="* )
-           LICENSE_PATH="${opt#*=}";;
         "--simulation" )
            SIMULATION="1";;     #set to some default value
         "--rti_installer_automation_path="* )
@@ -96,22 +93,6 @@ do
         *) echo >&2 "Invalid option: $@"; exit 1;;
    esac
 done
-
-if [ "$LICENSE_PATH" == 0 ]; then
-    read -p 'Ask your supervisor for a copy of the RTI license or get into contact with RTI and enter its absolute path (e.g. /home/max/rti_license.dat): ' LICENSE_PATH
-    #check, if a license path was entered
-    while [ -z "$LICENSE_PATH" ]; do
-          echo "No license path was entered, please try again"
-          read LICENSE_PATH
-    done
-
-    if [ -f "$LICENSE_PATH" ]; then
-        echo "found $LICENSE_PATH"
-    else
-        echo "License file does not exist: $LICENSE_PATH"
-        exit 1
-    fi
-fi
 
 if [ "$DOMAIN_ID" == "NONE" ]; then
     read -p 'Please provide a integer Domain ID: ' DOMAIN_ID
@@ -129,7 +110,6 @@ fi
 
 echo "CI =" $CI
 echo "Domain ID =" $DOMAIN_ID
-echo "License Path =" $LICENSE_PATH
 echo "Simulation =" $SIMULATION
 
 
