@@ -2,11 +2,6 @@
 classdef SystemTrigger
     properties
         next_start uint64 = 0
-        is_valid logical = true % IMPORTANT: The reader might not receive anything, in this case is_valid is set to false
-    end
-    methods
-        function obj = SystemTrigger(next_start_)
-            obj.next_start = next_start_;
-        end
+        is_valid logical = false % IMPORTANT: The reader might not receive anything, in this case is_valid is set to false
     end
 end

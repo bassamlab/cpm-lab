@@ -90,17 +90,17 @@ public:
 
         // Set Writer QoS
         auto qos = eprosima::fastdds::dds::DataReaderQos();
-        // auto policy_rel = eprosima::fastdds::dds::ReliabilityQosPolicy();
-        // policy_rel.kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
-        // qos.reliability(policy_rel);
+        auto policy_rel = eprosima::fastdds::dds::ReliabilityQosPolicy();
+        policy_rel.kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
+        qos.reliability(policy_rel);
 
         auto policy_his = eprosima::fastdds::dds::HistoryQosPolicy();
-        policy_his.kind = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS; //We only care about the newest msg
+        policy_his.kind = eprosima::fastdds::dds::KEEP_ALL_HISTORY_QOS; //We only care about the newest msg
         qos.history(policy_his);
 
-        // auto policy_dur = eprosima::fastdds::dds::DurabilityQosPolicy();
-        // policy_dur.kind = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
-        // qos.durability(policy_dur);
+        auto policy_dur = eprosima::fastdds::dds::DurabilityQosPolicy();
+        policy_dur.kind = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
+        qos.durability(policy_dur);
 
         // Create the DataWriter
         reader_ = subscriber_->create_datareader(topic_, qos, nullptr);
@@ -137,9 +137,12 @@ public:
     }
 
     /**
-     * \brief Actual function that gets called when ready_signal_writer gets called within Matlab
-     * \param outputs Outputs sent to the calling Matlab script after execution. (Currently empty)
-     * \param inputs Inputs given by the calling Matlab script. Here: The ReadyStatus Matlab Object to send.
+     * \brief Actual function that gets called when ready_signal_writer gets called within Matlab.
+     * Params: Just a VehicleStateList object.
+     * Ouput: The same object w. is_valid = false if nothing was received, else with the received data.
+     * You have to wait for messages in Matlab. If desired, this could also be implemented here, similar to system_trigger_reader.
+     * \param outputs Outputs sent to the calling Matlab script after execution. Here: The last received VehicleStateList, with is_valid = false if no msg was received.
+     * \param inputs Inputs given by the calling Matlab script. Here: The VehicleStateList Matlab Object to receive.
      */
     void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {   
         //Required for data creation
@@ -155,20 +158,122 @@ public:
         //Check if inputs match the expected input
         checkArguments(outputs, inputs);
 
+        //Create output object from input 
+        matlab::data::Array state_list_object = std::move(inputs[0]);
+        //Default: No data was received, output is invalid
+        matlabPtr->setProperty(state_list_object, u"is_valid", factory.createScalar<bool>(false));
+
+        //Debugging: Print msg type
+        // matlabPtr->feval(u"disp", 0, 
+        //             std::vector<matlab::data::Array>({ factory.createScalar(type_->getName()) }));
+
         //Read received msgs, wait up to 5 seconds if none were received yet
         eprosima::fastdds::dds::SampleInfo info;
         VehicleStateList vehicle_state_list;
-        if (reader_->take_next_sample(&vehicle_state_list, &info) == ReturnCode_t::RETCODE_OK)
+        std::vector<VehicleStateList> msgs;
+        
+        while(msgs.size() < 1)
         {
-            if (info.valid_data)
+            usleep(10000);
+            
+            auto retcode = reader_->take_next_sample(&vehicle_state_list, &info);
+            print_retcode(retcode); //For debugging
+
+            if (retcode == ReturnCode_t::RETCODE_OK)
             {
-                //TODO
+                matlabPtr->feval(u"disp", 0, 
+                        std::vector<matlab::data::Array>({ factory.createScalar("Received something") }));
+                if (info.valid_data)
+                {
+                    msgs.push_back(vehicle_state_list);
+
+                    matlabPtr->feval(u"disp", 0, 
+                        std::vector<matlab::data::Array>({ factory.createScalar("Working on it") }));
+                    //Now, vehicle_state_list contains all relevant data
+                    //First, start with the data that is easy to copy
+
+                    //We received something, so set is_valid to true
+                    matlabPtr->setProperty(state_list_object, u"is_valid", factory.createScalar<bool>(true));
+
+                    //Set everything that is not a list
+                    matlabPtr->setProperty(state_list_object, u"t_now", factory.createScalar<uint64_t>(vehicle_state_list.t_now()));
+                    matlabPtr->setProperty(state_list_object, u"period_ms", factory.createScalar<uint64_t>(vehicle_state_list.period_ms()));
+
+                    //Set lists
+                    write_active_vehicle_ids(state_list_object, vehicle_state_list);
+                    write_vehicle_state_list(state_list_object, vehicle_state_list);
+                    write_vehicle_observation_list(state_list_object, vehicle_state_list);
+                }
             }
         }
 
-        //Return true
-        //outputs[0] = factory.createScalar<bool>(true);
+        //Return object as output
+        outputs[0] = state_list_object;
         return;
+    }
+
+    /**
+     * \brief For debugging: Print the eprosima return code for received messages
+     */
+    void print_retcode(ReturnCode_t retcode) {
+        matlab::data::ArrayFactory factory;
+
+        if (retcode == ReturnCode_t::RETCODE_OK) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE OK") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_ERROR) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE ERROR") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_UNSUPPORTED) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE UNSUPPORTED") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_BAD_PARAMETER) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE BAD PARAMETER") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_PRECONDITION_NOT_MET) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE PRECONDITION NOT MET") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_OUT_OF_RESOURCES) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE OUT OF RESOURCES") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_NOT_ENABLED) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE NOT ENABLED") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_IMMUTABLE_POLICY) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE IMMUTABLE POLICY") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_INCONSISTENT_POLICY) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE INCONSISTENT POLICY") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_ALREADY_DELETED) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE ALREADY DELETED") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_TIMEOUT ) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE TIMEOUT") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_NO_DATA ) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE NO DATA") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_ILLEGAL_OPERATION ) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE ILLEGAL OPERATION") }));
+        }
+        if (retcode == ReturnCode_t::RETCODE_NOT_ALLOWED_BY_SECURITY) {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("RETCODE NOT ALLOWED BY SECURITY") }));
+        }
     }
 
     /**
@@ -195,26 +300,40 @@ public:
     }
 
     /**
-     * \brief Reads the ID to send within the ready signal from the input list
-     * \param inputs Inputs from the Matlab script that called this object
+     * \brief Writes the received active_vehicle_ids data to the matlab object
+     * \param state_list_object The matlab object
+     * \param vehicle_state_list The DDS object
      */
-    // ReadyStatus get_ready_status_from_input(matlab::mex::ArgumentList inputs)
-    // {
-    //     ReadyStatus ready_status;
+    void write_active_vehicle_ids(matlab::data::Array &state_list_object, VehicleStateList &vehicle_state_list)
+    {
+        matlab::data::ArrayFactory factory;
 
-    //     //Get "object" from input so that we can access it in C++
-    //     matlab::data::Array object = std::move(inputs[0]);
+        matlab::data::TypedArray<int32_t> active_ids = factory.createArray<int32_t>({1, vehicle_state_list.active_vehicle_ids().size()});
+        for (auto i = 0; i < vehicle_state_list.active_vehicle_ids().size(); ++i)
+        {
+            active_ids[i] = vehicle_state_list.active_vehicle_ids().at(i);
+        }
 
-    //     //Get source_id
-    //     matlab::data::StringArray source_id = matlabPtr->getProperty(object, u"source_id");
-    //     ready_status.source_id(source_id[0]);
+        matlabPtr->setProperty(state_list_object, u"active_vehicle_ids", active_ids);
+    }
 
-    //     //Get next_start_stamp
-    //     matlab::data::TypedArray<uint64_t> next_start_stamp = matlabPtr->getProperty(object, u"next_start_stamp");
-    //     TimeStamp stamp;
-    //     stamp.nanoseconds(next_start_stamp[0]);
-    //     ready_status.next_start_stamp(stamp);
+    /**
+     * \brief Writes the received state_list data to the matlab object
+     * \param state_list_object The matlab object
+     * \param vehicle_state_list The DDS object
+     */
+    void write_vehicle_state_list(matlab::data::Array &state_list_object, VehicleStateList &vehicle_state_list)
+    {
+        matlab::data::ArrayFactory factory;
+    }
 
-    //     return ready_status;
-    // }
+    /**
+     * \brief Writes the received vehicle_observation_list data to the matlab object
+     * \param state_list_object The matlab object
+     * \param vehicle_state_list The DDS object
+     */
+    void write_vehicle_observation_list(matlab::data::Array &state_list_object, VehicleStateList &vehicle_state_list)
+    {
+        matlab::data::ArrayFactory factory;
+    }
 };
