@@ -18,6 +18,9 @@
 #include <fastdds/dds/subscriber/DataReader.hpp>
 #include <fastdds/rtps/transport/shared_mem/SharedMemTransportDescriptor.h>
 
+#include "cpm/ReaderAbstract.hpp"
+#include "cpm/Participant.hpp"
+
 //Standard libraries
 #include <memory>
 #include <string>
@@ -31,109 +34,20 @@ private:
     //! Used for translation, printing etc.
     std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
 
-    eprosima::fastdds::dds::DomainParticipant* participant_ = nullptr;
-    eprosima::fastdds::dds::Subscriber* subscriber_ = nullptr;
-    eprosima::fastdds::dds::Topic* topic_ = nullptr;
-    eprosima::fastdds::dds::DataReader* reader_ = nullptr;
-    eprosima::fastdds::dds::TypeSupport type_{new VehicleStateListPubSubType()};
+    cpm::Participant participant;
+    cpm::ReaderAbstract<VehicleStateListPubSubType> reader;
 public:
     /**
      * \brief Constructor, sets up eprosima objects and matlabPtr
      */
-    MexFunction()
+    MexFunction() :
+        participant(1, true),
+        reader(participant.get_participant(), "vehicleStateList", true, true, true)
     {
         matlabPtr = getEngine();
 
-        matlab::data::ArrayFactory factory;
-
-        //Set participant QoS (shared memory / local communication only)
-        eprosima::fastdds::dds::DomainParticipantQos domain_qos;
-        auto shm_transport = std::make_shared<eprosima::fastdds::rtps::SharedMemTransportDescriptor>();
-        domain_qos.transport().use_builtin_transports = false;
-        domain_qos.transport().user_transports.push_back(shm_transport);
-
-        //Create eProsima writer
-        participant_ = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-            1, 
-            domain_qos
-        );
-
-        if (participant_ == nullptr)
-        {
-            matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Participant creation failed") }));
-            return;
-        }
-
-        // Register the Type
-        type_.register_type(participant_);
-
-        // Create the publications Topic
-        topic_ = participant_->create_topic("vehicleStateList", type_->getName(), eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
-
-        if (topic_ == nullptr)
-        {
-            matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Topic creation failed") }));
-            return;
-        }
-
-        // Create the Publisher
-        subscriber_ = participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT, nullptr);
-
-        if (subscriber_ == nullptr)
-        {
-            matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Subscriber creation failed") }));
-            return;
-        }
-
-        // Set Writer QoS
-        auto qos = eprosima::fastdds::dds::DataReaderQos();
-        auto policy_rel = eprosima::fastdds::dds::ReliabilityQosPolicy();
-        policy_rel.kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
-        qos.reliability(policy_rel);
-
-        auto policy_his = eprosima::fastdds::dds::HistoryQosPolicy();
-        policy_his.kind = eprosima::fastdds::dds::KEEP_ALL_HISTORY_QOS; //We only care about the newest msg
-        qos.history(policy_his);
-
-        auto policy_dur = eprosima::fastdds::dds::DurabilityQosPolicy();
-        policy_dur.kind = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
-        qos.durability(policy_dur);
-
-        // Create the DataWriter
-        reader_ = subscriber_->create_datareader(topic_, qos, nullptr);
-
-        if (reader_ == nullptr)
-        {
-            matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Reader creation failed") }));
-            return;
-        }
-
         //Wait a bit to allow for matching
         usleep(500000);
-    }
-
-    /**
-     * \brief Destructor, destroys the eprosima objects again
-     */
-    ~MexFunction()
-    {
-        if (reader_ != nullptr)
-        {
-            subscriber_->delete_datareader(reader_);
-        }
-        if (subscriber_ != nullptr)
-        {
-            participant_->delete_subscriber(subscriber_);
-        }
-        if (topic_ != nullptr)
-        {
-            participant_->delete_topic(topic_);
-        }
-        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant_);
     }
 
     /**
@@ -147,13 +61,6 @@ public:
     void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {   
         //Required for data creation
         matlab::data::ArrayFactory factory;
-
-        //Check if writer creation succeeded
-        if (reader_ == nullptr)
-        {
-            matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Can't receive state list as the reader creation failed!") }));
-        }
 
         //Check if inputs match the expected input
         checkArguments(outputs, inputs);
@@ -175,44 +82,32 @@ public:
         // matlabPtr->feval(u"disp", 0, 
         //             std::vector<matlab::data::Array>({ factory.createScalar(type_->getName()) }));
 
-        //Read received msgs, wait up to 5 seconds if none were received yet
-        eprosima::fastdds::dds::SampleInfo info;
-        VehicleStateList vehicle_state_list;
-        std::vector<VehicleStateList> msgs;
         
-        while(msgs.size() < 1)
+        auto samples = reader.take();
+
+        if (samples.size() > 0)
         {
-            usleep(10000);
-            
-            auto retcode = reader_->take_next_sample(&vehicle_state_list, &info);
-            print_retcode(retcode); //For debugging
+            auto vehicle_state_list = *(samples.rbegin());
 
-            if (retcode == ReturnCode_t::RETCODE_OK)
-            {
+            matlabPtr->feval(u"disp", 0, 
+                    std::vector<matlab::data::Array>({ factory.createScalar("Received something") }));
+
                 matlabPtr->feval(u"disp", 0, 
-                        std::vector<matlab::data::Array>({ factory.createScalar("Received something") }));
-                if (info.valid_data)
-                {
-                    msgs.push_back(vehicle_state_list);
+                    std::vector<matlab::data::Array>({ factory.createScalar("Working on it") }));
+                //Now, vehicle_state_list contains all relevant data
+                //First, start with the data that is easy to copy
 
-                    matlabPtr->feval(u"disp", 0, 
-                        std::vector<matlab::data::Array>({ factory.createScalar("Working on it") }));
-                    //Now, vehicle_state_list contains all relevant data
-                    //First, start with the data that is easy to copy
+                //We received something, so set is_valid to true
+                state_list_object[0]["is_valid"] = factory.createScalar<bool>(true);
 
-                    //We received something, so set is_valid to true
-                    state_list_object[0]["is_valid"] = factory.createScalar<bool>(true);
+                //Set everything that is not a list
+                state_list_object[0]["t_now"] = factory.createScalar<uint64_t>(vehicle_state_list.t_now());
+                state_list_object[0]["period_ms"] = factory.createScalar<uint64_t>(vehicle_state_list.period_ms());
 
-                    //Set everything that is not a list
-                    state_list_object[0]["t_now"] = factory.createScalar<uint64_t>(vehicle_state_list.t_now());
-                    state_list_object[0]["period_ms"] = factory.createScalar<uint64_t>(vehicle_state_list.period_ms());
-
-                    //Set lists
-                    write_active_vehicle_ids(state_list_object, vehicle_state_list);
-                    write_vehicle_state_list(state_list_object, vehicle_state_list);
-                    write_vehicle_observation_list(state_list_object, vehicle_state_list);
-                }
-            }
+                //Set lists
+                write_active_vehicle_ids(state_list_object, vehicle_state_list);
+                write_vehicle_state_list(state_list_object, vehicle_state_list);
+                write_vehicle_observation_list(state_list_object, vehicle_state_list);
         }
 
         //Return object as output

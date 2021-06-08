@@ -32,6 +32,7 @@ function main(vehicle_id)
     % Add all libraries to the path
     setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), ':/home/leon/dev/software/cpm_lib/build/', ':/usr/local/lib/']);
     setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), ':/home/leon/dev/software/cpm_lib/build/', ':/usr/local/lib/']);
+    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), '/usr/lib/x86_64-linux-gnu/libstdc++.so.6', ':/home/leon/dev/software/cpm_lib/build/libcpm.so:/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
     % disp(getenv('LD_LIBRARY_PATH'));
 
     %%WARNING: THIS DOES NOT WORK - INSTEAD, CALL THIS BEFORE STARTING MATLAB (replace with your own file locations)
@@ -63,8 +64,11 @@ function main(vehicle_id)
     % Test if the specified data type works
     % state_list = VehicleStateList;
     
-    state_list = vehicle_state_list_reader();
-    disp(state_list.t_now);
+    state_list = vehicleStateListReader();
+    pause(3);
+    state_list_2 = vehicleStateListReader();
+    pause(3);
+    state_list_3 = vehicleStateListReader();
 
     % Now wait for a msg
     % system_trigger = SystemTrigger;
@@ -75,5 +79,5 @@ function main(vehicle_id)
     % Else: The transient local ready signal etc. are still being sent
     clear ready_status_writer
     clear system_trigger_reader
-    clear vehicle_state_list_reader
+    clear vehicleStateListReader.m
 end
