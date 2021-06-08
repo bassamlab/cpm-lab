@@ -64,9 +64,23 @@ int main(int argc, char *argv[]) {
         usleep(50000);
     }
 
+    //Create some fictional VehicleStateList data for testing purposes
     VehicleStateList vehicle_state_list;
     vehicle_state_list.active_vehicle_ids({1, 3, 7});
     vehicle_state_list.t_now(5);
+
+    VehicleState state1;
+    state1.battery_voltage(70);
+
+    VehicleState state2;
+    state2.battery_voltage(80);
+
+    vehicle_state_list.state_list({ state1, state2 });
+
+    VehicleObservation observation1;
+    observation1.vehicle_id(7);
+
+    vehicle_state_list.vehicle_observation_list({ observation1 });
 
     // SystemTrigger trigger;
     // TimeStamp stamp;

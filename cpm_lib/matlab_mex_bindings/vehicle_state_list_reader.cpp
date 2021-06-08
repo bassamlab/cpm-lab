@@ -159,9 +159,17 @@ public:
         checkArguments(outputs, inputs);
 
         //Create output object from input 
-        matlab::data::Array state_list_object = std::move(inputs[0]);
+        matlab::data::StructArray state_list_object = factory.createStructArray(
+            {1, 1},
+            {"t_now", 
+            "period_ms", 
+            "state_list",
+            "vehicle_observation_list",
+            "active_vehicle_ids",
+            "is_valid"});
+
         //Default: No data was received, output is invalid
-        matlabPtr->setProperty(state_list_object, u"is_valid", factory.createScalar<bool>(false));
+        state_list_object[0]["is_valid"] = factory.createScalar<bool>(false);
 
         //Debugging: Print msg type
         // matlabPtr->feval(u"disp", 0, 
@@ -193,11 +201,11 @@ public:
                     //First, start with the data that is easy to copy
 
                     //We received something, so set is_valid to true
-                    matlabPtr->setProperty(state_list_object, u"is_valid", factory.createScalar<bool>(true));
+                    state_list_object[0]["is_valid"] = factory.createScalar<bool>(true);
 
                     //Set everything that is not a list
-                    matlabPtr->setProperty(state_list_object, u"t_now", factory.createScalar<uint64_t>(vehicle_state_list.t_now()));
-                    matlabPtr->setProperty(state_list_object, u"period_ms", factory.createScalar<uint64_t>(vehicle_state_list.period_ms()));
+                    state_list_object[0]["t_now"] = factory.createScalar<uint64_t>(vehicle_state_list.t_now());
+                    state_list_object[0]["period_ms"] = factory.createScalar<uint64_t>(vehicle_state_list.period_ms());
 
                     //Set lists
                     write_active_vehicle_ids(state_list_object, vehicle_state_list);
@@ -284,19 +292,11 @@ public:
     void checkArguments(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
         matlab::data::ArrayFactory factory;
 
-        if (inputs.size() != 1)
+        if (inputs.size() > 1)
         {
             matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Input must be an object of type VehicleStateList!") }));
+                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Input must be empty!") }));
         }
-
-        //Test for correct class
-        std::vector<matlab::data::Array> args{ inputs[0], factory.createCharArray("VehicleStateList") };
-        matlab::data::TypedArray<bool> result = matlabPtr->feval(u"isa", args);
-        if (result[0] != true) {
-            matlabPtr->feval(u"error", 0, 
-               std::vector<matlab::data::Array>({ factory.createScalar("Input must be an object of type VehicleStateList!") }));
-        } 
     }
 
     /**
@@ -304,7 +304,7 @@ public:
      * \param state_list_object The matlab object
      * \param vehicle_state_list The DDS object
      */
-    void write_active_vehicle_ids(matlab::data::Array &state_list_object, VehicleStateList &vehicle_state_list)
+    void write_active_vehicle_ids(matlab::data::StructArray &state_list_object, VehicleStateList &vehicle_state_list)
     {
         matlab::data::ArrayFactory factory;
 
@@ -314,7 +314,7 @@ public:
             active_ids[i] = vehicle_state_list.active_vehicle_ids().at(i);
         }
 
-        matlabPtr->setProperty(state_list_object, u"active_vehicle_ids", active_ids);
+        state_list_object[0]["active_vehicle_ids"] = active_ids;
     }
 
     /**
@@ -322,9 +322,61 @@ public:
      * \param state_list_object The matlab object
      * \param vehicle_state_list The DDS object
      */
-    void write_vehicle_state_list(matlab::data::Array &state_list_object, VehicleStateList &vehicle_state_list)
+    void write_vehicle_state_list(matlab::data::StructArray &state_list_object, VehicleStateList &vehicle_state_list)
     {
         matlab::data::ArrayFactory factory;
+
+        //Create VehicleState Array
+        matlab::data::StructArray vehicle_state_array = factory.createStructArray(
+            {1, vehicle_state_list.state_list().size()},
+            {
+                "vehicle_id",
+                "pose_x",
+                "pose_y",
+                "pose_yaw",
+                "IPS_update_age_nanoseconds",
+                "odometer_distance",
+                "imu_acceleration_forward",
+                "imu_acceleration_left",
+                "imu_acceleration_up",
+                "imu_yaw",
+                "imu_yaw_rate",
+                "speed",
+                "battery_voltage",
+                "motor_current",
+                "motor_throttle",
+                "steering_servo",
+                "is_real"
+            }
+        );
+
+        for (auto i = 0; i < vehicle_state_list.state_list().size(); ++i) {
+            //Get vehicle_data
+            auto vehicle_data = vehicle_state_list.state_list().at(i);
+
+            //Set data values
+            vehicle_state_array[i]["vehicle_id"] = factory.createScalar<uint8_t>(vehicle_data.vehicle_id());
+            vehicle_state_array[i]["IPS_update_age_nanoseconds"] = factory.createScalar<uint64_t>(vehicle_data.IPS_update_age_nanoseconds());
+            vehicle_state_array[i]["odometer_distance"] = factory.createScalar<double>(vehicle_data.odometer_distance());
+            vehicle_state_array[i]["imu_acceleration_forward"] = factory.createScalar<double>(vehicle_data.imu_acceleration_forward());
+            vehicle_state_array[i]["imu_acceleration_left"] = factory.createScalar<double>(vehicle_data.imu_acceleration_left());
+            vehicle_state_array[i]["imu_acceleration_up"] = factory.createScalar<double>(vehicle_data.imu_acceleration_up());
+            vehicle_state_array[i]["imu_yaw"] = factory.createScalar<double>(vehicle_data.imu_yaw());
+            vehicle_state_array[i]["imu_yaw_rate"] = factory.createScalar<double>(vehicle_data.imu_yaw_rate());
+            vehicle_state_array[i]["speed"] = factory.createScalar<double>(vehicle_data.speed());
+            vehicle_state_array[i]["battery_voltage"] = factory.createScalar<double>(vehicle_data.battery_voltage());
+            vehicle_state_array[i]["motor_current"] = factory.createScalar<double>(vehicle_data.motor_current());
+            vehicle_state_array[i]["motor_throttle"] = factory.createScalar<double>(vehicle_data.motor_throttle());
+            vehicle_state_array[i]["steering_servo"] = factory.createScalar<double>(vehicle_data.steering_servo());
+            vehicle_state_array[i]["is_real"] = factory.createScalar<bool>(vehicle_data.is_real());
+
+            //Special case: Pose, currently not handled as separate object (might get annoying for the user)
+            vehicle_state_array[i]["pose_x"] = factory.createScalar<double>(vehicle_data.pose().x());
+            vehicle_state_array[i]["pose_y"] = factory.createScalar<double>(vehicle_data.pose().y());
+            vehicle_state_array[i]["pose_yaw"] = factory.createScalar<double>(vehicle_data.pose().yaw());
+        }
+
+        state_list_object[0]["state_list"] = vehicle_state_array;
     }
 
     /**
@@ -332,8 +384,34 @@ public:
      * \param state_list_object The matlab object
      * \param vehicle_state_list The DDS object
      */
-    void write_vehicle_observation_list(matlab::data::Array &state_list_object, VehicleStateList &vehicle_state_list)
+    void write_vehicle_observation_list(matlab::data::StructArray &state_list_object, VehicleStateList &vehicle_state_list)
     {
         matlab::data::ArrayFactory factory;
+
+        //Create VehicleState Array
+        matlab::data::StructArray vehicle_observation_array = factory.createStructArray(
+            {1, vehicle_state_list.vehicle_observation_list().size()},
+            {
+                "vehicle_id",
+                "pose_x",
+                "pose_y",
+                "pose_yaw"
+            }
+        );
+
+        for (auto i = 0; i < vehicle_state_list.vehicle_observation_list().size(); ++i) {
+            //Get vehicle_data
+            auto vehicle_data = vehicle_state_list.vehicle_observation_list().at(i);
+
+            //Set data values
+            vehicle_observation_array[i]["vehicle_id"] = factory.createScalar<uint8_t>(vehicle_data.vehicle_id());
+
+            //Special case: Pose, currently not handled as separate object (might get annoying for the user)
+            vehicle_observation_array[i]["pose_x"] = factory.createScalar<double>(vehicle_data.pose().x());
+            vehicle_observation_array[i]["pose_y"] = factory.createScalar<double>(vehicle_data.pose().y());
+            vehicle_observation_array[i]["pose_yaw"] = factory.createScalar<double>(vehicle_data.pose().yaw());
+        }
+
+        state_list_object[0]["vehicle_observation_list"] = vehicle_observation_array;
     }
 };

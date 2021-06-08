@@ -61,9 +61,9 @@ function main(vehicle_id)
     % -> As you can see: I added a value called is_valid to the system trigger, which is false if no msg was received
 
     % Test if the specified data type works
-    state_list = VehicleStateList;
+    % state_list = VehicleStateList;
     
-    state_list = vehicle_state_list_reader(state_list);
+    state_list = vehicle_state_list_reader();
     disp(state_list.t_now);
 
     % Now wait for a msg
