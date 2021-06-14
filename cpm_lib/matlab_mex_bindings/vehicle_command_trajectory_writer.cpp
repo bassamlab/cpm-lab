@@ -54,7 +54,7 @@ public:
     /**
      * \brief Actual function that gets called when ready_signal_writer gets called within Matlab
      * \param outputs Outputs sent to the calling Matlab script after execution. (Currently empty)
-     * \param inputs Inputs given by the calling Matlab script. Here: The ReadyStatus Matlab Object to send.
+     * \param inputs Inputs given by the calling Matlab script. Here: The VehicleCommandTrajectory Matlab Object to send.
      */
     void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {   
         //Required for data creation
@@ -67,8 +67,6 @@ public:
         auto status = get_vehicle_command_from_input(inputs);
         writer.write(status);
 
-        //Return true
-        //outputs[0] = factory.createScalar<bool>(true);
         return;
     }
 
@@ -101,23 +99,25 @@ public:
      */
     VehicleCommandTrajectory get_vehicle_command_from_input(matlab::mex::ArgumentList inputs)
     {
+        matlab::data::ArrayFactory factory;
+
         VehicleCommandTrajectory command;
 
         //Get "object" from input so that we can access it in C++
         matlab::data::Array object = std::move(inputs[0]);
 
         //Get vehicle_id
-        matlab::data::TypedArray<uint8_t> vehicle_id = matlabPtr->getProperty(object, u"vehicle_id");
-        command.vehicle_id(vehicle_id[0]);
+        matlab::data::TypedArray<uint8_t> vehicle_id_ml = matlabPtr->getProperty(object, u"vehicle_id");
+        command.vehicle_id(vehicle_id_ml[0]);
 
         //Get header data
-        matlab::data::TypedArray<uint64_t> create_st = matlabPtr->getProperty(object, u"create_stamp");
+        matlab::data::TypedArray<uint64_t> create_stamp_ml = matlabPtr->getProperty(object, u"create_stamp");
         TimeStamp create_stamp;
-        create_stamp.nanoseconds(create_st[0]);
+        create_stamp.nanoseconds(create_stamp_ml[0]);
 
-        matlab::data::TypedArray<uint64_t> valid_after_st = matlabPtr->getProperty(object, u"valid_after_stamp");
+        matlab::data::TypedArray<uint64_t> valid_after_stamp_ml = matlabPtr->getProperty(object, u"valid_after_stamp");
         TimeStamp valid_after_stamp;
-        valid_after_stamp.nanoseconds(valid_after_st[0]);
+        valid_after_stamp.nanoseconds(valid_after_stamp_ml[0]);
 
         Header header;
         header.create_stamp(create_stamp);
@@ -125,9 +125,38 @@ public:
 
         command.header(header);
 
-        //Get trajectory data
-        TODO
+        //Get trajectory data (is a 1xn vector in Matlab)
+        std::vector<TrajectoryPoint> trajectory_points;
+        matlab::data::ObjectArray trajectory_points_ml = matlabPtr->getProperty(object, 0, u"trajectory_points");
+        for (auto i = 0; i < trajectory_points_ml.getDimensions().at(1); ++i) {
+            TrajectoryPoint trajectory_point;
 
-        return ready_status;
+            matlab::data::TypedArray<double> px_ml = matlabPtr->getProperty(trajectory_points_ml, i, u"px");
+            trajectory_point.px(px_ml[0]);
+
+            matlab::data::TypedArray<double> py_ml = matlabPtr->getProperty(trajectory_points_ml, i, u"py");
+            trajectory_point.py(py_ml[0]);
+
+            matlab::data::TypedArray<double> vx_ml = matlabPtr->getProperty(trajectory_points_ml, i, u"vx");
+            trajectory_point.vx(vx_ml[0]);
+
+            matlab::data::TypedArray<double> vy_ml = matlabPtr->getProperty(trajectory_points_ml, i, u"vy");
+            trajectory_point.vy(vy_ml[0]);
+
+            matlab::data::TypedArray<uint64_t> t_ml = matlabPtr->getProperty(trajectory_points_ml, i, u"t");
+            TimeStamp t;
+            t.nanoseconds(t_ml[0]);
+            trajectory_point.t(t);
+
+            trajectory_points.push_back(trajectory_point);
+
+            // Debugging
+            // matlabPtr->feval(u"disp", 0, 
+            //         std::vector<matlab::data::Array>({ factory.createScalar(trajectory_point.px()) }));
+        }
+
+        command.trajectory_points(trajectory_points);
+
+        return command;
     }
 };

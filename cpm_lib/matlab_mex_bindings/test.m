@@ -61,23 +61,36 @@ function main(vehicle_id)
 %     disp(system_trigger);
     % -> As you can see: I added a value called is_valid to the system trigger, which is false if no msg was received
 
-    % Test if the specified data type works
-    % state_list = VehicleStateList;
-    
-    state_list = vehicleStateListReader();
-    pause(3);
-    state_list_2 = vehicleStateListReader();
-    pause(3);
-    state_list_3 = vehicleStateListReader();
+    % Test if the specified data type works    
+    % state_list = vehicleStateListReader();
 
     % Now wait for a msg
     % system_trigger = SystemTrigger;
     % system_trigger = system_trigger_reader(system_trigger, true);
     % disp(system_trigger);
 
+    % Check the trajectory writer
+    % Create a trajectory command object
+    trajectory = VehicleCommandTrajectory;
+    trajectory.vehicle_id = 1;
+    trajectory.create_stamp = 7;
+    trajectory.valid_after_stamp = 7;
+    
+    % Create trajectory points
+    point1 = TrajectoryPoint;
+    point2 = TrajectoryPoint;
+    point3 = TrajectoryPoint;
+    point1.px = 0;
+    point2.px = 1;
+    point3.px = 3;
+    
+    trajectory.trajectory_points = [point1, point2, point3];
+    vehicle_command_trajectory_writer(trajectory);
+
     % Clear mex files etc. from system memory
     % Else: The transient local ready signal etc. are still being sent
+    clear vehicle_command_trajectory_writer
     clear ready_status_writer
-    clear system_trigger_reader
+    clear systemTriggerReader.m
     clear vehicleStateListReader.m
 end
