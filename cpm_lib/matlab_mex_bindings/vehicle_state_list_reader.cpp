@@ -42,7 +42,7 @@ public:
      */
     MexFunction() :
         participant(1, true),
-        reader(participant.get_participant(), "vehicleStateList", true, true, true)
+        reader(participant.get_participant(), "vehicleStateList", false, false, false)
     {
         matlabPtr = getEngine();
 
@@ -65,7 +65,7 @@ public:
         //Check if inputs match the expected input
         checkArguments(outputs, inputs);
 
-        //Create output object from input 
+        //Create output struct
         matlab::data::StructArray state_list_object = factory.createStructArray(
             {1, 1},
             {"t_now", 

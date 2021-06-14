@@ -7,7 +7,7 @@
 //The Matlab docs specify how to integrate external libraries (.so, with -l in mex call)
 
 //Data types used here
-#include "cpm/dds/ReadyStatusPubSubTypes.h"
+#include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 
 #include "cpm/Participant.hpp"
 #include "cpm/Writer.hpp"
@@ -36,14 +36,14 @@ private:
     std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
 
     cpm::Participant participant;
-    cpm::Writer<ReadyStatusPubSubType> writer;
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer;
 public:
     /**
      * \brief Constructor, sets up eprosima objects and matlabPtr
      */
     MexFunction() :
         participant(1, true),
-        writer(participant.get_participant(), "readyStatus", true, true, true)
+        writer(participant.get_participant(), "vehicleCommandTrajectory", false, false, false)
     {
         matlabPtr = getEngine();
 
@@ -64,7 +64,7 @@ public:
         checkArguments(outputs, inputs);
 
         //Write ready status msg
-        auto status = get_ready_status_from_input(inputs);
+        auto status = get_vehicle_command_from_input(inputs);
         writer.write(status);
 
         //Return true
@@ -83,15 +83,15 @@ public:
         if (inputs.size() != 1)
         {
             matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Input must be an object of type ReadyStatus!") }));
+                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Input must be an object of type VehicleCommandTrajectory!") }));
         }
 
         //Test for correct class
-        std::vector<matlab::data::Array> args{ inputs[0], factory.createCharArray("ReadyStatus") };
+        std::vector<matlab::data::Array> args{ inputs[0], factory.createCharArray("VehicleCommandTrajectory") };
         matlab::data::TypedArray<bool> result = matlabPtr->feval(u"isa", args);
         if (result[0] != true) {
             matlabPtr->feval(u"error", 0, 
-               std::vector<matlab::data::Array>({ factory.createScalar("Input must be an object of type ReadyStatus!") }));
+               std::vector<matlab::data::Array>({ factory.createScalar("Input must be an object of type VehicleCommandTrajectory!") }));
         } 
     }
 
@@ -99,22 +99,34 @@ public:
      * \brief Reads the ID to send within the ready signal from the input list
      * \param inputs Inputs from the Matlab script that called this object
      */
-    ReadyStatus get_ready_status_from_input(matlab::mex::ArgumentList inputs)
+    VehicleCommandTrajectory get_vehicle_command_from_input(matlab::mex::ArgumentList inputs)
     {
-        ReadyStatus ready_status;
+        VehicleCommandTrajectory command;
 
         //Get "object" from input so that we can access it in C++
         matlab::data::Array object = std::move(inputs[0]);
 
-        //Get source_id
-        matlab::data::StringArray source_id = matlabPtr->getProperty(object, u"source_id");
-        ready_status.source_id(source_id[0]);
+        //Get vehicle_id
+        matlab::data::TypedArray<uint8_t> vehicle_id = matlabPtr->getProperty(object, u"vehicle_id");
+        command.vehicle_id(vehicle_id[0]);
 
-        //Get next_start_stamp
-        matlab::data::TypedArray<uint64_t> next_start_stamp = matlabPtr->getProperty(object, u"next_start_stamp");
-        TimeStamp stamp;
-        stamp.nanoseconds(next_start_stamp[0]);
-        ready_status.next_start_stamp(stamp);
+        //Get header data
+        matlab::data::TypedArray<uint64_t> create_st = matlabPtr->getProperty(object, u"create_stamp");
+        TimeStamp create_stamp;
+        create_stamp.nanoseconds(create_st[0]);
+
+        matlab::data::TypedArray<uint64_t> valid_after_st = matlabPtr->getProperty(object, u"valid_after_stamp");
+        TimeStamp valid_after_stamp;
+        valid_after_stamp.nanoseconds(valid_after_st[0]);
+
+        Header header;
+        header.create_stamp(create_stamp);
+        header.valid_after_stamp(valid_after_stamp);
+
+        command.header(header);
+
+        //Get trajectory data
+        TODO
 
         return ready_status;
     }

@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 
     std::shared_ptr<cpm::Participant> particpant_ptr = std::make_shared<cpm::Participant>(1, true);
     //cpm::Writer<SystemTriggerPubSubType> writer(particpant_ptr->get_participant(), "systemTrigger", true, true, true);
-    cpm::Writer<VehicleStateListPubSubType> writer(particpant_ptr->get_participant(), "vehicleStateList", true, true, true);
+    cpm::Writer<VehicleStateListPubSubType> writer(particpant_ptr->get_participant(), "vehicleStateList", false, false, false);
     
     while(writer.matched_subscriptions_size() < 1)
     {

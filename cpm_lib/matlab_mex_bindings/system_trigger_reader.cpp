@@ -11,8 +11,8 @@
 
 //Try to use the cpm version of the reader
 // #include "cpm/init.hpp"
-// #include "cpm/Participant.hpp"
-// #include "cpm/ReaderAbstract.hpp"
+#include "cpm/Participant.hpp"
+#include "cpm/ReaderAbstract.hpp"
 
 //Required eProsima libraries
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
@@ -36,19 +36,21 @@ private:
     //! Used for translation, printing etc.
     std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
 
-    eprosima::fastdds::dds::DomainParticipant* participant_ = nullptr;
-    eprosima::fastdds::dds::Subscriber* subscriber_ = nullptr;
-    eprosima::fastdds::dds::Topic* topic_ = nullptr;
-    eprosima::fastdds::dds::DataReader* reader_ = nullptr;
-    eprosima::fastdds::dds::TypeSupport type_{new SystemTriggerPubSubType()};
+    // eprosima::fastdds::dds::DomainParticipant* participant_ = nullptr;
+    // eprosima::fastdds::dds::Subscriber* subscriber_ = nullptr;
+    // eprosima::fastdds::dds::Topic* topic_ = nullptr;
+    // eprosima::fastdds::dds::DataReader* reader_ = nullptr;
+    // eprosima::fastdds::dds::TypeSupport type_{new SystemTriggerPubSubType()};
 
-    // std::shared_ptr<cpm::Participant> participant;
-    // std::shared_ptr<cpm::ReaderAbstract<SystemTriggerPubSubType>> reader;
+    cpm::Participant participant;
+    cpm::ReaderAbstract<SystemTriggerPubSubType> reader;
 public:
     /**
      * \brief Constructor, sets up eprosima objects and matlabPtr
      */
-    MexFunction()
+    MexFunction() :
+        participant(1, true),
+        reader("systemTrigger", true, true, true)
     {
         matlabPtr = getEngine();
 
@@ -62,103 +64,13 @@ public:
         // int argc = 3;
         // cpm::init(argc, argv);
 
-        //Create the participant and DataReader
-        // participant = std::make_shared<cpm::Participant>(1, true);
-        // reader = std::make_shared<cpm::ReaderAbstract<SystemTriggerPubSubType>>("systemTrigger", true);
-
-        //Set participant QoS (shared memory / local communication only)
-        eprosima::fastdds::dds::DomainParticipantQos domain_qos;
-        auto shm_transport = std::make_shared<eprosima::fastdds::rtps::SharedMemTransportDescriptor>();
-        domain_qos.transport().use_builtin_transports = false;
-        domain_qos.transport().user_transports.push_back(shm_transport);
-
-        //Create eProsima writer
-        participant_ = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-            1, 
-            domain_qos
-        );
-
-        if (participant_ == nullptr)
-        {
-            matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Participant creation failed") }));
-            return;
-        }
-
-        // Register the Type
-        type_.register_type(participant_);
-
-        // Create the publications Topic
-        topic_ = participant_->create_topic("systemTrigger", type_->getName(), eprosima::fastdds::dds::TOPIC_QOS_DEFAULT);
-
-        if (topic_ == nullptr)
-        {
-            matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Topic creation failed") }));
-            return;
-        }
-
-        // Create the Publisher
-        subscriber_ = participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT, nullptr);
-
-        if (subscriber_ == nullptr)
-        {
-            matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Subscriber creation failed") }));
-            return;
-        }
-
-        // Set Writer QoS
-        auto qos = eprosima::fastdds::dds::DataReaderQos();
-        auto policy_rel = eprosima::fastdds::dds::ReliabilityQosPolicy();
-        policy_rel.kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
-        qos.reliability(policy_rel);
-
-        auto policy_his = eprosima::fastdds::dds::HistoryQosPolicy();
-        policy_his.kind = eprosima::fastdds::dds::KEEP_ALL_HISTORY_QOS;
-        qos.history(policy_his);
-
-        auto policy_dur = eprosima::fastdds::dds::DurabilityQosPolicy();
-        policy_dur.kind = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
-        qos.durability(policy_dur);
-
-        // Create the DataWriter
-        reader_ = subscriber_->create_datareader(topic_, qos, nullptr);
-
-        if (reader_ == nullptr)
-        {
-            matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Reader creation failed") }));
-            return;
-        }
-
         //Wait a bit to allow for matching
         usleep(500000);
     }
 
     /**
-     * \brief Destructor, destroys the eprosima objects again
-     */
-    ~MexFunction()
-    {
-        if (reader_ != nullptr)
-        {
-            subscriber_->delete_datareader(reader_);
-        }
-        if (subscriber_ != nullptr)
-        {
-            participant_->delete_subscriber(subscriber_);
-        }
-        if (topic_ != nullptr)
-        {
-            participant_->delete_topic(topic_);
-        }
-        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant_);
-    }
-
-    /**
      * \brief Actual function called by Matlab.
-     * Params: SystemTrigger (used to create the output), optional boolean (false: default, don't wait infinitely for messages. true: wait infinitely)
+     * Params: Optional boolean (false: default, don't wait infinitely for messages. true: wait infinitely (max. unsigned integer milliseconds))
      * Returns: Nothing if nothing was received, else the received SystemTrigger
      * \param outputs Outputs sent to the calling Matlab script after execution. Here: The last received SystemTrigger, with is_valid = false if no msg was received.
      * \param inputs Inputs given by the calling Matlab script. Here: SystemTrigger and optional bool.
@@ -167,57 +79,44 @@ public:
         //Required for data creation
         matlab::data::ArrayFactory factory;
 
-        //Check if writer creation succeeded
-        if (reader_ == nullptr)
-        {
-            matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Can't receive system trigger because reader creation failed!") }));
-        }
-
         //Check if inputs match the expected input
         checkArguments(outputs, inputs);
 
         //Check if the reader should wait infinitely
         bool wait = false;
-        if (inputs.size() > 1) {
-            matlab::data::TypedArray<bool> wait_inf = std::move(inputs[1]);
+        if (inputs.size() >= 1) {
+            matlab::data::TypedArray<bool> wait_inf = std::move(inputs[0]);
             wait = wait_inf[0];
         }
 
-        //Get ready status msg
-        std::vector<SystemTrigger> msgs;
-        SystemTrigger msg;
-        eprosima::fastdds::dds::SampleInfo info;
-        while (wait && msgs.size() < 1)
-        {
-            usleep(10000);
-            
-            if (reader_->take_next_sample(&msg, &info) == ReturnCode_t::RETCODE_OK)
-            {
-                if (info.valid_data)
-                {
-                    msgs.push_back(msg);
-                }
-            }
+        //Wait inf. if desired
+        if(wait) {
+            reader.wait_for_unread_message(std::numeric_limits<unsigned int>::max());
         }
 
+        //Get ready status msg
+        auto msgs = reader.take();
+
         //Return the last read system trigger, set it to not valid if it does not exist
-        //Write it to a Matlab object, return it
-        matlab::data::Array object = std::move(inputs[0]);
+        //Create output struct
+        matlab::data::StructArray system_trigger_object = factory.createStructArray(
+            {1, 1},
+            {"next_start", 
+            "is_valid"});
 
         if (msgs.size() > 0)
         {
             //Get next_start_stamp
-            matlabPtr->setProperty(object, u"next_start", factory.createScalar<uint64_t>(msgs.rbegin()->next_start().nanoseconds()));
-            matlabPtr->setProperty(object, u"is_valid", factory.createScalar<bool>(true));
+            system_trigger_object[0]["next_start"] = factory.createScalar<uint64_t>(msgs.rbegin()->next_start().nanoseconds());
+            system_trigger_object[0]["is_valid"] = factory.createScalar<bool>(true);
         }
         else {
-            matlabPtr->setProperty(object, u"next_start", factory.createScalar<uint64_t>(0));
-            matlabPtr->setProperty(object, u"is_valid", factory.createScalar<bool>(false));
+            system_trigger_object[0]["next_start"] = factory.createScalar<uint64_t>(0);
+            system_trigger_object[0]["is_valid"] = factory.createScalar<bool>(false);
         }
 
         //Return
-        outputs[0] = object;
+        outputs[0] = system_trigger_object;
 
         return;
     }
@@ -230,30 +129,22 @@ public:
     void checkArguments(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
         matlab::data::ArrayFactory factory;
 
-        if (inputs.size() > 2 || inputs.size() < 1)
+        if (inputs.size() > 1)
         {
             matlabPtr->feval(u"error", 0, 
                 std::vector<matlab::data::Array>({ 
-                    factory.createScalar("Wrong input size. Input must be an object of type SystemTrigger. Optionally, a bool may follow to specify if the reader should wait infinitely for a system trigger.") 
+                    factory.createScalar("Wrong input size. Optionally, a bool may be used to specify if the reader should wait infinitely for a system trigger.") 
             }));
         }
 
-        //Test for correct class
-        std::vector<matlab::data::Array> args{ inputs[0], factory.createCharArray("SystemTrigger") };
-        matlab::data::TypedArray<bool> result = matlabPtr->feval(u"isa", args);
-        if (result[0] != true) {
-            matlabPtr->feval(u"error", 0, 
-               std::vector<matlab::data::Array>({ factory.createScalar("Input must be an object of type SystemTrigger!") }));
-        } 
-
         //Test for optional bool parameter
-        if (inputs.size() > 1)
+        if (inputs.size() >= 1)
         {
-            if (inputs[1].getType() != matlab::data::ArrayType::LOGICAL)
+            if (inputs[0].getType() != matlab::data::ArrayType::LOGICAL)
             {
                 matlabPtr->feval(u"error", 0, 
                     std::vector<matlab::data::Array>({ 
-                        factory.createScalar("The optional second input must be of type bool. It specifies if the reader should wait for a system trigger infinitely.") 
+                        factory.createScalar("The optional input must be of type bool. It specifies if the reader should wait for a system trigger infinitely.") 
                 }));
             }
         }
