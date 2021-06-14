@@ -56,7 +56,7 @@ public:
      * Ouput: The same object w. is_valid = false if nothing was received, else with the received data.
      * You have to wait for messages in Matlab. If desired, this could also be implemented here, similar to system_trigger_reader.
      * \param outputs Outputs sent to the calling Matlab script after execution. Here: The last received VehicleStateList, with is_valid = false if no msg was received.
-     * \param inputs Inputs given by the calling Matlab script. Here: The VehicleStateList Matlab Object to receive.
+     * \param inputs Inputs given by the calling Matlab script. Here: Optional uint32 specifying the milliseconds to max. wait for a msg
      */
     void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {   
         //Required for data creation
@@ -81,6 +81,12 @@ public:
         //Debugging: Print msg type
         // matlabPtr->feval(u"disp", 0, 
         //             std::vector<matlab::data::Array>({ factory.createScalar(type_->getName()) }));
+
+        //Check if the reader should wait wait_time_ms milliseconds for incoming messages
+        if (inputs.size() >= 1) {
+            matlab::data::TypedArray<uint32_t> wait_time_ms = std::move(inputs[0]);
+            reader.wait_for_unread_message(wait_time_ms[0]);
+        }
 
         
         auto samples = reader.take();
@@ -191,6 +197,18 @@ public:
         {
             matlabPtr->feval(u"error", 0, 
                 std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Input must be empty!") }));
+        }
+
+        //Test for optional unsigned int parameter
+        if (inputs.size() >= 1)
+        {
+            if (inputs[0].getType() != matlab::data::ArrayType::UINT32)
+            {
+                matlabPtr->feval(u"error", 0, 
+                    std::vector<matlab::data::Array>({ 
+                        factory.createScalar("The optional input must be of type uint32. It specifies how long the reader should wait for a message, in milliseconds.") 
+                }));
+            }
         }
     }
 

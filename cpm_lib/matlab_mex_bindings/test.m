@@ -62,11 +62,13 @@ function main(vehicle_id)
     % -> As you can see: I added a value called is_valid to the system trigger, which is false if no msg was received
 
     % Test if the specified data type works    
-    % state_list = vehicleStateListReader();
+    state_list = vehicleStateListReader();
 
     % Now wait for a msg
     % system_trigger = SystemTrigger;
-    % system_trigger = system_trigger_reader(system_trigger, true);
+    % system_trigger = system_trigger_reader(system_trigger, true); OUTDATED, now you 
+    % do not need to pass system_trigger anymore and get a struct returned
+    % ALSO NOTE: USE systemTriggerReader INSTEAD! (creates a new Matlab Thread for listening)
     % disp(system_trigger);
 
     % Check the trajectory writer

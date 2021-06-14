@@ -50,7 +50,7 @@ public:
      */
     MexFunction() :
         participant(1, true),
-        reader("systemTrigger", true, true, true)
+        reader("systemTrigger", true)
     {
         matlabPtr = getEngine();
 

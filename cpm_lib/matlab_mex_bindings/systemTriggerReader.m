@@ -9,10 +9,14 @@
 % sudo mv libstdc++.so.6* old
 % sudo ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 libstdc++.so.6 
 
-function result = systemTriggerReader()
+function result = systemTriggerReader(wait_infinitely_for_msg)
     persistent mh
     if ~(isa(mh,'matlab.mex.MexHost') && isvalid(mh))
         mh = mexhost;
     end
-    result = feval(mh,"system_trigger_reader");
+    if exist('wait_infinitely_for_msg', 'var')
+        result = feval(mh,"system_trigger_reader", wait_infinitely_for_msg);
+    else 
+        result = feval(mh,"system_trigger_reader");
+    end
 end

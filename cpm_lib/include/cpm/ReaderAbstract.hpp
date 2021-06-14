@@ -149,7 +149,7 @@ namespace cpm
          * \param timeout_ms Max. time in milliseconds to wait until return
          * \return True if new data is available, else false
          */
-        bool wait_for_unread_message(unsigned int timeout_ms)
+        bool wait_for_unread_message(uint32_t timeout_ms)
         {
             std::unique_lock<std::mutex> lock(m_mutex);
 

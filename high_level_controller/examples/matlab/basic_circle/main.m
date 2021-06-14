@@ -25,19 +25,26 @@
 % Author: i11 - Embedded Software, RWTH Aachen University
 
 function main(vehicle_id)
+    % Some of these may not be necessary
+    setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), ':/home/leon/dev/software/cpm_lib/build/', ':/usr/local/lib/']);
+    setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), ':/home/leon/dev/software/cpm_lib/build/', ':/usr/local/lib/']);
+    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), '/usr/lib/x86_64-linux-gnu/libstdc++.so.6', ':/home/leon/dev/software/cpm_lib/build/libcpm.so:/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
+
     % Get current path
     clc
     script_directoy = fileparts([mfilename('fullpath') '.m']);
 
     % Initialize data readers/writers...
     common_cpm_functions_path = fullfile( ...
-        script_directoy, '/..' ...
+        script_directoy, '../../../../cpm_lib/matlab_mex_bindings/' ...
     );
     assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
     addpath(common_cpm_functions_path);
     
-    matlabDomainId = 1;
-    [matlabParticipant, reader_vehicleStateList, writer_vehicleCommandTrajectory, ~, reader_systemTrigger, writer_readyStatus, trigger_stop] = init_script(matlabDomainId);
+    % This is now obsolete, the reader etc are set up in the mex files, you just need to call them
+    % Files to call: ready_status_writer, vehicle_command_trajectory_writer, systemTriggerReader, vehicleStateListReader
+    % matlabDomainId = 1;
+    % [matlabParticipant, reader_vehicleStateList, writer_vehicleCommandTrajectory, ~, reader_systemTrigger, writer_readyStatus, trigger_stop] = init_script(matlabDomainId);
     
     %% Sync start with infrastructure
     % Send ready signal
@@ -47,25 +54,27 @@ function main(vehicle_id)
     disp('Sending ready signal');
     ready_msg = ReadyStatus;
     ready_msg.source_id = strcat('hlc_', num2str(vehicle_id));
-    ready_stamp = TimeStamp;
-    ready_stamp.nanoseconds = uint64(0);
-    ready_msg.next_start_stamp = ready_stamp;
-    writer_readyStatus.write(ready_msg);
+    ready_msg.next_start_stamp = uint64(0);
+    ready_status_writer(ready_msg);
 
     % Wait for start or stop signal
     disp('Waiting for start or stop signal');    
+    stop_symbol = uint64((0xffffffffffffffffu64));
     got_stop = false;
     got_start = false;
     while (~got_stop && ~got_start)
-        [got_start, got_stop] = read_system_trigger(reader_systemTrigger, trigger_stop);
+        system_trigger = systemTriggerReader(true);
+        if system_trigger.is_valid
+            if system_trigger.next_start == stop_symbol
+                got_stop = true;
+            else
+                got_start = true;
+            end
+        end
     end
-    
+    disp('Done');   
 
     %% Run the HLC
-    % Set reader properties
-    reader_vehicleStateList.WaitSet = true;
-    reader_vehicleStateList.WaitSetTimeout = 5;
-
     % Define reference trajectory
     reference_trajectory_index = 1;
     reference_trajectory_time = 0;
@@ -78,9 +87,11 @@ function main(vehicle_id)
     segment_duration = [pi/2*1e9, pi/2*1e9, pi/2*1e9, pi/2*1e9];
     
     while (~got_stop)
-        % Read vehicle states
-        [sample, ~, sample_count, ~] = reader_vehicleStateList.take();
-        assert(sample_count == 1, 'Received %d samples, expected 1', sample_count);
+        % Read vehicle states / wait for max. 5 seconds
+        sample = vehicleStateListReader(uint32(5000));
+        % assert(sample.is_valid, 'Received no new samples'); Prevents
+        % clear depending on when the stop signal is received, causes 
+        % trouble in next runs
         fprintf('Received sample at time: %d\n',sample.t_now);
         
         if (reference_trajectory_time == 0)
@@ -95,7 +106,7 @@ function main(vehicle_id)
         plan_ahead_time_nanos = 7000e6;
         while (t_ahead_nanos < plan_ahead_time_nanos)
             the_trajectory_point = TrajectoryPoint;
-            the_trajectory_point.t.nanoseconds = uint64(reference_trajectory_time + t_ahead_nanos);
+            the_trajectory_point.t = uint64(reference_trajectory_time + t_ahead_nanos);
             the_trajectory_point.px = trajectory_px(i_traj_index);
             the_trajectory_point.py = trajectory_py(i_traj_index);
             the_trajectory_point.vx = trajectory_vx(i_traj_index);
@@ -110,11 +121,12 @@ function main(vehicle_id)
         vehicle_command_trajectory = VehicleCommandTrajectory;
         vehicle_command_trajectory.vehicle_id = uint8(vehicle_id);
         vehicle_command_trajectory.trajectory_points = trajectory_points;
-        vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
+        vehicle_command_trajectory.create_stamp = ...
             uint64(sample.t_now);
-        vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
+        vehicle_command_trajectory.valid_after_stamp = ...
             uint64(sample.t_now + max_delay_time_nanos);
-        writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
+        
+        vehicle_command_trajectory_writer(vehicle_command_trajectory);
 
         % The vehicle always needs a trajectory point at or before the current time,
         % as well as enough trajectory points in the future,
@@ -131,7 +143,19 @@ function main(vehicle_id)
                 reference_trajectory_time + segment_duration(reference_trajectory_index);
         end
         
-        % Check for stop signal
-        [~, got_stop] = read_system_trigger(reader_systemTrigger, trigger_stop);
+        % Check for stop signal, don't wait infinitely for a msg here
+        system_trigger = systemTriggerReader();
+        if system_trigger.is_valid
+            if system_trigger.next_start == stop_symbol
+                got_stop = true;
+            end
+        end
     end
+    
+    % Clear mex files etc. from system memory
+    % Else: The transient local ready signal etc. are still being sent
+    clear vehicle_command_trajectory_writer
+    clear ready_status_writer
+    clear systemTriggerReader.m
+    clear vehicleStateListReader.m
 end
