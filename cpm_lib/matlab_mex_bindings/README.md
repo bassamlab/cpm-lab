@@ -7,9 +7,9 @@ In the following, I will assume that you already have installed FastDDS and Fast
 
 2. Install the newest recommended gcc version (and g++ version). Then use update-alternatives to set the current system compiler to these gcc and g++ versions. 
 
-3. Now you should be able to build the readers and writers (..._reader.cpp, ..._writer.cpp). You need to link your cpm lib file as well as the installed fastdds lib files to make the compilation work - just use the commands in build_mex.bash as an orientation: 
+3. Now you should be able to build the readers and writers (..._reader.cpp, ..._writer.cpp). You need to link your cpm lib file as well as the installed fastdds lib files to make the compilation work - just use the commands in build_mex.bash as an orientation. It is expected that Matlab is installed on your system and that it has been added to your path.
 ```bash
-path_to_mex/mex vehicle_command_trajectory_writer.cpp -Lpath_to_cpm_lib_folder/build -lcpm -Ipath_to_cpm_lib_folder/include -L/usr/local/lib -lfastcdr -lfastrtps
+mex vehicle_command_trajectory_writer.cpp -Lpath_to_cpm_lib_folder/build -lcpm -Ipath_to_cpm_lib_folder/include -L/usr/local/lib -lfastcdr -lfastrtps
 ```
 
 4. YOU ARE NOT DONE YET!
