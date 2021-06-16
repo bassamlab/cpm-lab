@@ -185,6 +185,23 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    //Set an environment variable required for deploying Matlab scripts
+    //First: Go from .../software/lab_control_center/build/lab_control_center to .../software
+    std::string cpm_lib_path = absolute_executable_path;
+    for (auto i = 0; i < 3; ++i)
+    {
+        auto last_slash_pos = cpm_lib_path.rfind("/");
+        cpm_lib_path = cpm_lib_path.substr(0, last_slash_pos);
+    }
+    //Second: Create path to cpm lib
+    cpm_lib_path += "/cpm_lib/build/libcpm.so";
+    auto ld_preload = cpm_lib_path;
+    ld_preload += ":/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/usr/local/lib/libfastcdr.so:/usr/local/lib/libfastrtps.so";
+    setenv("LD_PRELOAD", 
+        ld_preload.c_str(), 
+        1
+    );
+
     //-----------------------------------------------------------------------------------------------------
     //It is vital to call this function before any threads or objects have been set up that are not
     //required in child processes
