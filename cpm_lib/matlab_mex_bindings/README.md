@@ -17,7 +17,7 @@ mex vehicle_command_trajectory_writer.cpp -Lpath_to_cpm_lib_folder/build -lcpm -
 # How to execute these files
 Matlab will not be able to execute your Mex-Files without preparation!
 
-1. You need to preload all required library files **before** you start Matlab. You may notice that libstdc++ is included here as well. I will explain that in step 3. (Adapt the folder names depending on your system setup):
+1. You need to preload all required library files **before** you start Matlab. You may notice that libstdc++ is included here as well. I will explain that in step 3. DO NOT set this variable globally unless you want some of your programs to crash on start. (Adapt the folder names depending on your system setup):
 ```bash
 export LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/home/leon/dev/software/cpm_lib/build/libcpm.so:/usr/local/lib/libfastcdr.so::/usr/local/lib/libfastrtps.so"
 ```
@@ -30,8 +30,8 @@ setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), ':/home/leon/dev/software/
 3. At this point, you should already be able to execute the mex files directly. You may wonder why libstdc++ is included as well. Matlab comes with its own C++ Compiler / Environment, which is usually outdated, and depending on your system setup, mex may build files that are **incompatible** with Matlabs C++ version when executing these files in Matlab, resulting in an error. Thus, you either need to set LD_PRELOAD globally in your system (reason explained in the next step) or replace Matlabs own C++ version with a link to your system's version.
 
 4. For the readers to work properly, they are started in a new Matlab thread. This thread seems to ignore your set C++ version in LD_PRELOAD. The execution fails. As a result, you need to implement a workaround:
-    - (Untested) Set LD_PRELOAD globally as environment variable
-    - (Untested) Use the same compiler to create your mex files that is used by Matlab internally
+    - (Not working) Set LD_PRELOAD globally as environment variable -> Other programs may crash & this does not work
+    - (Untested) Use the same "outdated" compiler for mex AND to create your library files (libcpm, libfastdds)
     - (Tested, works) Replace Matlabs internal C++ environment with a link to yours (inspired by Stackoverflow):
     ```bash
     cd path_to_matlab/sys/os/glnxa64
