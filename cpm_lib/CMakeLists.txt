@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(cpmlib)
 option(BUILD_ARM OFF)
 
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 11)
 add_definitions(-Wall -Wextra -Werror=return-type -O2)
 include_directories(src)
 include_directories(include)
@@ -68,30 +68,33 @@ set(SOURCE_CPM
 )
 
 
-
-# Configuration for eProsima Fast-DDS 
-# Find requirements
-# For this to work, the current (2.3.x) version of Fast-DDS (and CDR, foonathan_memory) must be installed
-# Do this by creating a build folder in the thirdparty folders for each of those projects
-# There: cmake .., then sudo cmake --build . --target install
-if(NOT fastcdr_FOUND)
-    find_package(fastcdr REQUIRED)
-endif()
-
-if(NOT foonathan_memory_FOUND)
-    find_package(foonathan_memory REQUIRED)
-endif()
-
-if(NOT fastrtps_FOUND)
-    find_package(fastrtps REQUIRED)
-endif()
-
-#link_libraries(dl nsl m pthread rt)
 include_directories(dds_idl_cpp)
 
 if(BUILD_ARM)
+    # eProsima gets compiled together with the ARM files
+    option(THIRDPARTY "" ON)
+    option(BUILD_TESTING "" OFF)
+    add_subdirectory(thirdparty/Fast-DDS/)
+
     add_definitions(-fpic -DRTI_UNIX -DRTI_LINUX -march=armv6 -mfpu=vfp -mfloat-abi=hard -mlong-calls)
 else()
+    # Configuration for eProsima Fast-DDS 
+    # Find requirements
+    # For this to work, the current (2.3.x) version of Fast-DDS (and CDR, foonathan_memory) must be installed
+    # Do this by creating a build folder in the thirdparty folders for each of those projects
+    # There: cmake .., then sudo cmake --build . --target install
+    if(NOT fastcdr_FOUND)
+        find_package(fastcdr REQUIRED)
+    endif()
+
+    if(NOT foonathan_memory_FOUND)
+        find_package(foonathan_memory REQUIRED)
+    endif()
+
+    if(NOT fastrtps_FOUND)
+        find_package(fastrtps REQUIRED)
+    endif()
+
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
 endif()
 
@@ -104,7 +107,11 @@ add_library(cpm SHARED
 #include_directories(${CMAKE_SOURCE_DIR}/build/thirdparty/Fast-DDS/include)
 #include_directories(${CMAKE_SOURCE_DIR}/thirdparty/Fast-DDS/include)
 
-target_link_libraries(cpm fastrtps fastcdr foonathan_memory)
+if(BUILD_ARM)
+    target_link_libraries(cpm fastrtps fastcdr)
+else()
+    target_link_libraries(cpm fastrtps fastcdr foonathan_memory)
+endif()
 
 
 if(NOT BUILD_ARM)
@@ -133,14 +140,14 @@ if(NOT BUILD_ARM)
     )
 
     target_link_libraries(unittest cpm fastrtps fastcdr foonathan_memory)
+
+    add_executable(SHM_READER
+        test_apps/test_shm_reader.cpp
+    )
+    target_link_libraries(SHM_READER cpm fastrtps)
+
+    add_executable(SHM_WRITER
+        test_apps/test_shm_writer.cpp
+    )
+    target_link_libraries(SHM_WRITER cpm fastrtps)
 endif()
-
-add_executable(SHM_READER
-    test_apps/test_shm_reader.cpp
-)
-target_link_libraries(SHM_READER cpm fastrtps)
-
-add_executable(SHM_WRITER
-    test_apps/test_shm_writer.cpp
-)
-target_link_libraries(SHM_WRITER cpm fastrtps)

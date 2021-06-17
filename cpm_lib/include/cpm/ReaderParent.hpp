@@ -84,8 +84,9 @@ namespace cpm
              * It gets passed all new message data.
              */
             SubListener(std::function<void(std::vector<typename MessageType::type>&)> _registered_callback)
-                : active_matches(0), registered_callback(_registered_callback)
+                : registered_callback(_registered_callback)
             {
+                active_matches = std::make_shared<std::atomic_int>(0);
             }
 
             //! Destructor
@@ -102,7 +103,7 @@ namespace cpm
                     eprosima::fastdds::dds::DataReader*,
                     const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override
             {
-                active_matches = info.total_count;
+                active_matches->store(info.total_count);
             }
 
             /**
@@ -129,8 +130,8 @@ namespace cpm
                 }
             }
 
-            //! Counts the matches of the data reader
-            std::atomic_int active_matches;
+            //! Counts the matches of the data reader, ptr due to an error arising only when C++11 is used (using std::atomic_int directly works in C++17)
+            std::shared_ptr<std::atomic_int> active_matches;
 
             //! Callback function to be called whenever messages get received, takes std::vector of messages as argument, is void
             std::function<void(std::vector<typename MessageType::type>&)> registered_callback;
@@ -296,6 +297,6 @@ namespace cpm
     template<class MessageType> 
     size_t ReaderParent<MessageType>::matched_publications_size()
     {
-        return listener_.active_matches.load();
+        return listener_.active_matches->load();
     }
 }
