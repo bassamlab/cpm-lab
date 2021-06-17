@@ -9,6 +9,12 @@ else
     real_user=$(whoami)
 fi
 
+# Install update-alternatives for GCC for MEX compilation (newer versions than v9 are not supported by Matlab as of June 2021)
+sudo apt install gcc-9 g++-9
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 10
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 10
+# Note: Setting the compiler to gcc-9 etc. is done in the MEX-build script
+
 # Get the path to your Matlab executable (does not work without -i, need user because PATH is not set for sudo)
 MATLAB_PATH=$(sudo -i -u $real_user which matlab; exit)
 MATLAB_PATH=${MATLAB_PATH//'//'/'/'} # Get rid of double-// in the path, which may occur when using sudo -i
