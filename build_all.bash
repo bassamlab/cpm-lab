@@ -30,7 +30,7 @@ done
 # warn users who still use SIMULATION=0
 if [ ! -z $SIMULATION ]; then
     if [ $SIMULATION == 0 ]; then
-        echo -e "\e[31m WARNING: Deprecated ussage of shell variable SIMULATION detected. \e[0m"
+        echo -e "\e[31m WARNING: Deprecated usage of shell variable SIMULATION detected. \e[0m"
         echo -e "\e[31m          SIMULATION=0 does not work anymore. Please use: \e[0m"
         echo -e "\e[31m          - SIMULATION=1 for simulation only builds \e[0m"
         echo -e "\e[31m          - no SIMULATION variable ('unset SIMULATION') for standard builds \e[0m"
