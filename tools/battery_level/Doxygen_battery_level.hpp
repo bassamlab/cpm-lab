@@ -41,4 +41,5 @@
 /**
  * \page bl_main main.m
  * \brief TODO
+ * \ingroup battery_level
  */

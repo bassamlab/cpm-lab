@@ -42,9 +42,11 @@
 /**
  * \page camera_calib_cal calibrationCheckerboardPoints.m
  * \brief TODO
+ * \ingroup camera_calibration
  */
 
 /**
  * \page camera_calib_end end_to_end_calibration.m
  * \brief TODO
+ * \ingroup camera_calibration
  */

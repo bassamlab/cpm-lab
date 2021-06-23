@@ -1,5 +1,6 @@
-Readme.md
+# eProsima Readme (Outdated) {#eprosima_readme}
 
+The following is now handled by the install script
 
 - sudo apt-get install default-jre
 

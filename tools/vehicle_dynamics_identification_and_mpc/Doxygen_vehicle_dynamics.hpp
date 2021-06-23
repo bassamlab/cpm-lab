@@ -52,59 +52,71 @@
 /**
  * \page vdiam_manual manual_parameter_fit.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_mpc_test mpc_test.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_mpc MpcController.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_opt_eval optimize_parameters_delay_grid_eval.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_opt optimize_parameters_delay_grid.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_opt_param optimize_parameters.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_prep prepare_measurement_data.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_read read_rti_csv.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_record recording_to_mat.bash
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_sql sql_to_mat.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_trajectory TrajectoryInterpolation.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */
 
 /**
  * \page vdiam_vehicle vehicle_dynamics.m
  * \brief TODO
+ * \ingroup vehicle_dynamics_identification_and_mpc
  */

@@ -48,24 +48,29 @@
  * folders do not already exist. If they do, please remove the folders beforehand if the files should be re-generated.
  * Runs created tests.
  * Also creates one of the packages for the HLC/NUC s.t. it also has access to the library and generated files.
+ * \ingroup cpmlib_further_files
  */
 
 /**
  * \page cpm_build_arm build_arm.bash
  * \brief ARM build file for the cpm library
+ * \ingroup cpmlib_further_files
  */
 
 /**
  * \page cpm_rtigen rtigen.bash
  * \brief Creates C++ files from the .idl type definitions for DDS messages
+ * \ingroup cpmlib_further_files
  */
 
 /**
  * \page cpm_rtigen_matlab rtigen_matlab.m
  * \brief Creates Matlab files from the .idl type definitions for DDS messages
+ * \ingroup cpmlib_further_files
  */
 
 /**
  * \page cpm_test cpm_lib/test
  * \brief Includes test files 
+ * \ingroup cpmlib_further_files
  */

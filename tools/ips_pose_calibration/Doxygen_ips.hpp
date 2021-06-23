@@ -41,4 +41,5 @@
 /**
  * \page ips_calib_pose pose_calibration.m
  * \brief TODO
+ * \ingroup ips_calibration
  */

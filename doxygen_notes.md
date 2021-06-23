@@ -1,3 +1,5 @@
+# Doxygen Setup Notes {#doxygen_readme}
+
 Required packages: apt install doxygen graphviz
 The file output is set to ../doxygen, maybe the folder must be generated first (e.g. at ~/dev/doxygen)
 

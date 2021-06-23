@@ -924,6 +924,7 @@ EXCLUDE                =    mid_level_controller/src/bcm2835.h \
                             tools/vehicle_dynamics_identification_and_mpc/readme.md  \
                             cpm_lib/test/catch.hpp \
                             cpm_lib/test/catch.cpp \
+                            cpm_lib/thirdparty \
                             indoor_positioning_system/test/catch.hpp \
                             indoor_positioning_system/test/catch.cpp \
                             middleware/test/catch.hpp \

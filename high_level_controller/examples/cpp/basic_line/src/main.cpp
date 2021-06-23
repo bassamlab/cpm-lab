@@ -54,11 +54,13 @@ using std::vector;
 /**
  * \page basic_line_build build.bash
  * \brief Build script for basic_line
+ * \ingroup basic_line_files
  */
 
 /**
  * \page basic_line_run run.bash
  * \brief Run script for basic_line
+ * \ingroup basic_line_files
  */
 
 /**

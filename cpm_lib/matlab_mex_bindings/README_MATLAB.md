@@ -1,4 +1,7 @@
-# How to compile these files
+# eProsima for Matlab {#matlab_readme}
+Located in cpm_lib/matlab_mex_bindings and referring to files in this folder.
+
+## How to compile these files
 You need to compile these files using MEX. This should already be taken care of by the build_mex.bash here. **BUT**: You need to make some preparations beforehand.
 
 In the following, I will assume that you already have installed FastDDS and FastCDR and put their library files in your global installation folder (by installing these globally) at /usr/local/lib.
@@ -14,7 +17,7 @@ mex vehicle_command_trajectory_writer.cpp -Lpath_to_cpm_lib_folder/build -lcpm -
 
 4. YOU ARE NOT DONE YET!
 
-# How to execute these files
+## How to execute these files
 Matlab will not be able to execute your Mex-Files without preparation!
 
 1. You need to preload all required library files **before** you start Matlab. You may notice that libstdc++ is included here as well. I will explain that in step 3. DO NOT set this variable globally unless you want some of your programs to crash on start. (Adapt the folder names depending on your system setup):
@@ -44,10 +47,10 @@ setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), ':/home/leon/dev/software/
 
 6. You should now be ready to go. The next section explains how the readers and writers are supposed to be used
 
-# How to use the provided readers and writers
+## How to use the provided readers and writers
 Note: This guide is not final, as it is, in its current version, not fully compatible with remote deployment!
 
-## Importing the readers and writers
+### Importing the readers and writers
 Make sure to import this folder in your matlab file. An example can be seen below:
 
 ```matlab
@@ -59,12 +62,12 @@ assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_f
 addpath(common_cpm_functions_path);
 ```
 
-## Using the readers
+### Using the readers
 Both readers **should not be used directly**, unless you only want them to receive data while their mex-function is called and before it returns. You very likely don't want that to happen and want the readers to receive data while your code is doing other things as well.
 
 For this purpose, the wrappers systemTriggerReader and vehicleStateListReader have been created. They let the readers run in a new thread.
 
-### Receiving systemTrigger messages
+#### Receiving systemTrigger messages
 These messages inform the HLC if it should start (check after initialization) or stop (check in every timestep) its computation. You do not need to interpret the value of the signal - the Middleware takes care of these timing-issues for you. The only thing you need to consider is the value of the stop symbol, which you can define as: 
 
 ```matlab
@@ -108,7 +111,7 @@ end
 disp('Done');  
 ```
 
-### Receiving vehicleStateList messages
+#### Receiving vehicleStateList messages
 The basic idea is similar to systemTrigger. 
 
 **Input**:
@@ -149,12 +152,12 @@ The mex-file **returns** the received VehicleStateList in form of a struct. It c
 
 Again, the received data is only valid if **is_valid** is true, else no message was actually received and the rest of the struct should either be empty or default to zero.
 
-## Using the writers
+### Using the writers
 Using the writers is just as simple. To write a message, you first need to create a class object of the message you want to write, ReadyStatus or VehicleCommandTrajectory, then fill it with the information you want to send and finally write it with the correct writer. 
 
 You just need to pass the correct object (type) to the mex-writer to send it.
 
-### ReadyStatus writer
+#### ReadyStatus writer
 A full example of creating the ReadyStatus message object, filling it with data and sending it is shown below:
 
 ```matlab
@@ -164,7 +167,7 @@ ready_msg.next_start_stamp = uint64(0);
 ready_status_writer(ready_msg);
 ```
 
-### VehicleCommandTrajectory writer
+#### VehicleCommandTrajectory writer
 As before, here is a full example with setting up and sending the message.
 
 ```matlab
@@ -195,7 +198,7 @@ vehicle_command_trajectory.valid_after_stamp = ...
 vehicle_command_trajectory_writer(vehicle_command_trajectory);
 ```
 
-## Always make sure to clear your objects after you have used them
+### Always make sure to clear your objects after you have used them
 ```matlab
 clear vehicle_command_trajectory_writer
 clear ready_status_writer

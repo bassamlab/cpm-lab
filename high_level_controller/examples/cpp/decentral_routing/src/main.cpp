@@ -82,16 +82,19 @@ using std::vector;
 /**
  * \page d_r_build build.bash
  * \brief Build script for decentral_routing
+ * \ingroup decentral_routing_files
  */
 
 /**
  * \page d_r_run run.bash
  * \brief Run script for decentral_routing
+ * \ingroup decentral_routing_files
  */
 
 /**
  * \page d_r_run_distr run_distributed.bash
  * \brief TODO
+ * \ingroup decentral_routing_files
  */
 
 /**

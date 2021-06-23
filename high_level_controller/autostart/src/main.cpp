@@ -71,12 +71,14 @@
 /**
  * \page autostart_create ../create_nuc_package.bash
  * \brief Bash file that creates an important package required by the NUCs on the Main Lab PC
+ * \ingroup autostart_files
  */
 
 /**
  * \page autostart_lab ../lab_autostart.bash
  * \brief Bash file that must be placed on the NUC together with some other file, 
  * as described in https://cpm.embedded.rwth-aachen.de/doc/display/CLD/Setup+Without+a+NUC+Image
+ * \ingroup autostart_files
  */
 
 /**

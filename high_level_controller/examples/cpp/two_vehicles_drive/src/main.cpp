@@ -53,11 +53,13 @@ using std::vector;
 /**
  * \page t_v_d_build build.bash
  * \brief Build script for two_vehicles_drive
+ * \ingroup two_vehicles_drive_files
  */
 
 /**
  * \page t_v_d_run run.bash
  * \brief Run script for two_vehicles_drive
+ * \ingroup two_vehicles_drive_files
  */
 
 /**

@@ -57,11 +57,13 @@ using std::vector;
 /**
  * \page e_z_build build.bash
  * \brief Build script for eight_zero
+ * \ingroup eight_zero_files
  */
 
 /**
  * \page e_z_run run.bash
  * \brief Run script for eight_zero
+ * \ingroup eight_zero_files
  */
 
 /**

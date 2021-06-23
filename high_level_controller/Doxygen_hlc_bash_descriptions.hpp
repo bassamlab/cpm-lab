@@ -40,29 +40,35 @@
 /**
  * \page hlc_apache_start apache_start.bash
  * \brief Outdated script to start a script to download from the main computer on the HLC; scripts are now uploaded instead
+ * \ingroup hlc_bash
  */
 
 /**
  * \page hlc_env environment_variables.bash
  * \brief Outdated script to define environment variables for a shell session, e.g. for DDS Discovery and to set RTI DDS variables
+ * \ingroup hlc_bash
  */
 
 /**
  * \page hlc_hlc_start_loc hlc_start_local.bash
  * \brief Start a script using matlab locally in the shell
+ * \ingroup hlc_bash
  */
 
 /**
  * \page hlc_hlc_start hlc_start.bash
  * \brief Outdated script to start a Matlab script on the NUC
+ * \ingroup hlc_bash
  */
 
 /**
  * \page hlc_start start.bash
  * \brief Outdated script to initialize and start Middleware and Matlab HLC on the NUC
+ * \ingroup hlc_bash
  */
 
 /**
  * \page hlc_stop stop.bash
  * \brief Outdated script to stop the started scripts on the NUC
+ * \ingroup hlc_bash
  */

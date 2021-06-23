@@ -35,6 +35,8 @@
  * \section intro Introduction
  * Welcome to the official Doxygen Documentation for the CPM Lab Software. 
  * 
+ * You can find the lab's readme in \ref lab_readme
+ * 
  * Use the search bar to search for further information for a particular class,
  * or take a look at the categories below to find out more about the code modules.
  * 
@@ -45,6 +47,8 @@
  * The setup of the CPM Lab Software is explained in detail in https://cpm.embedded.rwth-aachen.de/doc/display/CLD/Lab+Setup
  * 
  * Setup files, mostly bash scripts, are shortly described in \ref software_files
+ * 
+ * The Matlab setup is shortly explained in \ref matlab_readme, but you should also find a Guide in our Confluence Documentation linked above
  * 
  * \section projects Software Projects
  * \subsection middleware_section Middleware

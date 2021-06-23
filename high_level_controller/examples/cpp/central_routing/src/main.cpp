@@ -62,11 +62,13 @@ using std::vector;
 /**
  * \page central_routing_build build.bash
  * \brief Build script for central_routing
+ * \ingroup central_routing_files
  */
 
 /**
  * \page central_routing_run run.bash
  * \brief Run script for central_routing
+ * \ingroup central_routing_files
  */
 
 /**

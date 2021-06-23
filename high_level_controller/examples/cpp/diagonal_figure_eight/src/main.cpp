@@ -52,11 +52,13 @@ using std::vector;
 /**
  * \page d_f_e_build build.bash
  * \brief Build script for diagonal_figure_eight
+ * \ingroup diagonal_figure_eight_files
  */
 
 /**
  * \page d_f_e_run run.bash
  * \brief Run script for diagonal_figure_eight
+ * \ingroup diagonal_figure_eight_files
  */
 
 /**

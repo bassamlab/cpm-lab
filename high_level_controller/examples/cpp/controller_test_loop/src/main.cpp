@@ -69,16 +69,19 @@
 /**
  * \page c_t_l_build build.bash
  * \brief Build script for controller_test_loop
+ * \ingroup controller_test_loop_files
  */
 
 /**
  * \page c_t_l_run run.bash
  * \brief TODO
+ * \ingroup controller_test_loop_files
  */
 
 /**
  * \page c_t_l_run_platoon run_platoon.bash
  * \brief TODO
+ * \ingroup controller_test_loop_files
  */
 
 /**

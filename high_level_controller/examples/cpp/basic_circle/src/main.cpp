@@ -54,11 +54,13 @@ using std::vector;
 /**
  * \page basic_circle_build build.bash
  * \brief Build script for basic_circle
+ * \ingroup basic_circle_files
  */
 
 /**
  * \page basic_circle_run run.bash
  * \brief Run script for basic_circle
+ * \ingroup basic_circle_files
  */
 
 /**
