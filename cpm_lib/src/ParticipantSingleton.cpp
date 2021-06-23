@@ -40,11 +40,14 @@ namespace cpm
 
         //This part is not clean yet
         eprosima::fastdds::dds::DomainParticipantQos pqos;
-        pqos.name("Participant_sub");
+        pqos.name("ParticipantSingleton");
 
         //This is thread-safe - the former version was not and actually lead to a segfault after quit
         static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> instance_(
-            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(eprosima::fastdds::dds::DomainId_t(0), pqos),
+            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
+                eprosima::fastdds::dds::DomainId_t(cpm::InternalConfiguration::Instance().get_dds_domain()), 
+                pqos
+            ),
             [] (eprosima::fastdds::dds::DomainParticipant* instance_) {
                 if (instance_ != nullptr)
                     eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(instance_);

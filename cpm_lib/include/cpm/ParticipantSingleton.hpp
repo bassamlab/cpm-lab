@@ -47,9 +47,6 @@ namespace cpm
      */
     class ParticipantSingleton
     {
-    private:
-        //! The instance creation is not atomic. Thus: Use a mutex to make sure that the Singleton is not created twice.
-        static std::mutex creation_mutex;
     public:
         ParticipantSingleton() = delete;
         ParticipantSingleton(ParticipantSingleton const&) = delete;
@@ -57,12 +54,6 @@ namespace cpm
         ParticipantSingleton& operator=(ParticipantSingleton const&) = delete;
         ParticipantSingleton& operator=(ParticipantSingleton &&) = delete;
 
-    private:
-
-        //! Internal instance / domain participant of the singleton
-        static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> instance_;
-
-    public:
         /**
          * \brief Retrieve the participant singleton with this function
          * \return A participant
