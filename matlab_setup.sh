@@ -23,19 +23,17 @@ MATLAB_PATH=$(sudo -i -u $real_user which matlab; exit)
 MATLAB_PATH=${MATLAB_PATH//'//'/'/'} # Get rid of double-// in the path, which may occur when using sudo -i
 if [[ -z "${MATLAB_PATH// }" ]]
 then
-    echo "ERROR: Please install Matlab and add it to your PATH before continuing"
-    echo "Aborting..."
-    exit 1
+    echo "WARNING: MATLAB is not installed / on your path. If you install it later on, you must run this script (matlab_setup.sh) manually again!"
+else
+    # Adapt the path to be the path to matlab (cut away /bin/matlab), then expand it to point to the path of the lib to replace
+    MATLAB_PATH=${MATLAB_PATH%/*}
+    MATLAB_PATH=${MATLAB_PATH%/*}
+    MATLAB_LIBSTDCPP_PATH="$MATLAB_PATH/sys/os/glnxa64"
+
+    echo "Now going into $MATLAB_LIBSTDCPP_PATH to replace Matlab's libstdc++ file with the system version..."
+    cd "$MATLAB_LIBSTDCPP_PATH"
+    sudo mkdir -p old
+    sudo mv libstdc++.so.6* old
+    sudo ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 libstdc++.so.6 
+    echo "Done"
 fi
-
-# Adapt the path to be the path to matlab (cut away /bin/matlab), then expand it to point to the path of the lib to replace
-MATLAB_PATH=${MATLAB_PATH%/*}
-MATLAB_PATH=${MATLAB_PATH%/*}
-MATLAB_LIBSTDCPP_PATH="$MATLAB_PATH/sys/os/glnxa64"
-
-echo "Now going into $MATLAB_LIBSTDCPP_PATH to replace Matlab's libstdc++ file with the system version..."
-cd "$MATLAB_LIBSTDCPP_PATH"
-sudo mkdir -p old
-sudo mv libstdc++.so.6* old
-sudo ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 libstdc++.so.6 
-echo "Done"

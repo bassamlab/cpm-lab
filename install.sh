@@ -188,7 +188,7 @@ sudo cmake --build . --target install
 # Thus: Use the provided gradle script for a temporary download & install of Gradle
 cd "$DIR/cpm_lib/thirdparty/"
 cd Fast-DDS-Gen
-sudo ./gradlew assemble # TODO: Fails without sudo, but is this safe enough? Gradle is always downloaded and then get sudo priviliges
+sudo ./gradlew assemble # TODO: Fails without sudo, but is this safe enough? Gradle is always downloaded and then gets sudo priviliges
 
 # Select a unique DDS domain! To avoid interference from other users in the same
 # network, you need to set a DDS domain ID that is different from everyone in
@@ -204,6 +204,14 @@ source /etc/profile.d/rti_connext_dds.sh
 ## 3.4 Install eProsima ARM libraries
 # only needed in real lab mode
 ################## TODO ???????????????????????????????????????? ############################
+
+## 3.5 Adapt the current GCC version - install a version compatible with Matlab (to create Mex Files)
+# This version can later be selected using update-alternatives
+
+## 3.6 Adapt the Matlab installation: Replace the libstdc++ file with a link to the system's file
+# Get the executable path
+cd "$DIR/"
+sudo bash ./matlab_setup.sh
 
 ### 4. Indoor Positioning System (Setup) #######################################
 # The Indoor Positioning System depends on the camera software Basler Pylon and
