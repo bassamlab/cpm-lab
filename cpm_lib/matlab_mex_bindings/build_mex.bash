@@ -1,16 +1,26 @@
 #!/bin/bash
-if ! [ $(id -u) = 0 ]; then
-   echo "This script needs super user privileges. Try to run it again with sudo." >&2
-   exit 1
-fi
-if [ $SUDO_USER ]; then
-    real_user=$SUDO_USER
-else
-    real_user=$(whoami)
-fi
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 CPM_DIR=${DIR%/*}
+
+# Get the path to MEX
+MEX_PATH=$(which mex; exit)
+
+# Check if MEX is installed
+if [[ -z "${MEX_PATH// }" ]]; then
+    echo "ERROR: Please install Matlab and add it (and mex, also in Matlabs bin folder) to your PATH before continuing"
+    echo "Aborting..."
+    exit 0
+fi
+
+# Check for sudo permissions
+if ! sudo true; then
+    warning_msg="WARNING: Without sudo, the Mex Matlab Bindings will not be built! "
+    warning_msg+="You may build them on your own (see build_mex.bash or README.md in matlab_mex_bindings / Confluence Doc. to see how) without using sudo, "
+    warning_msg+="which may mean that you cannot call update-alternatives to switch to a supported GCC version. "
+    warning_msg+="This may not actually be problematic, as MEX will only print a warning in that case."
+    echo $warning_msg
+    exit 0
+fi
 
 # Switch to gcc-9, which is the newest version supported by Matlab as of June 2021
 # This only works if you have called the matlab_setup script before!
@@ -20,20 +30,12 @@ if [[ "$GCC_ALTERNATIVES" != *"gcc-9"* ]] || [[ "$GPP_ALTERNATIVES" != *"g++-9"*
 then
     echo "ERROR: Missing update-alternatives. Please call matlab_setup.sh before installing the MEX Bindings for Matlab. You can find the script in the top folder of the repository."
     echo "Aborting..."
-    exit 1
+    exit 0
 fi
+
+# Checks done, now start
 sudo update-alternatives --set gcc /usr/bin/gcc-9
 sudo update-alternatives --set g++ /usr/bin/g++-9
-
-# Get the path to MEX, which is most often not known to the sudo user
-MEX_PATH=$(sudo -i -u $real_user which mex; exit)
-
-# Check if MEX is installed
-if [[ -z "${MEX_PATH// }" ]]; then
-    echo "ERROR: Please install Matlab and add it (and mex, also in Matlabs bin folder) to your PATH before continuing"
-    echo "Aborting..."
-    exit 1
-fi
 
 # Compile the MEX files
 echo "Now compiling your MEX files, given that mex is on the PATH and the cpm lib, FastDDS and FastCDR are installed..."

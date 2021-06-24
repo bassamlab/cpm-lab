@@ -35,14 +35,7 @@ if [ -z $SIMULATION ]; then
 fi
 
 # Build the Matlab Bindings using MEX, if possible and with sudo privileges for update-alternatives
-if sudo true; then
-    cd $DIR/matlab_mex_bindings
-    sudo bash build_mex.bash # checks for $SIMULATION by itself
-    cd $DIR
-else
-    warning_msg="WARNING: Without sudo, the Mex Matlab Bindings will not be built! "
-    warning_msg+="You may build them on your own (see build_mex.bash or README.md in matlab_mex_bindings to see how) without using sudo, "
-    warning_msg+="which may mean that you cannot call update-alternatives to switch to a supported GCC version. "
-    warning_msg+="This may not actually be problematic, as MEX will only print a warning in that case."
-    echo $warning_msg
-fi
+# All requirements are checked within the script
+cd $DIR/matlab_mex_bindings
+bash build_mex.bash
+cd $DIR

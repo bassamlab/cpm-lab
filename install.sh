@@ -196,7 +196,7 @@ sudo ./gradlew assemble # TODO: Fails without sudo, but is this safe enough? Gra
 # DDS_DOMAIN.
 
 echo "export DDS_DOMAIN=""${DOMAIN_ID}" > /etc/profile.d/rti_connext_dds.sh
-echo "export RASPBIAN_TOOLCHAIN=/opt/raspbian-toolchain-gcc-4.7.2-linux64" >> /etc/profile.d/rti_connext_dds.sh
+echo "export RASPBIAN_TOOLCHAIN=/opt/cross-pi-gcc" >> /etc/profile.d/rti_connext_dds.sh
 echo "export RPIPWD=cpmcpmcpm" >> /etc/profile.d/rti_connext_dds.sh
 # Reboot or source to apply the changes made to the environment variables.
 source /etc/profile.d/rti_connext_dds.sh
