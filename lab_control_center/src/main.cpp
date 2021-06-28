@@ -90,25 +90,6 @@ std::shared_ptr<SetupViewUI> setupViewUi;
 std::shared_ptr<ProgramExecutor> program_executor;
 
 /**
- * \brief Function to deploy cloud discovery (to help participants discover each other)
- * Will crash on purpose if program_executor is not set (we need this function to work)
- * \ingroup lcc
- */
-void deploy_cloud_discovery() {
-    std::string command = "tmux new-session -d -s \"rticlouddiscoveryservice\" \"rticlouddiscoveryservice -transport 25598\"";
-    program_executor->execute_command(command.c_str());
-}
-
-/**
- * \brief Function to kill cloud discovery
- * \ingroup lcc
- */
-void kill_cloud_discovery() {
-    std::string command = "tmux kill-session -t \"rticlouddiscoveryservice\"";
-    if (program_executor) program_executor->execute_command(command.c_str());
-}
-
-/**
  * \brief Sometimes, a tmux session can stay open if the LCC crashed. 
  * To make sure that no session is left over / everything is "clean" 
  * when a new LCC gets started, kill all old sessions
@@ -127,8 +108,6 @@ void kill_all_tmux_sessions() {
  * \ingroup lcc
  */
 void interrupt_handler(int s) {
-    kill_cloud_discovery();
-
     //Kill remaining programs opened by setup view ui
     if (setupViewUi)
     {
@@ -145,8 +124,6 @@ void interrupt_handler(int s) {
  * \ingroup lcc
  */
 void exit_handler() {
-    kill_cloud_discovery();
-
     //Kill remaining programs opened by setup view ui
     if (setupViewUi)
     {
@@ -252,9 +229,6 @@ int main(int argc, char *argv[])
     sigaction(SIGINT, &interruptHandler, NULL);
 
     std::atexit(exit_handler);
-
-    //Start IPS and Cloud Discovery Service which are always required to communicate with real vehicles
-    deploy_cloud_discovery();
 
     //Read command line parameters (current params: auto_start and config_file)
     //TODO auto_start: User does not need to trigger the process manually / does not need to press 'start' when all participants are ready
