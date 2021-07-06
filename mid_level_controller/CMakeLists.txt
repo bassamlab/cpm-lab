@@ -13,17 +13,24 @@ include_directories(src)
 include_directories(../cpm_lib/include/)
 include_directories(../cpm_lib/include/cpm/)
 
-# Fast-DDS
-if(NOT fastcdr_FOUND)
-    find_package(fastcdr REQUIRED)
-endif()
+if(BUILD_ARM)
+    # eProsima gets compiled together with the ARM files
+    option(THIRDPARTY "" ON)
+    option(BUILD_TESTING "" OFF)
+    add_subdirectory(../cpm_lib/thirdparty/Fast-DDS/ build)
+else()
+    # Fast-DDS
+    if(NOT fastcdr_FOUND)
+        find_package(fastcdr REQUIRED)
+    endif()
 
-if(NOT foonathan_memory_FOUND)
-    find_package(foonathan_memory REQUIRED)
-endif()
+    if(NOT foonathan_memory_FOUND)
+        find_package(foonathan_memory REQUIRED)
+    endif()
 
-if(NOT fastrtps_FOUND)
-    find_package(fastrtps REQUIRED)
+    if(NOT fastrtps_FOUND)
+        find_package(fastrtps REQUIRED)
+    endif()
 endif()
 
 
@@ -98,4 +105,8 @@ if(BUILD_SIMULATION)
     target_compile_options(vehicle_rpi_firmware  PUBLIC -DVEHICLE_SIMULATION)
 endif()
 
-target_link_libraries(vehicle_rpi_firmware cpm fastrtps fastcdr foonathan_memory)
+if(BUILD_ARM)
+    target_link_libraries(vehicle_rpi_firmware cpm fastrtps)
+else()
+    target_link_libraries(vehicle_rpi_firmware cpm fastrtps fastcdr foonathan_memory)
+endif()
