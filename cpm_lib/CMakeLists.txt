@@ -150,4 +150,16 @@ if(NOT BUILD_ARM)
         test_apps/test_shm_writer.cpp
     )
     target_link_libraries(SHM_WRITER cpm fastrtps)
+
+    add_executable(MatlabEprosimaReceiveTest
+        test_apps/MatlabEprosimaReceiveTest.cpp
+    )
+
+    target_link_libraries(MatlabEprosimaReceiveTest cpm fastrtps fastcdr foonathan_memory)
+
+    add_executable(MatlabEprosimaWriteTest
+        test_apps/MatlabEprosimaWriteTest.cpp
+    )
+
+    target_link_libraries(MatlabEprosimaWriteTest cpm fastrtps fastcdr foonathan_memory)
 endif()

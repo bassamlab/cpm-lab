@@ -35,15 +35,13 @@ private:
     //! Used for translation, printing etc.
     std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
 
-    cpm::Participant participant;
-    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer;
+    std::shared_ptr<cpm::Participant> participant;
+    std::shared_ptr<cpm::Writer<VehicleCommandTrajectoryPubSubType>> writer;
 public:
     /**
-     * \brief Constructor, sets up eprosima objects and matlabPtr
+     * \brief Constructor, sets up matlabPtr, cannot setup eProsima bc we do not know the Domain ID yet
      */
-    MexFunction() :
-        participant(1, true),
-        writer(participant.get_participant(), "vehicleCommandTrajectory", false, false, false)
+    MexFunction()
     {
         matlabPtr = getEngine();
 
@@ -63,9 +61,33 @@ public:
         //Check if inputs match the expected input
         checkArguments(outputs, inputs);
 
+        //Get domain_id from input, if set
+        auto domain_id = 1; //DEFAULT
+        if(inputs.size() > 1)
+        {
+            matlab::data::TypedArray<uint32_t> domain_ids = std::move(inputs[1]);
+            domain_id = domain_ids[0];
+        }
+
+        //Set up eProsima objects if they do not yet exist
+        if (!participant || !writer)
+        {
+            participant = std::make_shared<cpm::Participant>(
+                domain_id, 
+                true
+            );
+            writer = std::make_shared<cpm::Writer<VehicleCommandTrajectoryPubSubType>>(
+                participant->get_participant(), 
+                "vehicleCommandTrajectory", 
+                false, 
+                false, 
+                false
+            );
+        }
+
         //Write ready status msg
         auto status = get_vehicle_command_from_input(inputs);
-        writer.write(status);
+        writer->write(status);
 
         return;
     }
@@ -78,19 +100,31 @@ public:
     void checkArguments(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
         matlab::data::ArrayFactory factory;
 
-        if (inputs.size() != 1)
+        if (inputs.size() < 1 || inputs.size() > 2)
         {
             matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Input must be an object of type VehicleCommandTrajectory!") }));
+                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Input must be an object of type VehicleCommandTrajectory, followed by an optional domain_id argument (default is 1)!") }));
         }
 
-        //Test for correct class
+        //Test for correct class w.r.t. message to send
         std::vector<matlab::data::Array> args{ inputs[0], factory.createCharArray("VehicleCommandTrajectory") };
         matlab::data::TypedArray<bool> result = matlabPtr->feval(u"isa", args);
         if (result[0] != true) {
             matlabPtr->feval(u"error", 0, 
                std::vector<matlab::data::Array>({ factory.createScalar("Input must be an object of type VehicleCommandTrajectory!") }));
         } 
+
+        //Test for correct class w.r.t. domain_id
+        if (inputs.size() > 1)
+        {
+            if (inputs[1].getType() != matlab::data::ArrayType::UINT32)
+            {
+                matlabPtr->feval(u"error", 0, 
+                    std::vector<matlab::data::Array>({ 
+                        factory.createScalar("The optional input domain_id must be of type uint32. It specifies the domain ID of the participant (default is 1).") 
+                }));
+            }
+        }
     }
 
     /**

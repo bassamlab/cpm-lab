@@ -248,15 +248,3 @@ add_executable(VisualizationTest
 )
 
 target_link_libraries(VisualizationTest cpm fastrtps fastcdr foonathan_memory)
-
-add_executable(MatlabEprosimaReceiveTest
-    test/MatlabEprosimaReceiveTest.cpp
-)
-
-target_link_libraries(MatlabEprosimaReceiveTest cpm fastrtps fastcdr foonathan_memory)
-
-add_executable(MatlabEprosimaWriteTest
-    test/MatlabEprosimaWriteTest.cpp
-)
-
-target_link_libraries(MatlabEprosimaWriteTest cpm fastrtps fastcdr foonathan_memory)

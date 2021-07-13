@@ -50,10 +50,13 @@ function main(vehicle_id)
     % disp('Calling delete');
     % mex_test_eprosima('delete');
 
-    % ready_status = ReadyStatus('hlc_1', 2021);
+    ready_status = ReadyStatus;
+    ready_status.source_id = 'hlc_1';
+    ready_status.next_start_stamp = 2021;
+    domain_id = uint32(2);
 
     % Testing the ready signal
-    % ready_status_writer(ready_status);
+    ready_status_writer(ready_status, domain_id);
 
     % What happens if no system trigger was yet sent?
 %     system_trigger = SystemTrigger;
@@ -86,8 +89,12 @@ function main(vehicle_id)
     point2.px = 1;
     point3.px = 3;
     
+    domain_id = uint32(2);
+    
     trajectory.trajectory_points = [point1, point2, point3];
-    vehicle_command_trajectory_writer(trajectory);
+    vehicle_command_trajectory_writer(trajectory, domain_id);
+    
+    pause(1);
 
     % Clear mex files etc. from system memory
     % Else: The transient local ready signal etc. are still being sent
