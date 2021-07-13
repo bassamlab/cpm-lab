@@ -158,7 +158,7 @@ static inline double voltage_to_percent(const double& v)
 
 void TimeSeriesAggregator::handle_new_vehicleState_samples(std::vector<VehicleState>& samples)
 {
-    std::lock_guard<std::mutex> lock(_mutex); 
+    std::lock_guard<std::mutex> lock(data_mutex); 
     const uint64_t now = cpm::get_time_ns();
     for(auto& state : samples)
     {
@@ -218,7 +218,7 @@ void TimeSeriesAggregator::handle_new_vehicleObservation_samples(
     std::vector<VehicleObservation>& samples
 )
 {
-    std::lock_guard<std::mutex> lock(_mutex); 
+    std::lock_guard<std::mutex> lock(data_mutex); 
     const uint64_t now = cpm::get_time_ns();
     for(auto& state : samples)
     {
@@ -248,7 +248,7 @@ void TimeSeriesAggregator::handle_new_vehicleObservation_samples(
 }
 
 VehicleData TimeSeriesAggregator::get_vehicle_data() {
-    std::lock_guard<std::mutex> lock(_mutex); 
+    std::lock_guard<std::mutex> lock(data_mutex); 
     const uint64_t now = cpm::get_time_ns();
 
     //--------------------------------------------------------------------------- CHECKS ------------------------------------
@@ -283,7 +283,10 @@ VehicleData TimeSeriesAggregator::get_vehicle_data() {
 VehicleTrajectories TimeSeriesAggregator::get_vehicle_trajectory_commands() {
     VehicleTrajectories trajectory_sample;
     std::map<uint8_t, uint64_t> trajectory_sample_age;
+
+    std::shared_lock<std::shared_mutex> lock_reader(reset_reader_mutex);
     vehicle_commandTrajectory_reader->get_samples(cpm::get_time_ns(), trajectory_sample, trajectory_sample_age);
+    lock_reader.unlock();
 
     //Only return data that is not fully outdated
     for(auto it = trajectory_sample.begin(); it != trajectory_sample.end(); /*No ++ because this depends on whether a deletion took place*/)
@@ -304,7 +307,10 @@ VehicleTrajectories TimeSeriesAggregator::get_vehicle_trajectory_commands() {
 VehiclePathTracking TimeSeriesAggregator::get_vehicle_path_tracking_commands() {
     VehiclePathTracking path_tracking_sample;
     std::map<uint8_t, uint64_t> path_tracking_sample_age;
+
+    std::shared_lock<std::shared_mutex> lock_reader(reset_reader_mutex);
     vehicle_commandPathTracking_reader->get_samples(cpm::get_time_ns(), path_tracking_sample, path_tracking_sample_age);
+    lock_reader.unlock();
 
     //Only return data that is not fully outdated
     for(auto it = path_tracking_sample.begin(); it != path_tracking_sample.end(); /*No ++ because this depends on whether a deletion took place*/)
@@ -324,8 +330,12 @@ VehiclePathTracking TimeSeriesAggregator::get_vehicle_path_tracking_commands() {
 
 void TimeSeriesAggregator::reset_all_data()
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+    std::unique_lock<std::mutex> lock_data(data_mutex);
     timeseries_vehicles.clear();
+    lock_data.unlock();
+
+    //Write-locks the readers, so that both shared locks above cannot be acquired until a reset
+    std::unique_lock<std::shared_mutex> lock_reader(reset_reader_mutex);
     vehicle_commandTrajectory_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandTrajectoryPubSubType>>("vehicleCommandTrajectory",
         vehicle_ids
     );

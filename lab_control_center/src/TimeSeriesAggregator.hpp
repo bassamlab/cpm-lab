@@ -40,6 +40,7 @@
 #include "cpm/get_time_ns.hpp"
 
 #include <mutex>
+#include <shared_mutex>
 #include <unordered_map>
 
 /**
@@ -113,7 +114,9 @@ class TimeSeriesAggregator
     std::vector<uint8_t> vehicle_ids;
 
     //! For handling new states, resetting all data and getting the vehicle data
-    std::mutex _mutex;
+    std::mutex data_mutex;
+    //! For resetting the multi vehicle readers. Shared lock for retrieving data
+    std::shared_mutex reset_reader_mutex;
 
     //Expected update frequency and structures to detect changes in update frequency
     //! Expected update frequency
