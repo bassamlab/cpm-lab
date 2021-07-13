@@ -44,9 +44,6 @@ public:
     MexFunction()
     {
         matlabPtr = getEngine();
-
-        //Wait a bit to allow for matching
-        usleep(500000);
     }
 
     /**

@@ -9,13 +9,18 @@
 % sudo mv libstdc++.so.6* old
 % sudo ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 libstdc++.so.6 
 
-function result = vehicleStateListReader(wait_timeout_seconds)
+% The parameters are optional
+% Domain ID: Default is 1
+% Wait: Default is not to wait at all
+function result = vehicleStateListReader(domain_id, wait_timeout_seconds)
     persistent mh
     if ~(isa(mh,'matlab.mex.MexHost') && isvalid(mh))
         mh = mexhost;
     end
     if exist('wait_timeout_seconds', 'var')
-        result = feval(mh,"vehicle_state_list_reader", wait_timeout_seconds);
+        result = feval(mh,"vehicle_state_list_reader", domain_id, wait_timeout_seconds);
+    elseif exist('domain_id', 'var')
+        result = feval(mh,"vehicle_state_list_reader", domain_id);
     else 
         result = feval(mh,"vehicle_state_list_reader");
     end

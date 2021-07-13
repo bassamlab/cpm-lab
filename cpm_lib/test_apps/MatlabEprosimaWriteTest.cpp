@@ -54,9 +54,9 @@ int main(int argc, char *argv[]) {
     // std::shared_ptr<cpm::Participant> particpant_ptr = std::make_shared<cpm::Participant>(0);
     // cpm::ReaderAbstract<VisualizationPubSubType> reader(particpant_ptr->get_participant(), "visualization");
 
-    std::shared_ptr<cpm::Participant> particpant_ptr = std::make_shared<cpm::Participant>(1, true);
-    //cpm::Writer<SystemTriggerPubSubType> writer(particpant_ptr->get_participant(), "systemTrigger", true, true, true);
-    cpm::Writer<VehicleStateListPubSubType> writer(particpant_ptr->get_participant(), "vehicleStateList", false, false, false);
+    std::shared_ptr<cpm::Participant> particpant_ptr = std::make_shared<cpm::Participant>(2, true);
+    cpm::Writer<SystemTriggerPubSubType> writer(particpant_ptr->get_participant(), "systemTrigger", true, true, true);
+    //cpm::Writer<VehicleStateListPubSubType> writer(particpant_ptr->get_participant(), "vehicleStateList", false, false, false);
     
     while(writer.matched_subscriptions_size() < 1)
     {
@@ -82,16 +82,17 @@ int main(int argc, char *argv[]) {
 
     vehicle_state_list.vehicle_observation_list({ observation1 });
 
-    // SystemTrigger trigger;
-    // TimeStamp stamp;
-    // stamp.nanoseconds(50);
-    // trigger.next_start(stamp);
+    SystemTrigger trigger;
+    TimeStamp stamp;
+    stamp.nanoseconds(50);
+    trigger.next_start(stamp);
     
     //Write the message three times
     auto repeat = 3;
     for (auto i = 0; i < repeat; ++i)
     {
-        writer.write(vehicle_state_list);
+        //writer.write(vehicle_state_list);
+        writer.write(trigger);
         //std::cout << trigger.next_start().nanoseconds() << std::endl;
         usleep(100000);
     }

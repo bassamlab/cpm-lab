@@ -64,8 +64,11 @@ function main(vehicle_id)
 %     disp(system_trigger);
     % -> As you can see: I added a value called is_valid to the system trigger, which is false if no msg was received
 
+    % System trigger test
+    system_trigger = systemTriggerReader(uint32(2), true);
+    
     % Test if the specified data type works    
-    state_list = vehicleStateListReader();
+    state_list = vehicleStateListReader(uint32(2), uint32(5000));
 
     % Now wait for a msg
     % system_trigger = SystemTrigger;

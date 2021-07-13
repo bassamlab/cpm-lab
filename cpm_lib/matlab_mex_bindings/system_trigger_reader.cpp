@@ -42,15 +42,13 @@ private:
     // eprosima::fastdds::dds::DataReader* reader_ = nullptr;
     // eprosima::fastdds::dds::TypeSupport type_{new SystemTriggerPubSubType()};
 
-    cpm::Participant participant;
-    cpm::ReaderAbstract<SystemTriggerPubSubType> reader;
+    std::shared_ptr<cpm::Participant> participant;
+    std::shared_ptr<cpm::ReaderAbstract<SystemTriggerPubSubType>> reader;
 public:
     /**
      * \brief Constructor, sets up eprosima objects and matlabPtr
      */
-    MexFunction() :
-        participant(1, true),
-        reader("systemTrigger", true)
+    MexFunction()
     {
         matlabPtr = getEngine();
 
@@ -63,9 +61,6 @@ public:
         // char *argv[] = {program_name, arg1, arg2};
         // int argc = 3;
         // cpm::init(argc, argv);
-
-        //Wait a bit to allow for matching
-        usleep(500000);
     }
 
     /**
@@ -82,20 +77,43 @@ public:
         //Check if inputs match the expected input
         checkArguments(outputs, inputs);
 
+        //Get domain_id from input, if set
+        auto domain_id = 1; //DEFAULT
+        if(inputs.size() > 1)
+        {
+            matlab::data::TypedArray<uint32_t> domain_ids = std::move(inputs[0]);
+            domain_id = domain_ids[0];
+        }
+
+        //Create the DDS participants, if they do not already exist
+        //Needs to be done here to be able to set the domain ID
+        if (!participant || !reader)
+        {
+            participant = std::make_shared<cpm::Participant>(
+                domain_id, 
+                true
+            );
+            reader = std::make_shared<cpm::ReaderAbstract<SystemTriggerPubSubType>>(
+                participant->get_participant(), 
+                "systemTrigger", 
+                true
+            );
+        }
+
         //Check if the reader should wait infinitely
         bool wait = false;
         if (inputs.size() >= 1) {
-            matlab::data::TypedArray<bool> wait_inf = std::move(inputs[0]);
+            matlab::data::TypedArray<bool> wait_inf = std::move(inputs[1]);
             wait = wait_inf[0];
         }
 
         //Wait inf. if desired
         if(wait) {
-            reader.wait_for_unread_message(std::numeric_limits<unsigned int>::max());
+            reader->wait_for_unread_message(std::numeric_limits<unsigned int>::max());
         }
 
         //Get ready status msg
-        auto msgs = reader.take();
+        auto msgs = reader->take();
 
         //Return the last read system trigger, set it to not valid if it does not exist
         //Create output struct
@@ -129,22 +147,34 @@ public:
     void checkArguments(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
         matlab::data::ArrayFactory factory;
 
-        if (inputs.size() > 1)
+        if (inputs.size() > 2)
         {
             matlabPtr->feval(u"error", 0, 
                 std::vector<matlab::data::Array>({ 
-                    factory.createScalar("Wrong input size. Optionally, a bool may be used to specify if the reader should wait infinitely for a system trigger.") 
+                    factory.createScalar("Wrong input size. The first optional parameter is the domain ID (default is 1). Optionally, a following bool may be used to specify if the reader should wait infinitely for a system trigger.") 
             }));
         }
 
         //Test for optional bool parameter
-        if (inputs.size() >= 1)
+        if (inputs.size() >= 2)
         {
-            if (inputs[0].getType() != matlab::data::ArrayType::LOGICAL)
+            if (inputs[1].getType() != matlab::data::ArrayType::LOGICAL)
             {
                 matlabPtr->feval(u"error", 0, 
                     std::vector<matlab::data::Array>({ 
-                        factory.createScalar("The optional input must be of type bool. It specifies if the reader should wait for a system trigger infinitely.") 
+                        factory.createScalar("The second optional input must be of type bool. It specifies if the reader should wait for a system trigger infinitely (or rather, for years, which should be sufficient).") 
+                }));
+            }
+        }
+
+        //Test for correct class w.r.t. domain_id
+        if (inputs.size() >= 1)
+        {
+            if (inputs[0].getType() != matlab::data::ArrayType::UINT32)
+            {
+                matlabPtr->feval(u"error", 0, 
+                    std::vector<matlab::data::Array>({ 
+                        factory.createScalar("The first optional input domain_id must be of type uint32. It specifies the domain ID of the participant (default is 1).") 
                 }));
             }
         }

@@ -34,20 +34,15 @@ private:
     //! Used for translation, printing etc.
     std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
 
-    cpm::Participant participant;
-    cpm::ReaderAbstract<VehicleStateListPubSubType> reader;
+    std::shared_ptr<cpm::Participant> participant;
+    std::shared_ptr<cpm::ReaderAbstract<VehicleStateListPubSubType>> reader;
 public:
     /**
      * \brief Constructor, sets up eprosima objects and matlabPtr
      */
-    MexFunction() :
-        participant(1, true),
-        reader(participant.get_participant(), "vehicleStateList", false, false, false)
+    MexFunction()
     {
         matlabPtr = getEngine();
-
-        //Wait a bit to allow for matching
-        usleep(500000);
     }
 
     /**
@@ -64,6 +59,31 @@ public:
 
         //Check if inputs match the expected input
         checkArguments(outputs, inputs);
+
+        //Get domain_id from input, if set
+        auto domain_id = 1; //DEFAULT
+        if(inputs.size() > 1)
+        {
+            matlab::data::TypedArray<uint32_t> domain_ids = std::move(inputs[0]);
+            domain_id = domain_ids[0];
+        }
+
+        //Create the DDS participants, if they do not already exist
+        //Needs to be done here to be able to set the domain ID
+        if (!participant || !reader)
+        {
+            participant = std::make_shared<cpm::Participant>(
+                domain_id, 
+                true
+            );
+            reader = std::make_shared<cpm::ReaderAbstract<VehicleStateListPubSubType>>(
+                participant->get_participant(), 
+                "vehicleStateList", 
+                false, 
+                false, 
+                false
+            );
+        }
 
         //Create output struct
         matlab::data::StructArray state_list_object = factory.createStructArray(
@@ -84,12 +104,12 @@ public:
 
         //Check if the reader should wait wait_time_ms milliseconds for incoming messages
         if (inputs.size() >= 1) {
-            matlab::data::TypedArray<uint32_t> wait_time_ms = std::move(inputs[0]);
-            reader.wait_for_unread_message(wait_time_ms[0]);
+            matlab::data::TypedArray<uint32_t> wait_time_ms = std::move(inputs[1]);
+            reader->wait_for_unread_message(wait_time_ms[0]);
         }
 
         
-        auto samples = reader.take();
+        auto samples = reader->take();
 
         if (samples.size() > 0)
         {
@@ -193,20 +213,32 @@ public:
     void checkArguments(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
         matlab::data::ArrayFactory factory;
 
-        if (inputs.size() > 1)
+        if (inputs.size() > 2)
         {
             matlabPtr->feval(u"error", 0, 
-                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Input must be empty!") }));
+                std::vector<matlab::data::Array>({ factory.createScalar("Wrong input size. Optional inputs are (in this order): Domain ID, max. time in ms. to wait for a message!") }));
         }
 
-        //Test for optional unsigned int parameter
+        //Test for optional unsigned int parameter for timeout / max. wait time
+        if (inputs.size() >= 2)
+        {
+            if (inputs[1].getType() != matlab::data::ArrayType::UINT32)
+            {
+                matlabPtr->feval(u"error", 0, 
+                    std::vector<matlab::data::Array>({ 
+                        factory.createScalar("The second optional input must be of type uint32. It specifies how long the reader should wait for a message, in milliseconds (default: don't wait).") 
+                }));
+            }
+        }
+
+        //Test for correct class w.r.t. domain_id
         if (inputs.size() >= 1)
         {
             if (inputs[0].getType() != matlab::data::ArrayType::UINT32)
             {
                 matlabPtr->feval(u"error", 0, 
                     std::vector<matlab::data::Array>({ 
-                        factory.createScalar("The optional input must be of type uint32. It specifies how long the reader should wait for a message, in milliseconds.") 
+                        factory.createScalar("The optional input domain_id must be of type uint32. It specifies the domain ID of the participant (default is 1).") 
                 }));
             }
         }

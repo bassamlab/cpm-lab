@@ -9,14 +9,19 @@
 % sudo mv libstdc++.so.6* old
 % sudo ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 libstdc++.so.6 
 
-function result = systemTriggerReader(wait_infinitely_for_msg)
+% The parameters are optional
+% Domain ID: Default is 1
+% Wait: Default is not to wait at all
+function result = systemTriggerReader(domain_id, wait_infinitely_for_msg)
     persistent mh
     if ~(isa(mh,'matlab.mex.MexHost') && isvalid(mh))
         mh = mexhost;
     end
     if exist('wait_infinitely_for_msg', 'var')
-        result = feval(mh,"system_trigger_reader", wait_infinitely_for_msg);
-    else 
+        result = feval(mh,"system_trigger_reader", domain_id, wait_infinitely_for_msg);
+    elseif exist('domain_id', 'var')
+        result = feval(mh,"system_trigger_reader", domain_id);
+    else  
         result = feval(mh,"system_trigger_reader");
     end
 end
