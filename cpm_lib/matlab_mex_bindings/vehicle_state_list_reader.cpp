@@ -62,7 +62,7 @@ public:
 
         //Get domain_id from input, if set
         auto domain_id = 1; //DEFAULT
-        if(inputs.size() > 1)
+        if(inputs.size() >= 1)
         {
             matlab::data::TypedArray<uint32_t> domain_ids = std::move(inputs[0]);
             domain_id = domain_ids[0];
@@ -103,7 +103,7 @@ public:
         //             std::vector<matlab::data::Array>({ factory.createScalar(type_->getName()) }));
 
         //Check if the reader should wait wait_time_ms milliseconds for incoming messages
-        if (inputs.size() >= 1) {
+        if (inputs.size() >= 2) {
             matlab::data::TypedArray<uint32_t> wait_time_ms = std::move(inputs[1]);
             reader->wait_for_unread_message(wait_time_ms[0]);
         }

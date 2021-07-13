@@ -79,7 +79,7 @@ public:
 
         //Get domain_id from input, if set
         auto domain_id = 1; //DEFAULT
-        if(inputs.size() > 1)
+        if(inputs.size() > 0)
         {
             matlab::data::TypedArray<uint32_t> domain_ids = std::move(inputs[0]);
             domain_id = domain_ids[0];
@@ -102,7 +102,7 @@ public:
 
         //Check if the reader should wait infinitely
         bool wait = false;
-        if (inputs.size() >= 1) {
+        if (inputs.size() > 1) {
             matlab::data::TypedArray<bool> wait_inf = std::move(inputs[1]);
             wait = wait_inf[0];
         }
