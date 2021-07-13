@@ -19,7 +19,7 @@ sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 10
 # so that the system setup of the user does not get modified too much
 
 # Get the path to your Matlab executable (does not work without -i, need user because PATH is not set for sudo)
-MATLAB_PATH=$(sudo -i -u $real_user which matlab; exit)
+MATLAB_PATH=$(su $real_user which matlab; exit)
 MATLAB_PATH=${MATLAB_PATH//'//'/'/'} # Get rid of double-// in the path, which may occur when using sudo -i
 if [[ -z "${MATLAB_PATH// }" ]]
 then
