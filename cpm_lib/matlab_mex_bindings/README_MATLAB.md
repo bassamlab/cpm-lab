@@ -62,6 +62,11 @@ assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_f
 addpath(common_cpm_functions_path);
 ```
 
+### Setting a DDS Domain ID
+All provided readers and writers allow you to pass an optional parameter, dds_domain, with which you can specifiy a DDS Domain to use to communicate with the Middleware via shared memory. The default is 1. The following guide shows you at which position this parameter can be set for each reader / writer.
+
+The DDS Domain can only be set once. The parameter is ignored after the first time you called a reader or writer, and if you did not specify an ID in the first call, the default is chosen. You do not want to permanently recreate reader or writer performance-wise, and there should be no need to change the ID once it has been set. Just keep in mind to set it correctly the first time you call each of the provided eProsima functions. It needs to be set for each reader / writer individually.
+
 ### Using the readers
 Both readers **should not be used directly**, unless you only want them to receive data while their mex-function is called and before it returns. You very likely don't want that to happen and want the readers to receive data while your code is doing other things as well.
 
@@ -80,15 +85,16 @@ The mex-file **returns** the received system trigger in form of a struct. It con
 
 If no message was received, **is_valid** is false.
 
-The file also takes an optional **input** parameter:
+The file also takes two optional **input** parameters:
+- *dds_domain* as uint32
 - *wait_infinitely* as a boolean
 
-If you pass *true*, this means that the reader will wait for up to max_unsigned_int milliseconds before it returns.
+If you pass *true*, this means that the reader will wait for up to max_unsigned_int milliseconds before it returns. The parameter dds_domain sets the DDS Domain as described before.
 
 Calling the reader thus may look like this:
 
 ```matlab
-system_trigger = systemTriggerReader(true);
+system_trigger = systemTriggerReader(uint32(1), true);
 ```
 
 Here is a full example:
@@ -99,7 +105,8 @@ stop_symbol = uint64((0xffffffffffffffffu64));
 got_stop = false;
 got_start = false;
 while (~got_stop && ~got_start)
-    system_trigger = systemTriggerReader(true);
+    dds_domain = uint32(1);
+    system_trigger = systemTriggerReader(dds_domain, true);
     if system_trigger.is_valid
         if system_trigger.next_start == stop_symbol
             got_stop = true;
@@ -115,10 +122,11 @@ disp('Done');
 The basic idea is similar to systemTrigger. 
 
 **Input**:
+- Optional *dds_domain* as uint32
 - Optional uint32, specifying the max. time to wait for a message in milliseconds
 
 ```matlab
-sample = vehicleStateListReader(uint32(5000));
+sample = vehicleStateListReader(uint32(1), uint32(5000));
 ```
 
 The mex-file **returns** the received VehicleStateList in form of a struct. It contains: 
@@ -155,7 +163,7 @@ Again, the received data is only valid if **is_valid** is true, else no message 
 ### Using the writers
 Using the writers is just as simple. To write a message, you first need to create a class object of the message you want to write, ReadyStatus or VehicleCommandTrajectory, then fill it with the information you want to send and finally write it with the correct writer. 
 
-You just need to pass the correct object (type) to the mex-writer to send it.
+You just need to pass the correct object (type) to the mex-writer to send it. Again, you can optionally pass a DDS Domain ID as well.
 
 #### ReadyStatus writer
 A full example of creating the ReadyStatus message object, filling it with data and sending it is shown below:
@@ -164,7 +172,8 @@ A full example of creating the ReadyStatus message object, filling it with data 
 ready_msg = ReadyStatus;
 ready_msg.source_id = strcat('hlc_', num2str(vehicle_id));
 ready_msg.next_start_stamp = uint64(0);
-ready_status_writer(ready_msg);
+dds_domain = uint32(1);
+ready_status_writer(ready_msg, dds_domain);
 ```
 
 #### VehicleCommandTrajectory writer
@@ -195,7 +204,8 @@ vehicle_command_trajectory.valid_after_stamp = ...
     uint64(sample.t_now + max_delay_time_nanos);
 
 % Send the message using the mex DDS writer
-vehicle_command_trajectory_writer(vehicle_command_trajectory);
+dds_domain = uint32(1);
+vehicle_command_trajectory_writer(vehicle_command_trajectory, dds_domain);
 ```
 
 ### Always make sure to clear your objects after you have used them
