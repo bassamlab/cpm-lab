@@ -40,10 +40,11 @@ function main(vehicle_id)
     );
     assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
     addpath(common_cpm_functions_path);
+
+    matlabDomainId = uint32(1);
     
     % This is now obsolete, the reader etc are set up in the mex files, you just need to call them
     % Files to call: ready_status_writer, vehicle_command_trajectory_writer, systemTriggerReader, vehicleStateListReader
-    % matlabDomainId = 1;
     % [matlabParticipant, reader_vehicleStateList, writer_vehicleCommandTrajectory, ~, reader_systemTrigger, writer_readyStatus, trigger_stop] = init_script(matlabDomainId);
     
     %% Sync start with infrastructure
@@ -55,7 +56,7 @@ function main(vehicle_id)
     ready_msg = ReadyStatus;
     ready_msg.source_id = strcat('hlc_', num2str(vehicle_id));
     ready_msg.next_start_stamp = uint64(0);
-    ready_status_writer(ready_msg);
+    ready_status_writer(ready_msg, matlabDomainId);
 
     % Wait for start or stop signal
     disp('Waiting for start or stop signal');    
@@ -63,7 +64,7 @@ function main(vehicle_id)
     got_stop = false;
     got_start = false;
     while (~got_stop && ~got_start)
-        system_trigger = systemTriggerReader(true);
+        system_trigger = systemTriggerReader(matlabDomainId, true);
         if system_trigger.is_valid
             if system_trigger.next_start == stop_symbol
                 got_stop = true;
@@ -88,7 +89,11 @@ function main(vehicle_id)
     
     while (~got_stop)
         % Read vehicle states / wait for max. 5 seconds
-        sample = vehicleStateListReader(uint32(5000));
+        sample = vehicleStateListReader(matlabDomainId, uint32(5000));
+        if ~sample.is_valid
+            disp('No new sample received within 5 seconds, stopping...');
+            break;
+        end
         % assert(sample.is_valid, 'Received no new samples'); Prevents
         % clear depending on when the stop signal is received, causes 
         % trouble in next runs
@@ -126,7 +131,7 @@ function main(vehicle_id)
         vehicle_command_trajectory.valid_after_stamp = ...
             uint64(sample.t_now + max_delay_time_nanos);
         
-        vehicle_command_trajectory_writer(vehicle_command_trajectory);
+        vehicle_command_trajectory_writer(vehicle_command_trajectory, matlabDomainId);
 
         % The vehicle always needs a trajectory point at or before the current time,
         % as well as enough trajectory points in the future,
@@ -144,7 +149,7 @@ function main(vehicle_id)
         end
         
         % Check for stop signal, don't wait infinitely for a msg here
-        system_trigger = systemTriggerReader();
+        system_trigger = systemTriggerReader(matlabDomainId);
         if system_trigger.is_valid
             if system_trigger.next_start == stop_symbol
                 got_stop = true;
