@@ -28,6 +28,9 @@ then
       exit 1
 fi
 
+# Path to replace the MATLAB executable for C++ by the system version to avoid problems with the generated MEX files
+MATLAB_LIBSTDCPP_PATH="/opt/MATLAB/R2019a/sys/os/glnxa64"
+
 IFS=,
 for val in $vehicle_ids;
 do
@@ -67,6 +70,13 @@ do
         cd build
         cmake .. 
         sudo cmake --build . --target install
+
+        echo "Now going into ${MATLAB_LIBSTDCPP_PATH} to replace Matlab's libstdc++ file with the system version..."
+        cd "${MATLAB_LIBSTDCPP_PATH}"
+        sudo mkdir -p old
+        sudo mv libstdc++.so.6* old
+        sudo ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 libstdc++.so.6 
+        echo "Done"
 
         sudo reboot
 EOF
