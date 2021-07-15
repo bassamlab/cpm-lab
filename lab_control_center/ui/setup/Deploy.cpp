@@ -119,6 +119,7 @@ void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int>
                 << "tmux new-session -d "
                 << "-s \"" << hlc_session << "\" "
                 << "'. " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;"
+                << ". " << software_folder_path << "/lab_control_center/bash/matlab_eprosima_preload.bash;"
                 << "matlab -logfile matlab.log"
                 << " -sd \"" << script_path_string
                 << "\" -batch \"" << script_name_string << "(" << script_params << (script_params.size() > 0 ? "," : "") << vehicle_ids_stream.str() << ")\""
@@ -197,6 +198,7 @@ void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<uns
             << std::to_string(vehicle_id) 
             << "\" "
             << "'. " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;"
+            << ". " << software_folder_path << "/lab_control_center/bash/matlab_eprosima_preload.bash;"
             << "matlab -logfile matlab.log"
             << " -sd \"" << script_path_string
             << "\" -batch \"" << script_name_string << "(" << script_params << (script_params.size() > 0 ? "," : "") << std::to_string(vehicle_id) << ")\"";

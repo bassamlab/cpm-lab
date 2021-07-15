@@ -97,7 +97,7 @@ my_ip=$(ip route get 8.8.8.8 | awk -F"src " 'NR==1{split($2,a," ");print a[1]}')
 cp -rf /tmp/software/middleware_package/QOS_LOCAL_COMMUNICATION.xml.template ./software/middleware/build/QOS_LOCAL_COMMUNICATION.xml
 sed -i -e "s/TEMPLATE_IP/${my_ip}/g" ./software/middleware/build/QOS_LOCAL_COMMUNICATION.xml
 
-# Get Matlab init scripts
+# Get Matlab init scripts for RTI DDS
 cd /tmp/software
 out=$(wget http://192.168.1.249/nuc/matlab_package.tar.gz)
 if [ $? -ne 0 ]; then
@@ -106,9 +106,19 @@ if [ $? -ne 0 ]; then
 	/home/guest/autostart/download_error_logger --dds_domain=21 --dds_initial_peer=$DDS_INITIAL_PEER
 fi
 tar -xzvf matlab_package.tar.gz
-chmod -R a+rwx ../software # Make folder accessible to guest user
+# Get Matlab scripts for eProsima
+cd /tmp/software
+out=$(wget http://192.168.1.249/nuc/eprosima_matlab_package.tar.gz)
+if [ $? -ne 0 ]; then
+	#Behaviour in case the package is missing
+	#Start some software here that sends this info to the LCC - the script blocks here (indefinitely)
+	/home/guest/autostart/download_error_logger --dds_domain=21 --dds_initial_peer=$DDS_INITIAL_PEER
+fi
+tar -xzvf eprosima_matlab_package.tar.gz
+# Make folder accessible to guest user
+chmod -R a+rwx ../software
 
-# Put the init scripts for Matlab in the correct folder
+# Put the init scripts for Matlab RTI DDS in the correct folder
 cd /home/guest/dev/software
 mkdir high_level_controller
 cd ./high_level_controller
@@ -118,6 +128,12 @@ mkdir matlab
 cd ./matlab
 cp /tmp/software/matlab_package/init_script.m ./
 cp /tmp/software/matlab_package/QOS_READY_TRIGGER.xml ./
+
+# Put the scripts for Matlab eProsima in the correct folder
+cd /home/guest/dev/software/cpm_lib
+mkdir matlab_mex_bindings
+cd ./matlab_mex_bindings
+cp -a /tmp/software/eprosima_matlab_package/. ./
 
 cd ~
 

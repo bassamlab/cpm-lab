@@ -13,6 +13,7 @@ build_x64_sim/
 build_sim/
 autostart_package/
 matlab_package/
+eprosima_matlab_package/
 install/
 __pycache__/
 devel/

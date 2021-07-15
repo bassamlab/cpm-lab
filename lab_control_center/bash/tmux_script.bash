@@ -40,6 +40,9 @@ echo "Path to script: ${PATH_TO_SCRIPT} and script name: ${SCRIPT_NAME}" > ~/dev
 #Start either a Matlab script using Matlab or a C++ script
 if [[ ${SCRIPT_NAME} =~ ".m" ]]
 then
+    #Preload required for eProsima
+    export LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/home/guest/dev/software/cpm_lib/build/libcpm.so:/usr/local/lib/libfastcdr.so::/usr/local/lib/libfastrtps.so"
+
     #Evaluate the matlab script
     SCRIPT_NAME="${SCRIPT_NAME%%.*}" #remove .m
     /opt/MATLAB/R2019a/bin/matlab -logfile matlab.log -sd "${PATH_TO_SCRIPT}" -batch "${SCRIPT_NAME}(${SCRIPT_ARGS})"

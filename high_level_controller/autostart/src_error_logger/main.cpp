@@ -124,12 +124,42 @@ int main (int argc, char *argv[]) {
     #pragma GCC diagnostic ignored "-Wunused-parameter"
 
     timer->start([&](uint64_t t_now) {
+        // Matlab RTI DDS
         if (!std::experimental::filesystem::is_directory("/home/guest/dev/software/cpm_lib/dds_idl_matlab"))
         {
             cpm::Logging::Instance().write(
                 1,
                 "%s", 
                 "The cpm IDL files for matlab are missing on NUC %s", hlc_id.c_str()
+            );
+        }
+
+        // Matlab eProsima
+        if (!std::experimental::filesystem::is_directory("/home/guest/dev/software/cpm_lib/matlab_mex_bindings"))
+        {
+            cpm::Logging::Instance().write(
+                1,
+                "%s", 
+                "The MEX binding folder for matlab is missing on NUC %s", hlc_id.c_str()
+            );
+        }
+
+        // Matlab eProsima
+        if (!file_exists("/home/guest/dev/software/cpm_lib/matlab_mex_bindings/ready_status_writer.mexa64") ||
+            !file_exists("/home/guest/dev/software/cpm_lib/matlab_mex_bindings/system_trigger_reader.mexa64") ||
+            !file_exists("/home/guest/dev/software/cpm_lib/matlab_mex_bindings/vehicle_command_trajectory_writer.mexa64") ||
+            !file_exists("/home/guest/dev/software/cpm_lib/matlab_mex_bindings/vehicle_state_list_reader.mexa64") ||
+            !file_exists("/home/guest/dev/software/cpm_lib/matlab_mex_bindings/vehicleStateListReader.m") ||
+            !file_exists("/home/guest/dev/software/cpm_lib/matlab_mex_bindings/systemTriggerReader.m") ||
+            !file_exists("/home/guest/dev/software/cpm_lib/matlab_mex_bindings/ReadyStatus.m") ||
+            !file_exists("/home/guest/dev/software/cpm_lib/matlab_mex_bindings/TrajectoryPoint.m") ||
+            !file_exists("/home/guest/dev/software/cpm_lib/matlab_mex_bindings/VehicleCommandTrajectory.m")
+        )
+        {
+            cpm::Logging::Instance().write(
+                1,
+                "%s", 
+                "The Matlab MEX eProsima files are missing on NUC %s", hlc_id.c_str()
             );
         }
 
