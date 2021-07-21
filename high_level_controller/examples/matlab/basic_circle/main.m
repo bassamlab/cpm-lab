@@ -25,14 +25,24 @@
 % Author: i11 - Embedded Software, RWTH Aachen University
 
 function main(vehicle_id)
-    % Some of these may not be necessary
-    setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), ':/home/leon/dev/software/cpm_lib/build/', ':/usr/local/lib/']);
-    setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), ':/home/leon/dev/software/cpm_lib/build/', ':/usr/local/lib/']);
-    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), '/usr/lib/x86_64-linux-gnu/libstdc++.so.6', ':/home/leon/dev/software/cpm_lib/build/libcpm.so:/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
-
     % Get current path
     clc
     script_directoy = fileparts([mfilename('fullpath') '.m']);
+
+    % Get dev path
+    dev_directory = script_directoy;
+    for i=1:4
+        last_slash_pos = find(dev_directory == '/', 1, 'last');
+        dev_directory = dev_directory(1 : last_slash_pos - 1);
+    end
+
+    cpm_build_directory = [dev_directory '/cpm_lib/build/'];
+    cpm_lib_directory = [cpm_build_directory 'libcpm.so'];
+
+    % Some of these may not be necessary
+    setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
+    setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
+    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), '/usr/lib/x86_64-linux-gnu/libstdc++.so.6', [':' cpm_lib_directory], ':/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
 
     % Initialize data readers/writers...
     common_cpm_functions_path = fullfile( ...
