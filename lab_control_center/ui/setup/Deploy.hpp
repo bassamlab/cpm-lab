@@ -344,6 +344,11 @@ private:
     /**
      * \brief Function to deploy the middleware, 
      * called by deploy_local_hlcs and deploy_separate_local_hlcs.
+     * \param sim_time_string Whether to use simulated time
+     * \param vehicle_ids_stream Vehicle IDs the Middleware is responsible for
+     * \param middleware_domain_id Optional, default is 1. Domain ID for communication Middleware <-> HLC Program (local via shared memory).
      */
-    void deploy_middleware(std::string sim_time_string, std::stringstream& vehicle_ids_stream);
+    void deploy_middleware(std::string sim_time_string, std::stringstream& vehicle_ids_stream, unsigned int middleware_domain_id);
+    //! The default ID for communication between HLC and Middleware via shared memory
+    unsigned int default_middleware_domain_id = 1;
 };

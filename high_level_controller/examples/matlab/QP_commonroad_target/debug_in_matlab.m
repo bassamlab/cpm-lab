@@ -24,7 +24,7 @@
 % 
 % Author: i11 - Embedded Software, RWTH Aachen University
 
-function main_vehicle_matlab(varargin)
+function main_vehicle_matlab(matlabDomainId, varargin)
 
 %% 
 % Diese Version wird zum Debugging genutzt und kann von Matlab aus gestartet werden mit main_vehicle_matlab(1,2,..);
@@ -58,7 +58,7 @@ function main_vehicle_matlab(varargin)
     assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
     addpath(common_cpm_functions_path);
 
-    matlabDomainId = uint32(1);
+    matlabDomainId = uint32(matlabDomainId);
 
 
     vehicle_ids = varargin

@@ -122,7 +122,7 @@ void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int>
                 << ". " << software_folder_path << "/lab_control_center/bash/matlab_eprosima_preload.bash;"
                 << "matlab -logfile matlab.log"
                 << " -sd \"" << script_path_string
-                << "\" -batch \"" << script_name_string << "(" << script_params << (script_params.size() > 0 ? "," : "") << vehicle_ids_stream.str() << ")\""
+                << "\" -batch \"" << script_name_string << "(" << script_params << (script_params.size() > 0 ? "," : "") << default_middleware_domain_id << ", " << vehicle_ids_stream.str() << ")\""
                 << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << hlc_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << hlc_session << ".txt'";
             }
             else if (script_name_string.find(".") == std::string::npos)
@@ -136,7 +136,8 @@ void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int>
                 << " --node_id=high_level_controller"
                 << " --simulated_time=" << sim_time_string
                 << " --vehicle_ids=" << vehicle_ids_stream.str()
-                << " --dds_domain=" << cmd_domain_id;
+                << " --dds_domain=" << cmd_domain_id
+                << " --middleware_domain=" << default_middleware_domain_id;
             if (cmd_dds_initial_peer.size() > 0) {
                 command 
                     << " --dds_initial_peer=" << cmd_dds_initial_peer;
@@ -161,14 +162,15 @@ void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int>
             program_executor->execute_command(command.str());
         }
 
-        deploy_middleware(sim_time_string, vehicle_ids_stream);
+        deploy_middleware(sim_time_string, vehicle_ids_stream, default_middleware_domain_id);
     }
 }
 
 void Deploy::kill_local_hlc() 
 {
     kill_session(hlc_session);
-    kill_session(middleware_session);
+    std::string middleware_session_name = middleware_session + "_" + std::to_string(default_middleware_domain_id);
+    kill_session(middleware_session_name);
 }
 
 void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<unsigned int> active_vehicle_ids, std::string script_path, std::string script_params) 
@@ -201,7 +203,7 @@ void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<uns
             << ". " << software_folder_path << "/lab_control_center/bash/matlab_eprosima_preload.bash;"
             << "matlab -logfile matlab.log"
             << " -sd \"" << script_path_string
-            << "\" -batch \"" << script_name_string << "(" << script_params << (script_params.size() > 0 ? "," : "") << std::to_string(vehicle_id) << ")\"";
+            << "\" -batch \"" << script_name_string << "(" << script_params << (script_params.size() > 0 ? "," : "") << std::to_string(vehicle_id) << ", " << std::to_string(vehicle_id) << ")\"'";
         }
         else if (script_name_string.find(".") == std::string::npos)
         {
@@ -216,7 +218,8 @@ void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<uns
             << std::to_string(vehicle_id) 
             << " --simulated_time=" << sim_time_string
             << " --vehicle_ids=" << std::to_string(vehicle_id)
-            << " --dds_domain=" << cmd_domain_id;
+            << " --dds_domain=" << cmd_domain_id
+            << " --middleware_domain=" << std::to_string(vehicle_id);
         if (cmd_dds_initial_peer.size() > 0) {
             command 
                 << " --dds_initial_peer=" << cmd_dds_initial_peer;
@@ -248,16 +251,11 @@ void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<uns
 
         //Execute command
         program_executor->execute_command(command.str());
-    }
 
-    std::stringstream vehicle_ids_stream;
-    for (size_t index = 0; index < active_vehicle_ids.size() - 1; ++index)
-    {
-        vehicle_ids_stream << active_vehicle_ids.at(index) << ",";
+        std::stringstream vehicle_id_stream;
+        vehicle_id_stream << vehicle_id;
+        deploy_middleware(sim_time_string, vehicle_id_stream, vehicle_id);
     }
-    vehicle_ids_stream << active_vehicle_ids.at(active_vehicle_ids.size() - 1);
-
-    deploy_middleware(sim_time_string, vehicle_ids_stream);
 }
 
 void Deploy::kill_separate_local_hlcs() 
@@ -266,15 +264,18 @@ void Deploy::kill_separate_local_hlcs()
         std::string session_name = "high_level_controller_";
         session_name += std::to_string(hlc);
         kill_session(session_name);
+
+        std::string middleware_session_name = middleware_session + "_" + std::to_string(hlc);
+        kill_session(middleware_session_name);
     }
-    kill_session(middleware_session);
     deployed_local_hlcs.clear();
 }
 
-void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream& vehicle_ids_stream)
+void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream& vehicle_ids_stream, unsigned int middleware_domain_id)
 {
     //Check if old session already exists - if so, kill it
-    kill_session(middleware_session);
+    std::string middleware_session_name = middleware_session + "_" + std::to_string(middleware_domain_id);
+    kill_session(middleware_session_name);
 
     // Update middleware QOS
     std::string qos_path_in = std::getenv("HOME");
@@ -319,12 +320,13 @@ void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream& v
     std::stringstream middleware_command;
     middleware_command 
         << "tmux new-session -d "
-        << "-s \"middleware\" "
+        << "-s \"" << middleware_session << "_" << middleware_domain_id << "\" "
         << "\". " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;cd " << software_folder_path << "/middleware/build/;./middleware"
-        << " --node_id=middleware"
+        << " --node_id=middleware_" << middleware_domain_id
         << " --simulated_time=" << sim_time_string
         << " --vehicle_ids=" << vehicle_ids_stream.str()
-        << " --dds_domain=" << cmd_domain_id;
+        << " --dds_domain=" << cmd_domain_id
+        << " --middleware_domain=" << middleware_domain_id;
     if (cmd_dds_initial_peer.size() > 0) {
         middleware_command 
             << " --dds_initial_peer=" << cmd_dds_initial_peer;
@@ -814,7 +816,8 @@ std::vector<std::string> Deploy::check_for_crashes(bool script_started,bool depl
             if(! session_exists(hlc_session)) crashed_participants.push_back("HLC");
         }
 
-        if(! session_exists(middleware_session)) crashed_participants.push_back("Middleware");
+        std::string middleware_session_name = middleware_session + "_" + std::to_string(default_middleware_domain_id);
+        if(! session_exists(middleware_session_name)) crashed_participants.push_back(middleware_session_name);
     }
     if (deploy_distributed && has_local_hlc)
     {
@@ -825,9 +828,11 @@ std::vector<std::string> Deploy::check_for_crashes(bool script_started,bool depl
                 if(! session_exists(tmp_session_name)){
                     crashed_participants.push_back(tmp_session_name);
                 }
+
+                std::string middleware_session_name = middleware_session + "_" + std::to_string(local_hlc);
+                if(! session_exists(middleware_session_name)) crashed_participants.push_back(middleware_session_name);
             }   
         }
-        if(! session_exists(middleware_session)) crashed_participants.push_back("Middleware");
     }
     if (lab_mode_on)
     {

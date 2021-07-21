@@ -24,7 +24,7 @@
 % 
 % Author: i11 - Embedded Software, RWTH Aachen University
 
-function main(vehicle_id)    
+function main(matlabDomainId, vehicle_id)    
     % Get current path
     clc
     script_directoy = fileparts([mfilename('fullpath') '.m']);
@@ -51,7 +51,8 @@ function main(vehicle_id)
     assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
     addpath(common_cpm_functions_path);
 
-    matlabDomainId = uint32(1);
+    % Type cast domain ID to expected type
+    matlabDomainId = uint32(matlabDomainId);
     
     
     %% Sync start with infrastructure

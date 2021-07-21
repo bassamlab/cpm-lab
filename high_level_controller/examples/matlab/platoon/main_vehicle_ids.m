@@ -24,7 +24,7 @@
 % 
 % Author: i11 - Embedded Software, RWTH Aachen University
 
-function main_vehicle_ids(varargin)
+function main_vehicle_ids(matlabDomainId, varargin)
     % Get current path
     clc
     script_directoy = fileparts([mfilename('fullpath') '.m']);
@@ -51,7 +51,7 @@ function main_vehicle_ids(varargin)
     assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
     addpath(common_cpm_functions_path);
 
-    matlabDomainId = uint32(1);
+    matlabDomainId = uint32(matlabDomainId);
 
     vehicle_ids = cell2mat(varargin);
 

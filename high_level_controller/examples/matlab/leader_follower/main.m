@@ -24,7 +24,7 @@
 % 
 % Author: i11 - Embedded Software, RWTH Aachen University
 
-function main(vehicleIDs)
+function main(matlabDomainId, varargin)
     % OUTDATED, as only single trajectory points are being sent!
 
 
@@ -54,10 +54,10 @@ function main(vehicleIDs)
     assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
     addpath(common_cpm_functions_path);
 
-    matlabDomainId = uint32(1);
+    matlabDomainId = uint32(matlabDomainId);
     
     %% variables for the communication
-    vehicle_ids = str2num(vehicleIDs);
+    vehicle_ids = cell2mat(varargin);
 
     phaseTime = 40;
 
