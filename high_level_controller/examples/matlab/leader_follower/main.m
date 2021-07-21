@@ -92,6 +92,15 @@ function main(vehicleIDs)
     end
     disp('Done');
 
+    % Set up follower information:
+    % We need at least 3 trajectory points of the vehicle we follow before we can start following it
+    % Thus, remember older states and only start sending trajectories if enough leader states could be accumulated
+    previous_leader_states = cell(length(vehicle_ids), 1);
+    for i = 1 : length(vehicle_ids)
+        previous_leader_states{i} = [];
+    end
+    max_previous_states = 8; % Max. amount of previous states to look at
+
     while (~got_stop)
         % Read vehicle states / wait for max. 5 seconds
         sample = vehicleStateListReader(matlabDomainId, uint32(5000));
@@ -110,7 +119,7 @@ function main(vehicleIDs)
             vehicle_command_trajectory_writer(msg_leader);
 
             for i = 2 : length(vehicle_ids)
-                msg_follower = followers(vehicle_ids(i), sample.state_list, vehicle_ids(i - 1), sample.t_now);
+                [msg_follower, previous_leader_states] = followers(vehicle_ids(i), sample, vehicle_ids(i - 1), sample.t_now, previous_leader_states, max_previous_states);
                 vehicle_command_trajectory_writer(msg_follower);
             end
         end

@@ -275,6 +275,8 @@ public:
             {1, vehicle_state_list.state_list().size()},
             {
                 "vehicle_id",
+                "create_stamp",
+                "valid_after_stamp",
                 "pose_x",
                 "pose_y",
                 "pose_yaw",
@@ -300,6 +302,8 @@ public:
 
             //Set data values
             vehicle_state_array[i]["vehicle_id"] = factory.createScalar<uint8_t>(vehicle_data.vehicle_id());
+            vehicle_state_array[i]["create_stamp"] = factory.createScalar<uint64_t>(vehicle_data.header().create_stamp().nanoseconds());
+            vehicle_state_array[i]["valid_after_stamp"] = factory.createScalar<uint64_t>(vehicle_data.header().valid_after_stamp().nanoseconds());
             vehicle_state_array[i]["IPS_update_age_nanoseconds"] = factory.createScalar<uint64_t>(vehicle_data.IPS_update_age_nanoseconds());
             vehicle_state_array[i]["odometer_distance"] = factory.createScalar<double>(vehicle_data.odometer_distance());
             vehicle_state_array[i]["imu_acceleration_forward"] = factory.createScalar<double>(vehicle_data.imu_acceleration_forward());
@@ -337,6 +341,8 @@ public:
             {1, vehicle_state_list.vehicle_observation_list().size()},
             {
                 "vehicle_id",
+                "create_stamp",
+                "valid_after_stamp",
                 "pose_x",
                 "pose_y",
                 "pose_yaw"
@@ -349,6 +355,8 @@ public:
 
             //Set data values
             vehicle_observation_array[i]["vehicle_id"] = factory.createScalar<uint8_t>(vehicle_data.vehicle_id());
+            vehicle_observation_array[i]["create_stamp"] = factory.createScalar<uint64_t>(vehicle_data.header().create_stamp().nanoseconds());
+            vehicle_observation_array[i]["valid_after_stamp"] = factory.createScalar<uint64_t>(vehicle_data.header().valid_after_stamp().nanoseconds());
 
             //Special case: Pose, currently not handled as separate object (might get annoying for the user)
             vehicle_observation_array[i]["pose_x"] = factory.createScalar<double>(vehicle_data.pose().x());
