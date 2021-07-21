@@ -45,6 +45,8 @@ $MEX_PATH system_trigger_reader.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/includ
 $MEX_PATH vehicle_state_list_reader.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
 $MEX_PATH ready_status_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
 $MEX_PATH vehicle_command_trajectory_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
+$MEX_PATH vehicle_command_speed_curvature_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
+$MEX_PATH vehicle_command_direct_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
 echo "Done"
 
 # Revert to your system's default gcc
