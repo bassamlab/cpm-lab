@@ -144,14 +144,14 @@ filepath = './Maps/LabMapCommonRoadPlanning2Vehicles.xml';
             
             stateSampleCount = 1;
             if counter == 1
-                sample.state_list(1,1).pose.x = 3.1581 - 0.01*(counter-1);
-                sample.state_list(1,1).pose.y = 3.8894+0.05*(counter-1);
-                sample.state_list(1,1).pose.yaw = 1.4473;
+                sample.state_list(1,1).pose_x = 3.1581 - 0.01*(counter-1);
+                sample.state_list(1,1).pose_y = 3.8894+0.05*(counter-1);
+                sample.state_list(1,1).pose_yaw = 1.4473;
                 sample.state_list(1,1).speed = 0;
             else
                 lasPos = hlc_trajectoryLastIter{k,1};
-                sample.state_list(1,1).pose.x= lasPos(1,3);
-                sample.state_list(1,1).pose.y= lasPos(2,3);
+                sample.state_list(1,1).pose_x= lasPos(1,3);
+                sample.state_list(1,1).pose_y= lasPos(2,3);
             end
             
             
@@ -170,14 +170,14 @@ filepath = './Maps/LabMapCommonRoadPlanning2Vehicles.xml';
                 if bool_isOfflinePhase == 1
                     for k = 1:numVehicles
                         if VehNotStarted(k) == 1
-                                msg = ['sample.state_list(1,',num2str(k),'): x=',num2str(sample.state_list(1,k).pose.x),'; y= ',num2str(sample.state_list(1,k).pose.y)];
+                                msg = ['sample.state_list(1,',num2str(k),'): x=',num2str(sample.state_list(1,k).pose_x),'; y= ',num2str(sample.state_list(1,k).pose_y)];
                                 disp(msg);
                                 msg = ['sample.state_list(1,',num2str(k),'): speed= ',num2str(sample.state_list(1,k).speed)];
                                 disp(msg);
-                                msg = ['sample.state_list(1,',num2str(k),'): yaw= ',num2str(sample.state_list(1,k).pose.yaw)];
+                                msg = ['sample.state_list(1,',num2str(k),'): yaw= ',num2str(sample.state_list(1,k).pose_yaw)];
                                 disp(msg);
 
-                                if ~(sample.state_list(1,k).pose.x == 0 && sample.state_list(1,k).pose.y == 0)
+                                if ~(sample.state_list(1,k).pose_x == 0 && sample.state_list(1,k).pose_y == 0)
                                     VehNotStarted(k) = 0;
                                      
                                     activeVehicleList = sort([activeVehicleList, k]);

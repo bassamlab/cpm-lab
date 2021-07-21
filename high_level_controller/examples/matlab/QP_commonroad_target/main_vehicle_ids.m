@@ -167,14 +167,14 @@ function main_vehicle_ids(varargin)
         if bool_isOfflinePhase == 1
             for k = 1:numVehicles
                 if VehNotStarted(k) == 1
-                        msg = ['sample.state_list(1,',num2str(k),'): x=',num2str(sample.state_list(1,k).pose.x),'; y= ',num2str(sample.state_list(1,k).pose.y)];
+                        msg = ['sample.state_list(1,',num2str(k),'): x=',num2str(sample.state_list(1,k).pose_x),'; y= ',num2str(sample.state_list(1,k).pose_y)];
                         disp(msg);
                         msg = ['sample.state_list(1,',num2str(k),'): speed= ',num2str(sample.state_list(1,k).speed)];
                         disp(msg);
-                        msg = ['sample.state_list(1,',num2str(k),'): yaw= ',num2str(sample.state_list(1,k).pose.yaw)];
+                        msg = ['sample.state_list(1,',num2str(k),'): yaw= ',num2str(sample.state_list(1,k).pose_yaw)];
                         disp(msg);
 
-                        if ~(sample.state_list(1,k).pose.x == 0 && sample.state_list(1,k).pose.y == 0)
+                        if ~(sample.state_list(1,k).pose_x == 0 && sample.state_list(1,k).pose_y == 0)
                             VehNotStarted(k) = 0;
                                 
                             activeVehicleList = sort([activeVehicleList, k]);

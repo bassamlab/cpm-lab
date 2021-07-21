@@ -114,7 +114,9 @@ classdef vehicle < handle
         % save position and speed from middleware message
         function obj=update(obj,state_list)
             
-            obj.pose = state_list.pose; 
+            obj.pose.x = state_list.pose_x; 
+            obj.pose.y = state_list.pose_y; 
+            obj.pose.yaw = state_list.pose_yaw; 
             obj.speed = max(state_list.speed,obj.minSpeed);
         end
         % update path by removing path point already passed
@@ -126,7 +128,7 @@ classdef vehicle < handle
             % plan for pos(k=0) and pos(k=1) are already fixed 
             % pos(k=2) also fixed because of central difference tangents
             if obj.bool_isFirstIter % first iteration 
-                pos_eval = [obj.pose.x;obj.pose.y];
+                pos_eval = [obj.pose_x;obj.pose_y];
                 obj.t_eval = t_now_sample+ obj.control_delay*dt_nanos;
                 obj.speed_eval = 0;
             else % default case
@@ -141,7 +143,7 @@ classdef vehicle < handle
         end
         % searches a path from curr position to goal
         function resetPathPlanner(obj,planning_target_k,succGraph)
-            pos_eval = [obj.pose.x;obj.pose.y];
+            pos_eval = [obj.pose_x;obj.pose_y];
             obj.PathPlanner.SearchPathToGoal(obj.r_tree,obj.map,pos_eval,planning_target_k,succGraph);
            
         end
