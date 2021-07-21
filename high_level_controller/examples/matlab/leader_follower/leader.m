@@ -46,9 +46,7 @@ function [msg]=leader(vehicle_id, t_now)
     point1 = TrajectoryPoint;
 
     time = t_eval + 400000000;
-    stamp = TimeStamp;
-    stamp.nanoseconds = uint64(time);
-    point1.t = stamp;
+    point1.t = time;
     point1.px = trajectory_point(1);
     point1.py = trajectory_point(2);
     point1.vx = trajectory_point(3);
@@ -56,6 +54,9 @@ function [msg]=leader(vehicle_id, t_now)
 
     trajectory_points = [trajectory_points [point1]];
     trajectory.trajectory_points = trajectory_points;
+    
+    trajectory.create_stamp = uint64(t_now);
+    trajectory.valid_after_stamp = uint64(t_now + 200e6);
 
     % Return msg
     msg = trajectory;

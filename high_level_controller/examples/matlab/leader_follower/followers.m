@@ -39,7 +39,7 @@ function [msg]=followers(vehicle_id, state_list, follow_id, t_now)
     point1 = TrajectoryPoint;
 
     % Search for vehicle position (follow_id) in state list
-    follow_state = VehicleState;
+    follow_state = [];
     has_follow_state = false;
     for i = 1:length(state_list)
         if state_list(i).vehicle_id == follow_id
@@ -51,24 +51,23 @@ function [msg]=followers(vehicle_id, state_list, follow_id, t_now)
 
     % Rest of msg
     time = t_eval + 400000000;
-    stamp = TimeStamp;
-    stamp.nanoseconds = uint64(time);
-    point1.t = stamp;
+    point1.t = time;
 
     % Only send a valid message if the state value of the vehicle to follow exists
     if has_follow_state
-        point1.px = follow_state.pose.x;
-        point1.py = follow_state.pose.y;
-        point1.vx = cos(follow_state.pose.yaw) * follow_state.speed;
-        point1.vy = sin(follow_state.pose.yaw) * follow_state.speed;
+        point1.px = follow_state.pose_x;
+        point1.py = follow_state.pose_y;
+        point1.vx = cos(follow_state.pose_yaw) * follow_state.speed;
+        point1.vy = sin(follow_state.pose_yaw) * follow_state.speed;
     else
-        stamp2 = TimeStamp;
-        stamp2.nanoseconds = uint64(0);
-        point1.t = stamp2;
+        point1.t = 0;
     end
 
     trajectory_points = [trajectory_points [point1]];
     trajectory.trajectory_points = trajectory_points;
+    
+    trajectory.create_stamp = uint64(t_now);
+    trajectory.valid_after_stamp = uint64(t_now + 200e6);
 
     % Return msg
     msg = trajectory;
