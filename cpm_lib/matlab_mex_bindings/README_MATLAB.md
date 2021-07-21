@@ -134,6 +134,8 @@ The mex-file **returns** the received VehicleStateList in form of a struct. It c
 - *period_ms* as a uint64
 - *state_list* as a struct array. Each entry contains:
     - *vehicle_id* as a uint8
+    - *create_stamp* as uint64
+    - *valid_after_stamp* as uint64
     - *pose_x* as a double
     - *pose_y* as a double
     - *pose_yaw* as a double
@@ -152,6 +154,8 @@ The mex-file **returns** the received VehicleStateList in form of a struct. It c
     - *is_real* as a boolean
 - *vehicle_observation_list* as a struct array. Each entry contains:
     - *vehicle_id* as a uint8
+    - *create_stamp* as uint64
+    - *valid_after_stamp* as uint64
     - *pose_x* as a double
     - *pose_y* as a double
     - *pose_yaw* as a double
@@ -207,6 +211,12 @@ vehicle_command_trajectory.valid_after_stamp = ...
 dds_domain = uint32(1);
 vehicle_command_trajectory_writer(vehicle_command_trajectory, dds_domain);
 ```
+
+#### VehicleCommandSpeedCurvature writer
+Analogous to VehicleCommandTrajectory, but to send VehicleCommandSpeedCurvature messages. Instead of trajectory_points, you can set speed and curvature as scalar doubles here.
+
+#### VehicleCommandDirect writer
+Analogous to VehicleCommandTrajectory, but to send VehicleCommandDirect messages. Instead of trajectory_points, you can set motor_throttle and steering_servo as scalar doubles here.
 
 ### Always make sure to clear your objects after you have used them
 ```matlab
