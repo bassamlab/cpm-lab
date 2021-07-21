@@ -25,27 +25,35 @@
 % Author: i11 - Embedded Software, RWTH Aachen University
 
 function main_vehicle_ids(varargin)
-    matlabDomainID = 1;
-    
+    % Get current path
     clc
     script_directoy = fileparts([mfilename('fullpath') '.m']);
-    cd(script_directoy)
-    
+
+    % Get dev path
+    dev_directory = script_directoy;
+    for i=1:4
+        last_slash_pos = find(dev_directory == '/', 1, 'last');
+        dev_directory = dev_directory(1 : last_slash_pos - 1);
+    end
+
+    cpm_build_directory = [dev_directory '/cpm_lib/build/'];
+    cpm_lib_directory = [cpm_build_directory 'libcpm.so'];
+
+    % Some of these may not be necessary
+    setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
+    setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
+    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), '/usr/lib/x86_64-linux-gnu/libstdc++.so.6', [':' cpm_lib_directory], ':/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
+
     % Initialize data readers/writers...
-    init_script_path = fullfile('../', '/init_script.m');
-    assert(isfile(init_script_path), 'Missing file "%s".', init_script_path);
-    addpath(fileparts(init_script_path));
-    [matlabParticipant, stateReader, trajectoryWriter, ~, systemTriggerReader, readyStatusWriter, trigger_stop] = init_script(matlabDomainID);
-    cd(script_directoy)
+    common_cpm_functions_path = fullfile( ...
+        script_directoy, '../../../../cpm_lib/matlab_mex_bindings/' ...
+    );
+    assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
+    addpath(common_cpm_functions_path);
 
-    vehicle_ids = varargin;
+    matlabDomainId = uint32(1);
 
-    %% wait for data if read() is used
-    stateReader.WaitSet = true;
-    stateReader.WaitSetTimeout = 10;
-
-    %% Do not display figures
-    set(0,'DefaultFigureVisible','off');
+    vehicle_ids = cell2mat(varargin);
 
     % Send first ready signal 
     % Signal needs to be sent for all assigned vehicle ids
@@ -53,87 +61,63 @@ function main_vehicle_ids(varargin)
     disp('Sending ready signals');
     for i = 1 : length(vehicle_ids)
         ready_msg = ReadyStatus;
-        ready_msg.source_id = strcat('hlc_', num2str(vehicle_ids{i}));
-        ready_stamp = TimeStamp;
-        ready_stamp.nanoseconds = uint64(0);
-        ready_msg.next_start_stamp = ready_stamp;
-        readyStatusWriter.write(ready_msg);
+        ready_msg.source_id = strcat('hlc_', num2str(vehicle_ids(i)));
+        ready_msg.next_start_stamp = uint64(0);
+        ready_status_writer(ready_msg, matlabDomainId);
     end
 
     % Wait for start signal
     disp('Waiting for start or stop signal');
+    stop_symbol = uint64((0xffffffffffffffffu64));
     got_stop = false;
     got_start = false;
-    while(true)
-        trigger = SystemTrigger;
-        sampleCount = 0;
-        [trigger, status, sampleCount, sampleInfo] = systemTriggerReader.take(trigger);
-        while sampleCount > 0
-            if trigger.next_start().nanoseconds() == trigger_stop
+    while (~got_stop && ~got_start)
+        system_trigger = systemTriggerReader(matlabDomainId, true);
+        if system_trigger.is_valid
+            if system_trigger.next_start == stop_symbol
                 got_stop = true;
-            elseif trigger.next_start().nanoseconds() >= 0
+            else
                 got_start = true;
             end
-            [trigger, status, sampleCount, sampleInfo] = systemTriggerReader.take(trigger);
-        end
-
-        if got_stop
-            disp("Got stop signal");
-            break;
-        elseif got_start
-            disp("Got start signal");
-            break;
         end
     end
+    disp('Done');  
 
-    if got_stop == false
-        while(true)
-            disp('Checking system trigger for stop signal');
-            trigger = SystemTrigger;
-            sampleCount = 0;
-            [trigger, status, sampleCount, sampleInfo] = systemTriggerReader.take(trigger);
-            break_while = false;
-            while sampleCount > 0
-                current_time = trigger.next_start().nanoseconds();
-                if current_time == trigger_stop
-                    break_while = true;
-                end
-                [trigger, status, sampleCount, sampleInfo] = systemTriggerReader.take(trigger);
+    while(~got_stop)
+        % Read vehicle states / wait for max. 5 seconds
+        sample = vehicleStateListReader(matlabDomainId, uint32(5000));
+        if ~sample.is_valid
+            disp('No new sample received within 5 seconds, stopping...');
+            break;
+        end
+        % assert(sample.is_valid, 'Received no new samples'); Prevents
+        % clear depending on when the stop signal is received, causes 
+        % trouble in next runs
+        fprintf('Received sample at time: %d\n',sample.t_now);
+    
+        % Call the programs to calculate the trajectories of all HLCs
+        if (size(vehicle_ids) > 0)
+            for i = 1 : length(vehicle_ids)
+                msg_leader = leader(vehicle_ids(i), sample.t_now);
+                vehicle_command_trajectory_writer(msg_leader);
             end
+        end
 
-            if break_while
-                disp("Stopping bc of stop signal");
-                break;
-            end
-
-            disp('Waiting for data');
-            sample = VehicleStateList;
-            status = 0;
-            stateSampleCount = 0;
-            sampleInfo = DDS.SampleInfo;
-            [sample, status, stateSampleCount, sampleInfo] = stateReader.take(sample);
-
-            % Check if any new message was received (TODO: throw away all messages that were received during computation)
-            if stateSampleCount > 0                
-                disp('Current time:');
-                disp(sample.t_now);
-            
-                % Call the programs to calculate the trajectories of all HLCs
-                if (size(vehicle_ids) > 0)
-                    for i = 1 : length(vehicle_ids)
-                        msg_leader = leader(vehicle_ids{i}, sample.t_now);
-                        trajectoryWriter.write(msg_leader);
-                    end
-                end
+        % Check for stop signal, don't wait infinitely for a msg here
+        system_trigger = systemTriggerReader(matlabDomainId);
+        if system_trigger.is_valid
+            if system_trigger.next_start == stop_symbol
+                got_stop = true;
             end
         end
     end
 
     disp('Finished');
-
-    trajectoryWriter.delete();
-    stateReader.delete();
-    matlabParticipant.delete();
-    clear matlabParticipant;
-
+    
+    % Clear mex files etc. from system memory
+    % Else: The transient local ready signal etc. are still being sent
+    clear vehicle_command_trajectory_writer
+    clear ready_status_writer
+    clear systemTriggerReader.m
+    clear vehicleStateListReader.m
 end
