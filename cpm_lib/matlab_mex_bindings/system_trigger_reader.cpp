@@ -65,10 +65,10 @@ public:
 
     /**
      * \brief Actual function called by Matlab.
-     * Params: Optional boolean (false: default, don't wait infinitely for messages. true: wait infinitely (max. unsigned integer milliseconds))
-     * Returns: Nothing if nothing was received, else the received SystemTrigger
+     * Params: Optional Matlab Domain ID. Optional boolean (false: default, don't wait infinitely for messages. true: wait infinitely (max. unsigned integer milliseconds))
+     * Returns: Received SystemTrigger, with is_valid = false if nothing was received.
      * \param outputs Outputs sent to the calling Matlab script after execution. Here: The last received SystemTrigger, with is_valid = false if no msg was received.
-     * \param inputs Inputs given by the calling Matlab script. Here: SystemTrigger and optional bool.
+     * \param inputs Inputs given by the calling Matlab script. Here: Optional Matlab Domain ID and optional bool.
      */
     void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {   
         //Required for data creation

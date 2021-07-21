@@ -46,12 +46,11 @@ public:
     }
 
     /**
-     * \brief Actual function that gets called when ready_signal_writer gets called within Matlab.
-     * Params: Just a VehicleStateList object.
-     * Ouput: The same object w. is_valid = false if nothing was received, else with the received data.
+     * \brief Actual function that gets called when vehicle_state_list_reader gets called within Matlab.
+     * Ouput: VehicleStateList w. is_valid = false if nothing was received, else with the received data.
      * You have to wait for messages in Matlab. If desired, this could also be implemented here, similar to system_trigger_reader.
      * \param outputs Outputs sent to the calling Matlab script after execution. Here: The last received VehicleStateList, with is_valid = false if no msg was received.
-     * \param inputs Inputs given by the calling Matlab script. Here: Optional uint32 specifying the milliseconds to max. wait for a msg
+     * \param inputs Inputs given by the calling Matlab script. Here: Optional Matlab Domain ID, Optional uint32 specifying the milliseconds to max. wait for a msg
      */
     void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {   
         //Required for data creation
