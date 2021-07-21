@@ -31,19 +31,34 @@ function main_vehicle_matlab(varargin)
 % 
 %%
 
-    matlabDomainID = 1;
-    
-    
+    % Get current path
     clc
-    script_directory = fileparts([mfilename('fullpath') '.m']);
-    cd(script_directory)
-    
+    script_directoy = fileparts([mfilename('fullpath') '.m']);
+    cd(script_directory);
+
+    % Get dev path
+    dev_directory = script_directoy;
+    for i=1:4
+        last_slash_pos = find(dev_directory == '/', 1, 'last');
+        dev_directory = dev_directory(1 : last_slash_pos - 1);
+    end
+
+    cpm_build_directory = [dev_directory '/cpm_lib/build/'];
+    cpm_lib_directory = [cpm_build_directory 'libcpm.so'];
+
+    % Some of these may not be necessary
+    setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
+    setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
+    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), '/usr/lib/x86_64-linux-gnu/libstdc++.so.6', [':' cpm_lib_directory], ':/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
+
     % Initialize data readers/writers...
-    init_script_path = fullfile('../', '/init_script.m');
-    assert(isfile(init_script_path), 'Missing file "%s".', init_script_path);
-    addpath(fileparts(init_script_path));
-    [matlabParticipant, stateReader, trajectoryWriter, systemTriggerReader, readyStatusWriter, trigger_stop] = init_script(matlabDomainID);
-    cd(script_directory)
+    common_cpm_functions_path = fullfile( ...
+        script_directoy, '../../../../cpm_lib/matlab_mex_bindings/' ...
+    );
+    assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
+    addpath(common_cpm_functions_path);
+
+    matlabDomainId = uint32(1);
 
 
     vehicle_ids = varargin
@@ -98,12 +113,6 @@ filepath = './Maps/LabMapCommonRoadPlanning2Vehicles.xml';
         vehicles{k} = vehicle(k,vehicle_ids{k},StartLaneletId(k),commonroad_data.map,commonroad_data.r_tree);
     end
    cfgVehicle = configVehicle();
-    
-    
-    
-    %% wait for data if read() is used
-    stateReader.WaitSet = true;
-    stateReader.WaitSetTimeout = 10;
 
 
     % Send first ready signal 
@@ -113,10 +122,8 @@ filepath = './Maps/LabMapCommonRoadPlanning2Vehicles.xml';
     for i = 1 : length(vehicle_ids)
         ready_msg = ReadyStatus;
         ready_msg.source_id = strcat('hlc_', num2str(vehicle_ids{i}));
-        ready_stamp = TimeStamp;
-        ready_stamp.nanoseconds = uint64(0);
-        ready_msg.next_start_stamp = ready_stamp;
-        readyStatusWriter.write(ready_msg);
+        ready_msg.next_start_stamp = uint64(0);
+        ready_status_writer(ready_msg, matlabDomainId);
     end
        
     
@@ -259,7 +266,7 @@ filepath = './Maps/LabMapCommonRoadPlanning2Vehicles.xml';
                                 vehicles{k}.optimizeTraj(dynamicObstaclesVehicles);
                                 [msg, position, time ]= vehicles{k}.getTrajMsg();
                                 if vehicles{k}.turnOff==0
-                                    trajectoryWriter.write(msg);
+                                    vehicle_command_trajectory_writer(msg);
                                     hlc_trajectoryLastIter{k,1} = position;  % update;
                                     hlc_trajectoryLastIter{k,2} = time;  % update;
                                 else
@@ -275,9 +282,10 @@ filepath = './Maps/LabMapCommonRoadPlanning2Vehicles.xml';
 
     disp('Finished');
 
-    trajectoryWriter.delete();
-    stateReader.delete();
-    matlabParticipant.delete();
-    clear matlabParticipant;
-
+    % Clear mex files etc. from system memory
+    % Else: The transient local ready signal etc. are still being sent
+    clear vehicle_command_trajectory_writer
+    clear ready_status_writer
+    clear systemTriggerReader.m
+    clear vehicleStateListReader.m
 end
