@@ -373,7 +373,9 @@ void Deploy::deploy_sim_vehicle(unsigned int id, bool use_simulated_time)
         << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << vehicle_session << id << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << vehicle_session << id << ".txt\"";
 
     //Execute command
-    program_executor->execute_command(command.str());
+    auto command_worked = program_executor->execute_command(command.str());
+    if(!command_worked)
+        std::cout << "ERROR: Program command for vehicle failed!" << std::endl;
 }
 
 void Deploy::stop_vehicles(std::vector<unsigned int> vehicle_ids)
@@ -787,7 +789,7 @@ bool Deploy::session_exists(std::string session_id)
         cpm::Logging::Instance().write(
             1, 
             "%s",
-            "Could not determine running sessions, assuming no crash..."
+            "Could not determine running sessions, assuming no crash. This also happens when tmux ls returns 'no server running', as this sets the exit code of the command to 1."
         );
         return true;
     }
@@ -853,8 +855,15 @@ void Deploy::kill_session(std::string session_id, float delay) // delay default 
     {
         std::stringstream command;
 
+        // Delay 0 still seems to include a delay, which e.g. lead to a vehicle not starting in the eProsima Branch,
+        // as the kill command was processed after a vehicle was started (kill, then start anew did not work anymore)
+        if (delay > 0)
+        {
+            command
+                << "sleep " << delay << " && " ;
+        }
+
         command
-            << "sleep " << delay << " && " 
             << "tmux kill-session -t \"" << session_id << "\""
             << " >" << software_top_folder_path << "/lcc_script_logs/stdout_tmux_kill.txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_tmux_kill.txt";
 

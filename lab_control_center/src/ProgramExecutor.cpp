@@ -274,8 +274,9 @@ void ProgramExecutor::process_single_child_command(CommandMsg& msg)
         //Sometimes, this type of command seems to hang up, for unknown reasons. Thus, a timeout is added in this case.
         //SIGTERM is set after 10 seconds, SIGKILL after 12 if TERM was not enough
         //After the timeout, if the process was killed due to a timeout, ERROR is returned
+        //Note: While no sessions are running, 'tmux ls' sets $? to a fail bit although the command itself did not fail
         std::stringstream stream;
-        stream << "timeout -k 12 10 " << msg.command.command << "; if [ $? != 0 ]; then echo 'ERROR'; fi";
+        stream << "timeout -k 12 10 " << msg.command.command << "; if [ $? != 0 ]; then echo 'ERROR TIMEOUT'; fi";
         std::string output = execute_command_get_output(stream.str().c_str());
         
         //Create and send answer, repeat in case of failure (as the main process waits for it)
@@ -361,7 +362,7 @@ std::string ProgramExecutor::get_command_output(std::string command)
         if (string_response.find("ERROR") != std::string::npos)
         {
             //Also do not use log here, ERROR is already returned so we do not handle this further
-            std::cerr << "ERROR while waiting for response!" << std::endl;
+            std::cerr << "ERROR while waiting for response: " << string_response << std::endl;
         }
 
         return response.answer.truncated_command_output;
@@ -492,7 +493,7 @@ std::string ProgramExecutor::execute_command_get_output(const char* cmd)
         std::stringstream error_msg;
         error_msg << "Pipe creation failed in execute_command_get_output, command: " << cmd;
         log(error_msg.str());
-        return "ERROR";
+        return "ERROR PIPE CREATION";
     }
 
     int process_id = fork();
@@ -513,7 +514,7 @@ std::string ProgramExecutor::execute_command_get_output(const char* cmd)
         std::cerr << "Execl error in ProgramExecutor class: %s, for execution of '%s'" << std::strerror(errno) << cmd << std::endl;
 
         //Write to pipe because some response is still required / waited for
-        write(command_pipe[1], "ERROR", 5);
+        write(command_pipe[1], "ERROR EXECL", 5);
         close(command_pipe[1]);
 
         exit(EXIT_FAILURE);
@@ -561,7 +562,7 @@ std::string ProgramExecutor::execute_command_get_output(const char* cmd)
         std::stringstream error_msg;
         error_msg << "Error in ProgramExecutor class: Could not create child process in execute_command_get_output, command: " << cmd;
         log(error_msg.str());
-        return "ERROR";
+        return "ERROR CREATE CHILD";
     }
 }
 
