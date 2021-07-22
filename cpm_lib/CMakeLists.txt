@@ -162,4 +162,10 @@ if(NOT BUILD_ARM)
     )
 
     target_link_libraries(MatlabEprosimaWriteTest cpm fastrtps fastcdr foonathan_memory)
+
+    add_executable(EprosimaTopicListener
+        test_apps/EprosimaTopicListener.cpp
+    )
+
+    target_link_libraries(EprosimaTopicListener cpm fastrtps fastcdr foonathan_memory)
 endif()
