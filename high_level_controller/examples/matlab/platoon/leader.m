@@ -24,7 +24,7 @@
 % 
 % Author: i11 - Embedded Software, RWTH Aachen University
 
-function [msg]=leader(vehicle_id, t_now)
+function [msg]=leader(vehicle_slot, t_now)
     %% Do not display figures
     set(0,'DefaultFigureVisible','off');
 
@@ -34,7 +34,7 @@ function [msg]=leader(vehicle_id, t_now)
 
     trajectory_index = (t_eval) / point_period_nanoseconds;
     % Add vehicle ID to data index so that different cars have slightly different trajectories
-    trajectory_index = trajectory_index + vehicle_id * 2;
+    trajectory_index = trajectory_index + vehicle_slot * 2;
 
     %Create msg
     trajectory = VehicleCommandTrajectory;

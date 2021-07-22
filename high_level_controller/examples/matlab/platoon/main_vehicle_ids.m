@@ -99,6 +99,7 @@ function main_vehicle_ids(matlabDomainId, varargin)
         if (size(vehicle_ids) > 0)
             for i = 1 : length(vehicle_ids)
                 msg_leader = leader(vehicle_ids(i), sample.t_now);
+                msg_leader.vehicle_id = uint8(vehicle_ids(i));
                 vehicle_command_trajectory_writer(msg_leader);
             end
         end

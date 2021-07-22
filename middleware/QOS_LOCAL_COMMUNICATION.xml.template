@@ -86,13 +86,13 @@ RTI Connext user manual.
         <qos_profile name="LocalCommunicationProfile" base_name="BuiltinQosLibExp::Generic.StrictReliable" is_default_qos="false">
             <participant_qos>
                 <!-- Limit discovery to localhost -->
-                <discovery_config>
+                <discovery>
                     <accept_unknown_peers>false</accept_unknown_peers>
-                    <initialPeersList>
-                        <address>>localhost</address>
-                        <address>TEMPLATE_IP</address> <!-- This needs to be the IP Adress of the current machine -->
-                    </initialPeersList>   
-                </discovery_config>
+                    <initial_peers>
+                        <element>localhost</element>
+                        <element>30@TEMPLATE_IP</element> <!-- This needs to be the IP Adress of the current machine -->
+                    </initial_peers>   
+                </discovery>
             </participant_qos>
             <datareader_qos>
               <history>
