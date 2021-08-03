@@ -53,6 +53,9 @@ int main(int argc, char *argv[]) {
 
     RecorderManager manager("test.txt");
 
+    // This works, except for a memory error when shutting down...
+    // So: Must be a participant problem? But why does it match in both cases, but not
+    // receive messages when only PublishedTopicsListener is used?
     // cpm::Participant participant(12, false);
     // manager.register_topic_recorder(
     //     "VehicleState", 
