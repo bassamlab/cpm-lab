@@ -66,6 +66,8 @@ do
            CI="1";;
         "--domain_id="* )
            DOMAIN_ID="${opt#*=}";;
+        "--license_path="* )
+           LICENSE_PATH="${opt#*=}";;
         "--simulation" )
            SIMULATION="1";;     #set to some default value
         "--rti_installer_automation_path="* )
