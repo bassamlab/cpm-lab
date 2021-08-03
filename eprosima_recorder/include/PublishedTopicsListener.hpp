@@ -24,6 +24,8 @@
 // 
 // Author: i11 - Embedded Software, RWTH Aachen University
 
+#pragma once
+
 #include <chrono>
 #include <iostream>
 #include <thread>
@@ -32,6 +34,8 @@
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/DomainParticipantListener.hpp>
 #include <fastdds/dds/domain/DomainParticipant.hpp>
+
+#include "RecorderManager.hpp"
 
 /**
  * \class PublishedTopicsListener
@@ -47,11 +51,11 @@ public:
      * \brief Constructor. Sets up the listener given a domain ID and a callback to call
      * whenever a publisher is discovered.
      * \param domain_id The domain ID within which the discovery of publishers should take place
-     * \param on_publisher_discovered Callback function that gets: Topic type string, topic name string, Participant QoS
+     * \param _manager Data class that manages all created topic listeners
      */
     PublishedTopicsListener(
         int domain_id, 
-        std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos, eprosima::fastdds::dds::DomainParticipant*)> on_publisher_discovered
+        RecorderManager _manager
     );
 
 private:
@@ -64,10 +68,10 @@ private:
     public:
         /**
          * \brief Constructor to set up the object and register a callback that gets called whenever a new publisher is discovered
-         * \param _on_publisher_discovered Callback function that gets: Topic type string, topic name string, Participant QoS
+         * \param _manager Data class that manages all created topic listeners
          */
         DiscoveryDomainParticipantListener(
-            std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos, eprosima::fastdds::dds::DomainParticipant*)> _on_publisher_discovered
+            RecorderManager _manager
         );
 
     private:
@@ -96,8 +100,8 @@ private:
                 eprosima::fastdds::dds::DomainParticipant* participant,
                 eprosima::fastrtps::rtps::WriterDiscoveryInfo&& info);
 
-        //! Callback function called whenever a publisher gets discovered
-        std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos, eprosima::fastdds::dds::DomainParticipant*)> on_publisher_discovered;
+        //! Manages all topic recorders
+        RecorderManager manager;
     };
 
     //! Participant listener that is registered with the domain participant to discover publishers in the domain

@@ -24,6 +24,8 @@
 // 
 // Author: i11 - Embedded Software, RWTH Aachen University
 
+#pragma once
+
 #include <chrono>
 #include <functional>
 #include <iostream>
@@ -39,6 +41,7 @@
 #include <fastdds/dds/subscriber/Subscriber.hpp>
 #include <fastdds/dds/subscriber/DataReader.hpp>
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
+#include <fastdds/dds/core/status/IncompatibleQosStatus.hpp>
 
 //! Helper class to be able to store all topic recorders in a single vector
 class AbstractTopicRecorder {};
@@ -69,6 +72,19 @@ private:
         //! Destructor
         ~SubListener() override
         {
+            std::cout << "Destructed!" << std::endl;
+        }
+
+        /**
+         * \brief Called whenever a new match (e.g. to a writer) takes place
+         * \param reader Unused, but must be given anyway to override
+         * \param info Used to get total count of current matches / matched writers
+         */
+        void on_subscription_matched(
+                eprosima::fastdds::dds::DataReader*,
+                const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override
+        {
+            std::cout << "You've got a match! (" << info.total_count << ")" << std::endl;
         }
 
         /**
@@ -78,6 +94,8 @@ private:
         void on_data_available(
             eprosima::fastdds::dds::DataReader* reader) override 
         {
+            std::cout << "You've got data!" << std::endl;
+
             std::vector<typename MessageType::type> buffer;          
 
             eprosima::fastdds::dds::SampleInfo info;
@@ -95,6 +113,37 @@ private:
             }
         }
 
+        void on_sample_rejected(
+            eprosima::fastdds::dds::DataReader* reader,
+            const eprosima::fastrtps::SampleRejectedStatus& status) override
+        {
+            std::cout << "SAMPLE REJECTED" << std::endl;
+        }
+
+        /**
+         * @brief Method called an incompatible QoS was requested.
+         * @param reader The DataReader
+         * @param status The requested incompatible QoS status
+         */
+        void on_requested_incompatible_qos(
+                eprosima::fastdds::dds::DataReader* reader,
+                const eprosima::fastdds::dds::RequestedIncompatibleQosStatus& status) override
+        {
+            std::cout << "QOS INCOMPATIBLE" << std::endl;
+        }
+
+        /**
+         * @brief Method called when a sample was lost.
+         * @param reader The DataReader
+         * @param status The sample lost status
+         */
+        void on_sample_lost(
+                eprosima::fastdds::dds::DataReader* reader,
+                const eprosima::fastdds::dds::SampleLostStatus& status) override
+        {
+            std::cout << "SAMPLE LOST" << std::endl;
+        }
+
         //! Callback function to be called whenever messages get received, takes std::vector of messages as argument, is void
         std::function<void(std::vector<typename MessageType::type>&)> registered_callback;
 
@@ -104,6 +153,10 @@ private:
     std::shared_ptr<eprosima::fastdds::dds::DataReader> reader;
     std::shared_ptr<eprosima::fastdds::dds::TopicDescription> topic;
     eprosima::fastdds::dds::TypeSupport type_support;
+
+    void callback(std::vector<typename MessageType::type>& samples) {
+        std::cout << "Received something!" << std::endl;
+    }
 
 public: 
     /**
@@ -119,7 +172,18 @@ public:
         eprosima::fastdds::dds::WriterQos publisher_qos, 
         eprosima::fastdds::dds::DomainParticipant* participant
     );
+
+    TopicRecorder();
 };
+
+using namespace std::placeholders;
+
+template<class MessageType> 
+TopicRecorder<MessageType>::TopicRecorder() :
+    type_support(new MessageType()), listener(std::bind(&TopicRecorder::callback, this, _1))
+{
+    
+}
 
 template<class MessageType> 
 TopicRecorder<MessageType>::TopicRecorder(
@@ -128,9 +192,7 @@ TopicRecorder<MessageType>::TopicRecorder(
     eprosima::fastdds::dds::WriterQos publisher_qos, 
     eprosima::fastdds::dds::DomainParticipant* participant
 ) :
-    type_support(new MessageType()), listener([] (std::vector<typename MessageType::type>& samples) {
-        std::cout << "Received something!" << std::endl;
-    })
+    type_support(new MessageType()), listener(std::bind(&TopicRecorder::callback, this, _1))
 {
     std::cout << "Creating recorder for topic type " << topic_type << " with name " << topic_name << std::endl;
 
@@ -185,6 +247,9 @@ TopicRecorder<MessageType>::TopicRecorder(
 
     // Create Reader. TODO: Find a way to figure out DataReaderQoS
     eprosima::fastdds::dds::DataReaderQos data_reader_qos;
+    auto policy = eprosima::fastdds::dds::ReliabilityQosPolicy();
+    policy.kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
+    data_reader_qos.reliability(policy);
     reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
         sub->create_datareader(topic.get(), data_reader_qos, &listener),
         [&](eprosima::fastdds::dds::DataReader* reader) {

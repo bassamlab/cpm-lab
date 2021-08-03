@@ -33,8 +33,8 @@
 
 PublishedTopicsListener::PublishedTopicsListener(
     int domain_id, 
-    std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos, eprosima::fastdds::dds::DomainParticipant*)> on_publisher_discovered
-) 
+    RecorderManager _manager
+)
 {
     // Create the participant QoS and configure values
     eprosima::fastdds::dds::DomainParticipantQos pqos;
@@ -42,7 +42,7 @@ PublishedTopicsListener::PublishedTopicsListener(
     pqos.name(identifier);
     
     // Create a custom user DomainParticipantListener, register the callback function
-    participant_listener = std::make_shared<DiscoveryDomainParticipantListener>(on_publisher_discovered);
+    participant_listener = std::make_shared<DiscoveryDomainParticipantListener>(_manager);
 
     // Pass the listener on DomainParticipant creation.
     participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
@@ -61,9 +61,9 @@ PublishedTopicsListener::PublishedTopicsListener(
 }
 
 PublishedTopicsListener::DiscoveryDomainParticipantListener::DiscoveryDomainParticipantListener(
-    std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos, eprosima::fastdds::dds::DomainParticipant*)> _on_publisher_discovered
+    RecorderManager _manager
 ) :
-    on_publisher_discovered(_on_publisher_discovered)
+    manager(_manager)
 {
 
 }
@@ -107,7 +107,7 @@ void PublishedTopicsListener::DiscoveryDomainParticipantListener::on_publisher_d
                 "' of type '" << info.info.typeName() << "' discovered" << std::endl;
             
             // Call the callback function to allow for DataReader creation given this new information
-            on_publisher_discovered(info.info.typeName().c_str(), info.info.topicName().c_str(), info.info.m_qos, participant);
+            manager.register_topic_recorder(info.info.typeName().c_str(), info.info.topicName().c_str(), info.info.m_qos, participant);
             break;
         case eprosima::fastrtps::rtps::WriterDiscoveryInfo::CHANGED_QOS_WRITER:
             /* Process the case when a publisher changed its QOS */

@@ -35,6 +35,11 @@
 #include "PublishedTopicsListener.hpp"
 #include "RecorderManager.hpp"
 
+// For troubleshooting
+#include "TopicRecorder.hpp"
+#include "cpm/Participant.hpp"
+#include "VehicleStatePubSubTypes.h"
+
 /**
  * \brief Main function that sets up the recorder
  * \param argc Part of command line arguments, currently only used by cpm::init
@@ -42,27 +47,24 @@
  */
 int main(int argc, char *argv[]) {
     cpm::init(argc, argv);
-    cpm::Logging::Instance().set_id("Logger_test");
+    cpm::Logging::Instance().set_id("EprosimaRecorder");
 
     std::cout << "Initializing..." << std::endl;
 
     RecorderManager manager("test.txt");
 
-    PublishedTopicsListener publisher_listener(12, [manager] (
-        std::string topic_type,
-        std::string topic_name,
-        eprosima::fastdds::dds::WriterQos publisher_qos,
-        eprosima::fastdds::dds::DomainParticipant* participant
-        ) mutable
-        {
-            manager.register_topic_recorder(
-                topic_type, 
-                topic_name, 
-                publisher_qos, 
-                participant
-            );
-        }
-    );
+    // cpm::Participant participant(12, false);
+    // manager.register_topic_recorder(
+    //     "VehicleState", 
+    //     "shm_test", 
+    //     eprosima::fastdds::dds::WriterQos(), 
+    //     participant.get_participant().get()
+    // );
+
+    PublishedTopicsListener publisher_listener(12, manager);
+
+    // cpm::Participant participant(12, false);
+    // TopicRecorder<VehicleStatePubSubType> recorder("VehicleState", "shm_test", eprosima::fastdds::dds::WriterQos(), participant.get_participant().get());
 
     std::cout << "Initialization done" << std::endl;
 

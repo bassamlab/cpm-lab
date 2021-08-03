@@ -24,6 +24,8 @@
 // 
 // Author: i11 - Embedded Software, RWTH Aachen University
 
+#pragma once
+
 #include <chrono>
 #include <functional>
 #include <iostream>
@@ -36,7 +38,9 @@
 #include "TopicRecorder.hpp"
 
 // Include all IDL types that need to be supported here
+#include "LogPubSubTypes.h"
 #include "VehicleStatePubSubTypes.h"
+#include "VehicleObservationPubSubTypes.h"
 
 /**
  * \class RecorderManager
@@ -82,12 +86,24 @@ public:
 
         // Create a new recorder and store it in the vector to keep it alive
         // Go through all possible IDL types until the right type for recorder creation is found
-        if (topic_type.compare("VehicleState") == 0)
+        if (topic_type.compare("Log") == 0)
+        {
+            topic_recorders.emplace_back(
+                new TopicRecorder<LogPubSubType>(topic_type, topic_name, publisher_qos, participant)
+            );
+        }
+        else if (topic_type.compare("VehicleState") == 0)
         {
             topic_recorders.emplace_back(
                 new TopicRecorder<VehicleStatePubSubType>(topic_type, topic_name, publisher_qos, participant)
             );
         }
+        else if (topic_type.compare("VehicleObservation") == 0)
+        {
+            topic_recorders.emplace_back(
+                new TopicRecorder<VehicleObservationPubSubType>(topic_type, topic_name, publisher_qos, participant)
+            );
+        } 
 
         registered_topics.insert(topic_name);
     }
