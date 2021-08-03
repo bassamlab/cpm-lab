@@ -34,6 +34,8 @@ include_directories(include)
 set(SOURCE_EPROSIMA_RECORDER
     include/PublishedTopicsListener.hpp
     src/PublishedTopicsListener.cpp
+    include/RecorderManager.hpp
+    include/TopicRecorder.hpp
     
     src/main.cpp
 )

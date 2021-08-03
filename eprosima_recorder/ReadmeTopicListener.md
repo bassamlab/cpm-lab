@@ -6,6 +6,7 @@
 
 # Daten zum Erstellen eines Topic
 - TopicDescription
+- Aber: TopicDescription scheint man nicht so einfach zu bekommen. Also aktueller Workaround: Nutze Topic Type Name & Topic Name, um Topics manuell zu erstellen. Damit kann der aktuelle Recorder auch ausschließlich solche Datentypen erstellen, die bereits vorab bekannt sind (jene der cpm lib)
 
 # Daten zum Erstellen eines Participant
 - Der Participant wird nicht automatisch erstellt, im Callback befindet sich lediglich der Participant, der den anderen Participant entdeckt hat

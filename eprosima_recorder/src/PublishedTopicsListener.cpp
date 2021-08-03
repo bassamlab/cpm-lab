@@ -33,7 +33,7 @@
 
 PublishedTopicsListener::PublishedTopicsListener(
     int domain_id, 
-    std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos)> on_publisher_discovered
+    std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos, eprosima::fastdds::dds::DomainParticipant*)> on_publisher_discovered
 ) 
 {
     // Create the participant QoS and configure values
@@ -61,7 +61,7 @@ PublishedTopicsListener::PublishedTopicsListener(
 }
 
 PublishedTopicsListener::DiscoveryDomainParticipantListener::DiscoveryDomainParticipantListener(
-    std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos)> _on_publisher_discovered
+    std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos, eprosima::fastdds::dds::DomainParticipant*)> _on_publisher_discovered
 ) :
     on_publisher_discovered(_on_publisher_discovered)
 {
@@ -107,7 +107,7 @@ void PublishedTopicsListener::DiscoveryDomainParticipantListener::on_publisher_d
                 "' of type '" << info.info.typeName() << "' discovered" << std::endl;
             
             // Call the callback function to allow for DataReader creation given this new information
-            on_publisher_discovered(info.info.typeName().c_str(), info.info.topicName().c_str(), info.info.m_qos);
+            on_publisher_discovered(info.info.typeName().c_str(), info.info.topicName().c_str(), info.info.m_qos, participant);
             break;
         case eprosima::fastrtps::rtps::WriterDiscoveryInfo::CHANGED_QOS_WRITER:
             /* Process the case when a publisher changed its QOS */

@@ -33,6 +33,7 @@
 #include "cpm/Logging.hpp"
 
 #include "PublishedTopicsListener.hpp"
+#include "RecorderManager.hpp"
 
 /**
  * \brief Main function that sets up the recorder
@@ -43,16 +44,27 @@ int main(int argc, char *argv[]) {
     cpm::init(argc, argv);
     cpm::Logging::Instance().set_id("Logger_test");
 
-    std::cout << "Creating domain publisher listener..." << std::endl;
+    std::cout << "Initializing..." << std::endl;
 
-    PublishedTopicsListener publisher_listener(12, [] (
+    RecorderManager manager("test.txt");
+
+    PublishedTopicsListener publisher_listener(12, [manager] (
         std::string topic_type,
         std::string topic_name,
-        eprosima::fastdds::dds::WriterQos publisher_qos
-        ) {
-            std::cout << "Callback worked" << std::endl;
+        eprosima::fastdds::dds::WriterQos publisher_qos,
+        eprosima::fastdds::dds::DomainParticipant* participant
+        ) mutable
+        {
+            manager.register_topic_recorder(
+                topic_type, 
+                topic_name, 
+                publisher_qos, 
+                participant
+            );
         }
     );
+
+    std::cout << "Initialization done" << std::endl;
 
     usleep(5000000);
 

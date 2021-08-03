@@ -51,7 +51,7 @@ public:
      */
     PublishedTopicsListener(
         int domain_id, 
-        std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos)> on_publisher_discovered
+        std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos, eprosima::fastdds::dds::DomainParticipant*)> on_publisher_discovered
     );
 
 private:
@@ -67,7 +67,7 @@ private:
          * \param _on_publisher_discovered Callback function that gets: Topic type string, topic name string, Participant QoS
          */
         DiscoveryDomainParticipantListener(
-            std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos)> _on_publisher_discovered
+            std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos, eprosima::fastdds::dds::DomainParticipant*)> _on_publisher_discovered
         );
 
     private:
@@ -97,7 +97,7 @@ private:
                 eprosima::fastrtps::rtps::WriterDiscoveryInfo&& info);
 
         //! Callback function called whenever a publisher gets discovered
-        std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos)> on_publisher_discovered;
+        std::function<void(std::string, std::string, eprosima::fastdds::dds::WriterQos, eprosima::fastdds::dds::DomainParticipant*)> on_publisher_discovered;
     };
 
     //! Participant listener that is registered with the domain participant to discover publishers in the domain
