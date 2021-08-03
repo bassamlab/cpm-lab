@@ -28,8 +28,8 @@ fi
 read -p 'To support our libraries in the eProsima MEX-Files, Matlab needs to be modified to use the standard C++ library of your system. Please enter the absolute installation path of Matlab (e.g. /opt/MATLAB/R2021a/): ' MATLAB_PATH
 #check, if a path to Matlab was entered
 while [ -z "$MATLAB_PATH" ]; do
-        echo "No Matlab path was entered, please try again"
-        read MATLAB_PATH
+        echo "No Matlab path was entered, skipping this part..."
+        exit 1
 done
 
 if ! [[ -d "$MATLAB_PATH" ]]
