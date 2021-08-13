@@ -74,6 +74,37 @@ namespace cpm
         //! Topic name, e.g. "system_trigger"
         std::string topic_name;
 
+        // Ignore warning that t_start is unused
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wunused-parameter"
+
+        /**
+         * \brief Helper class that can be used to detect if a template type contains a function vehicle_id()
+         */
+        template <typename C>
+        class has_vehicle_id
+        {
+        private:
+            template <typename T = C>
+            static auto check_vehicle_id_helper(T& msg, int) -> decltype( msg.vehicle_id() )
+            {
+                return msg.vehicle_id();
+            }
+            template <typename T = C>
+            static auto check_vehicle_id_helper(T& msg, long) -> decltype( static_cast<uint8_t>(0) )
+            {
+                return 0;
+            }
+        
+        public:
+            template <typename T = C>
+            static bool check_vehicle_id(T& msg, uint8_t vehicle_id) {
+                return check_vehicle_id_helper(msg, 0) == vehicle_id;
+            }
+        };
+
+        #pragma GCC diagnostic pop
+
         //! Listener class that invokes the callback function whenever data is received & counts the number of matched subscriptions
         class SubListener : public eprosima::fastdds::dds::DataReaderListener
         {
@@ -82,9 +113,11 @@ namespace cpm
              * \brief Constructor, init. active_matches count & register the callback
              * \param _registered_callback The callback that gets called whenever new messages are available.
              * It gets passed all new message data.
+             * \param _vehicle_id_filter Vehicle ID to filter by, should only be set if MessageType has a field vehicle_id of type uint8_t
              */
-            SubListener(std::function<void(std::vector<typename MessageType::type>&)> _registered_callback)
-                : registered_callback(_registered_callback)
+            SubListener(std::function<void(std::vector<typename MessageType::type>&)> _registered_callback, uint8_t _vehicle_id_filter = 0)
+                : registered_callback(_registered_callback),
+                vehicle_id_filter(_vehicle_id_filter)
             {
                 active_matches = std::make_shared<std::atomic_int>(0);
             }
@@ -113,7 +146,7 @@ namespace cpm
             void on_data_available(
                 eprosima::fastdds::dds::DataReader* reader) override 
             {
-                std::vector<typename MessageType::type> buffer;          
+                std::vector<typename MessageType::type> buffer;
 
                 eprosima::fastdds::dds::SampleInfo info;
                 typename MessageType::type data;
@@ -121,7 +154,19 @@ namespace cpm
                 {
                     if (info.instance_state == eprosima::fastdds::dds::ALIVE_INSTANCE_STATE && info.valid_data)
                     {
-                        buffer.push_back(data);
+                        // Filter by vehicle ID, if desired
+                        if (vehicle_id_filter > 0)
+                        {
+                            // Only buffer for the specified ID
+                            if (has_vehicle_id<typename MessageType::type>::check_vehicle_id(data, vehicle_id_filter))
+                            {
+                                buffer.push_back(data);
+                            }
+                        }
+                        else 
+                        {
+                            buffer.push_back(data);
+                        }
                     }
                 }
 
@@ -135,6 +180,9 @@ namespace cpm
 
             //! Callback function to be called whenever messages get received, takes std::vector of messages as argument, is void
             std::function<void(std::vector<typename MessageType::type>&)> registered_callback;
+
+            //! Vehicle ID to filter by, should only be set if MessageType has a field vehicle_id of type uint8_t
+            uint8_t vehicle_id_filter;
 
         } listener_;
 
@@ -195,6 +243,7 @@ namespace cpm
          * \param is_transient_local If true, the used reader is set to be transient local - in this case, it is also set to reliable
          * \param history_keep_all If true, the internal DDS Reader tries to keep all messages, else only the latest message is kept
          * \param is_transient_local If true, the used reader is set to be transient local - in this case, it is also set to reliable
+         * \param vehicle_id_filter Default is 0. If greater 0: MessageType::type should have a field vehicle_id() of type uint8_t. Only messages with the ID given in vehicle_id_filter are passed on.
          */
         ReaderParent(
             std::function<void(std::vector<typename MessageType::type>&)> on_read_callback, 
@@ -202,7 +251,8 @@ namespace cpm
             std::string topic_name, 
             bool is_reliable = false,
             bool history_keep_all = true,
-            bool is_transient_local = false
+            bool is_transient_local = false,
+            uint8_t vehicle_id_filter = 0
         );
 
         /**
@@ -225,9 +275,10 @@ namespace cpm
         std::string topic_name, 
         bool is_reliable,
         bool history_keep_all,
-        bool is_transient_local
+        bool is_transient_local,
+        uint8_t vehicle_id_filter
     )
-    : type_support(new MessageType()), participant_(participant), topic_name(topic_name), listener_(on_read_callback)
+    : type_support(new MessageType()), participant_(participant), topic_name(topic_name), listener_(on_read_callback, vehicle_id_filter)
     {
         sub = std::shared_ptr<eprosima::fastdds::dds::Subscriber>(
             participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT),

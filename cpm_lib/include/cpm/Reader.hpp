@@ -67,9 +67,6 @@ namespace cpm {
         //! Internal buffer that stores flushed messages until they are (partially) removed in get_sample
         std::vector<typename T::type> messages_buffer;
 
-        //! Remembers by which vehicle ID to filter
-        int vehicle_id_filter_ = -1;
-
         /**
          * \brief Callback that is called whenever new data is available in the DDS Reader
          * \param samples Samples read by the reader
@@ -80,14 +77,7 @@ namespace cpm {
 
             for (auto &sample : samples)
             {
-                if(vehicle_id_filter_ == -1 || vehicle_id_filter_ == sample.vehicle_id())
-                {
-                    messages_buffer.push_back(sample);
-                }
-                else
-                {
-                    std::cout << "message for vehicle ID " << (int)sample.vehicle_id() << " discarded" << std::endl;
-                }
+                messages_buffer.push_back(sample);
             }
 
             //We assume that that data becomes useless with time,
@@ -166,17 +156,19 @@ namespace cpm {
     public:
         /**
          * \brief Constructor using a topic to create a Reader
-         * \param topic the topic of the communication
+         * \param topic_name the topic of the communication
+         * \param vehicle_id_filter Filter by vehicle ID (if > 0) - only messages with this ID are then passed through
          * \return The DDS Reader
          */
-        Reader(std::string topic_name, int vehicle_id_filter = -1):
+        Reader(std::string topic_name, uint8_t vehicle_id_filter = 0):
           ReaderParent<T>(
             std::bind(&Reader::on_data_available, this, _1),
             ParticipantSingleton::Instance(),
             topic_name, 
             false,
             true,
-            false), vehicle_id_filter_(vehicle_id_filter)
+            false,
+            vehicle_id_filter)
         {
             typename T::type topic_type;
             //assert(typeof(topic_type._header().create_stamp().nanoseconds()) == uint64_t);
