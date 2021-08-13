@@ -119,7 +119,7 @@ namespace cpm
                 typename MessageType::type data;
                 while(reader->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK)
                 {
-                    if (info.instance_state == eprosima::fastdds::dds::ALIVE_INSTANCE_STATE)
+                    if (info.instance_state == eprosima::fastdds::dds::ALIVE_INSTANCE_STATE && info.valid_data)
                     {
                         buffer.push_back(data);
                     }
