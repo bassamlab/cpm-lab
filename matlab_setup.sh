@@ -5,11 +5,11 @@ if ! [ $(id -u) = 0 ]; then
    echo "This script needs super user privileges. Try to run it again with sudo." >&2
    exit 1
 fi
-if [ $SUDO_USER ]; then
-    real_user=$SUDO_USER
-else
-    real_user=$(whoami)
-fi
+# if [ $SUDO_USER ]; then
+#     real_user=$SUDO_USER
+# else
+#     real_user=$(whoami)
+# fi
 
 # OUTDATED: Update-alternatives (depends too much on Ubuntu and Matlab version)
 # Install update-alternatives for GCC for MEX compilation (newer versions than v9 are not supported by Matlab as of June 2021)
@@ -27,14 +27,14 @@ fi
 # The user needs to specify the path to the Matlab installation manually
 read -p 'To support our libraries in the eProsima MEX-Files, Matlab needs to be modified to use the standard C++ library of your system. Please enter the absolute installation path of Matlab (e.g. /opt/MATLAB/R2021a/): ' MATLAB_PATH
 #check, if a path to Matlab was entered
-while [ -z "$MATLAB_PATH" ]; do
+if [ -z "$MATLAB_PATH" ]
+then
         echo "No Matlab path was entered, skipping this part..."
-        exit 1
 done
 
-if ! [[ -d "$MATLAB_PATH" ]]
+if (! [[ -d "$MATLAB_PATH" ]]) || [ -z "$MATLAB_PATH" ]
 then
-    echo "WARNING: MATLAB is not installed / on your path. If you install it later on, you must run this script (matlab_setup.sh) manually again!"
+    echo "WARNING: MATLAB is not installed / on your set path. If you install it later on, you must run this script (matlab_setup.sh) manually again!"
 else
     echo "Found $MATLAB_PATH"
 
