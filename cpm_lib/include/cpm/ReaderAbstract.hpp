@@ -46,7 +46,7 @@ namespace cpm
      * \ingroup cpmlib
      */
     template<typename T>
-    class ReaderAbstract : public ReaderParent<T>
+    class ReaderAbstract
     {
     private:   
         //! Mutex for access to get_sample and removing old messages
@@ -89,12 +89,18 @@ namespace cpm
             cv.notify_all();
         }
 
+        //! Internal Reader class that takes care of must of the eProsima initialization
+        std::shared_ptr<cpm::ReaderParent<T>> reader_parent;
 
     public:
         ReaderAbstract(const ReaderAbstract&) = delete;
         ReaderAbstract& operator=(const ReaderAbstract&) = delete;
         ReaderAbstract(const ReaderAbstract&&) = delete;
         ReaderAbstract& operator=(const ReaderAbstract&&) = delete;
+
+        // ~ReaderAbstract() {
+        //     reader_parent.reset();
+        // }
         
         /**
          * \brief Constructor for a ReaderAbstract which is communicating within the ParticipantSingleton
@@ -125,9 +131,10 @@ namespace cpm
             bool _history_keep_all = false, 
             bool transient_local = false
         ) : 
-          ReaderParent<T>(std::bind(&ReaderAbstract::on_data_available, this, _1), _participant, topic, reliable, _history_keep_all, transient_local),
           history_keep_all(_history_keep_all)
-        {}
+        {
+            reader_parent = std::make_shared<cpm::ReaderParent<T>>(std::bind(&ReaderAbstract::on_data_available, this, _1), _participant, topic, reliable, _history_keep_all, transient_local);
+        }
         
         /**
          * \brief Get the received messages
@@ -162,6 +169,14 @@ namespace cpm
 
             //After timeout or wait exits: Return if messages were actually received
             return messages_buffer.size() > 0;
+        }
+
+        /**
+         * \brief Returns # of matched writers
+         */
+        size_t matched_publications_size()
+        {
+            return reader_parent->matched_publications_size();
         }
     };
 }

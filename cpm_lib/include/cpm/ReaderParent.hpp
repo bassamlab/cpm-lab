@@ -125,6 +125,9 @@ namespace cpm
             //! Destructor
             ~SubListener() override
             {
+                // This needs to be explicitly reset - in some cases, eProsima call on_data_available even though the destructor has already been called.
+                // To prevent SEGFAULTS, as the callback is usually invalid then, an empty default is defined here
+                registered_callback = [] (std::vector<typename MessageType::type>& vec) { std::cout << "Empty callback called" << std::endl; };
             }
 
             /**
