@@ -30,7 +30,7 @@ read -p 'To support our libraries in the eProsima MEX-Files, Matlab needs to be 
 if [ -z "$MATLAB_PATH" ]
 then
         echo "No Matlab path was entered, skipping this part..."
-done
+fi
 
 if (! [[ -d "$MATLAB_PATH" ]]) || [ -z "$MATLAB_PATH" ]
 then
