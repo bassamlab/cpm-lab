@@ -40,3 +40,49 @@ cd ..
 This can also be done for the examples, if desired.
 
 # Using the Discovery Server
+## Setup in our current framework
+From the eProsima docs: "Clients require a beforehand knowledge of the servers to which they want to link. Basically it is reduced to the servers identity (henceforth called GuidPrefix_t) and a list of locators where the servers are listening. These locators also define the transport protocol (UDP or TCP) the client will use to contact the server."
+
+The prefix is used as it is more specific than an IP - multiple servers may be running on one machine. 
+
+Setup: Change the participant QoS
+```C++
+DomainParticipantQos clientQos = PARTICIPANT_QOS_DEFAULT;
+
+clientQos.wire_protocol().builtin.discovery_config.discoveryProtocol =
+        DiscoveryProtocol_t::CLIENT;
+
+// Setting the server ID
+RemoteServerAttributes server_attributes;
+server_attributes.ReadguidPrefix("44.53.00.5f.45.50.52.4f.53.49.4d.41");
+
+// Setting the server locator list
+Locator_t locator;
+IPLocator::setIPv4(locator, 192, 168, 1, 133); //SERVER IP!
+locator.port = 64863; //SERVER PORT!
+server_attributes.metatrafficUnicastLocatorList.push_back(locator); //Multicast or Unicast
+clientQos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(server_attributes);
+
+// Specify the sync. period w.r.t. discovery messages to the server
+participant_qos.wire_protocol().builtin.discovery_config.discoveryServer_client_syncperiod =
+        Duration_t(0, 250000000);
+```
+
+A client then only receives the relevant information for matching etc. from the server.
+
+## Setup of the Server Itself
+```C++
+DomainParticipantQos serverQos = PARTICIPANT_QOS_DEFAULT;
+
+serverQos.wire_protocol().builtin.discovery_config.discoveryProtocol =
+        DiscoveryProtocol_t::SERVER;
+
+// Setting up the ID of the server
+std::istringstream("44.53.00.5f.45.50.52.4f.53.49.4d.41") >> serverQos.wire_protocol().prefix;   
+
+// Setting the locator list (here: PDP)
+Locator_t locator;
+IPLocator::setIPv4(locator, 192, 168, 1, 133); //IP!
+locator.port = 64863; //PORT!
+serverQos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(locator);
+```
