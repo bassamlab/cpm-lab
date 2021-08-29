@@ -47,7 +47,7 @@ namespace cpm
     /**
      * \class ReaderParent.hpp
      * \brief This class is used by all other reader functions to implement their own specific reader functionality.
-     * The class itself is not supposed to be used as such.
+     * The class itself is not supposed to be used directly.
      * It does not buffer messages and solely relies on the callback function for message passing.
      */ 
 
@@ -122,6 +122,10 @@ namespace cpm
                 active_matches = std::make_shared<std::atomic_int>(0);
             }
 
+            // Ignore warning that t_start is unused
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wunused-parameter"
+
             //! Destructor
             ~SubListener() override
             {
@@ -129,6 +133,8 @@ namespace cpm
                 // To prevent SEGFAULTS, as the callback is usually invalid then, an empty default is defined here
                 registered_callback = [] (std::vector<typename MessageType::type>& vec) { std::cout << "Empty callback called" << std::endl; };
             }
+
+            #pragma GCC diagnostic pop
 
             /**
              * \brief Called whenever a new match (e.g. to a writer) takes place

@@ -89,7 +89,7 @@ namespace cpm
             cv.notify_all();
         }
 
-        //! Internal Reader class that takes care of must of the eProsima initialization
+        //! Internal Reader class that takes care of must of the eProsima initialization. Some issues arised when using inheritance w.r.t. destruction order, although they should be fixed now.
         std::shared_ptr<cpm::ReaderParent<T>> reader_parent;
 
     public:
