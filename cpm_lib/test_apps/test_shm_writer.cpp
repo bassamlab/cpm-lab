@@ -43,15 +43,15 @@
 int main() {
     cpm::Logging::Instance().set_id("test_writer");
 
-    cpm::Participant shm_participant(12, false);
+    cpm::Participant shm_participant(12, true);
 
     // Test the writer, find out if sample gets received
     cpm::Writer<VehicleStatePubSubType> vehicle_state_writer(
         shm_participant.get_participant(),
         "shm_test",
-        false, 
-        false, 
-        false
+        true, 
+        true, 
+        true
     );
 
     // Send sample
