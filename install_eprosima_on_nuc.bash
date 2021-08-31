@@ -17,7 +17,9 @@ case $i in
 esac
 done
 
-# password=''
+password=''
+read -s -p 'Enter the sudo password for the NUCs: ' password
+echo ''
 
 #Check for existence of required command line arguments
 if ( [ -z "$vehicle_ids" ] ) || [ -z "$password" ]
