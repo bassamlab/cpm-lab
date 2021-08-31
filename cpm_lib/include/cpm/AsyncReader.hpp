@@ -56,8 +56,11 @@ namespace cpm
      * \ingroup cpmlib
      */ 
     template<class MessageType> 
-    class AsyncReader : public ReaderParent<MessageType>
+    class AsyncReader
     {
+    private:
+        //! Internal Reader class that takes care of must of the eProsima initialization. Some issues arised when using inheritance w.r.t. destruction order, although they should be fixed now.
+        std::shared_ptr<cpm::ReaderParent<MessageType>> reader_parent;
     public:
         /**
          * \brief Constructor for the AsynReader. This constructor is simpler and creates subscriber, topic etc on the cpm domain participant
@@ -107,6 +110,14 @@ namespace cpm
             bool is_reliable = false,
             bool is_transient_local = false
         );
+
+        /**
+         * \brief Returns # of matched writers
+         */
+        size_t matched_publications_size()
+        {
+            return reader_parent->matched_publications_size();
+        }
     };
 
     template<class MessageType> 
@@ -135,8 +146,7 @@ namespace cpm
         bool is_reliable,
         bool is_transient_local
     )
-    : ReaderParent<MessageType>(on_read_callback, participant, topic_name, is_reliable, false, is_transient_local)
     {
-      
+        reader_parent = std::make_shared<cpm::ReaderParent<MessageType>>(on_read_callback, participant, topic_name, is_reliable, false, is_transient_local);
     }
 }

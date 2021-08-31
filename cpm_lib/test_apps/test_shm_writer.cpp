@@ -58,8 +58,8 @@ int main() {
     VehicleState vehicleState;
     vehicleState.vehicle_id(99);
 
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1000000; ++i) {
         vehicle_state_writer.write(vehicleState);
-        sleep(1);
+        sleep(0.01);
     }
 }

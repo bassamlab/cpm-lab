@@ -26,6 +26,11 @@
 
 #include "Deploy.hpp"
 
+/**
+ * \file Deploy.cpp
+ * \ingroup lcc_ui
+ */
+
 Deploy::Deploy(
     unsigned int _cmd_domain_id, 
     std::string _cmd_dds_initial_peer, 
@@ -78,6 +83,8 @@ Deploy::~Deploy()
         }
     }
     vehicle_reboot_threads.clear();
+
+    std::cout << "Deploy destructor called" << std::endl;
 }
 
 void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int> active_vehicle_ids, std::string script_path, std::string script_params) 
