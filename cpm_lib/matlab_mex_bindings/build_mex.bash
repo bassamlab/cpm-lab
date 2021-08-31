@@ -3,13 +3,21 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 CPM_DIR=${DIR%/*}
 
 # Get the path to MEX
-MEX_PATH=$(which mex; exit)
+MEX_PATH_DEFAULT="/opt/MATLAB/R2019b/bin/mex"
 
-# Check if MEX is installed
-if [[ -z "${MEX_PATH// }" ]]; then
-    echo "ERROR: Please install Matlab and add it (and mex, also in Matlabs bin folder) to your PATH before continuing"
-    echo "Aborting..."
-    exit 0
+echo "The default Matlab path is ${MEX_PATH_DEFAULT}"
+read -p 'To compile the library for Matlab, enter the path to mex or nothing for default: ' MEX_PATH
+#check, if a path to Matlab was entered
+if [ -z "$MEX_PATH" ]
+then
+    echo "Using the default path ${MEX_PATH_DEFAULT}"
+    MEX_PATH="${MEX_PATH_DEFAULT}"
+fi
+
+# Check if the file exists
+if ! [[ -f "$MEX_PATH" ]]
+then
+    echo "The file / path you entered was invalid, skipping compilation..."
 fi
 
 # OUTDATED: Update-alternatives is not flexible w.r.t. Ubuntu and Matlab versions (would need different GCC versions)
@@ -39,15 +47,18 @@ fi
 # sudo update-alternatives --set g++ /usr/bin/g++-9
 
 # Compile the MEX files
-echo "Now compiling your MEX files, given that mex is on the PATH and the cpm lib, FastDDS and FastCDR are installed..."
-cd $DIR
-$MEX_PATH system_trigger_reader.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
-$MEX_PATH vehicle_state_list_reader.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
-$MEX_PATH ready_status_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
-$MEX_PATH vehicle_command_trajectory_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
-$MEX_PATH vehicle_command_speed_curvature_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
-$MEX_PATH vehicle_command_direct_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
-echo "Done"
+if (! [[ -z "$MEX_PATH" ]]) && [ -f "$MEX_PATH" ]
+then
+    echo "Now compiling your MEX files, given that mex is on the PATH and the cpm lib, FastDDS and FastCDR are installed..."
+    cd $DIR
+    $MEX_PATH system_trigger_reader.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
+    $MEX_PATH vehicle_state_list_reader.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
+    $MEX_PATH ready_status_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
+    $MEX_PATH vehicle_command_trajectory_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
+    $MEX_PATH vehicle_command_speed_curvature_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
+    $MEX_PATH vehicle_command_direct_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
+    echo "Done"
+fi
 
 # Revert to your system's default gcc
 # sudo update-alternatives --auto gcc
