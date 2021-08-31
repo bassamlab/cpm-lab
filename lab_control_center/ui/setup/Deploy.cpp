@@ -573,7 +573,7 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
     if (matlab_type_pos != std::string::npos)
     {
         //Case: Matlab script
-        script_argument_stream << script_params << (script_params.size() > 0 ? "," : "") << vehicle_ids;
+        script_argument_stream << script_params << (script_params.size() > 0 ? "," : "") << default_middleware_domain_id << ", " << vehicle_ids;
     }
     else if (script_path.find(".") == std::string::npos)
     {        
@@ -582,7 +582,8 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
             << " --node_id=hlc_" << vehicle_ids
             << " --simulated_time=" << sim_time_string
             << " --vehicle_ids=" << vehicle_ids
-            << " --dds_domain=" << cmd_domain_id;
+            << " --dds_domain=" << cmd_domain_id
+            << " --middleware_domain=" << default_middleware_domain_id;
         if (cmd_dds_initial_peer.size() > 0) {
             script_argument_stream 
                 << " --dds_initial_peer=" << cmd_dds_initial_peer;
@@ -593,7 +594,8 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
         << " --node_id=middleware_" << vehicle_ids
         << " --simulated_time=" << sim_time_string
         << " --vehicle_ids=" << vehicle_ids
-        << " --dds_domain=" << cmd_domain_id;
+        << " --dds_domain=" << cmd_domain_id
+        << " --middleware_domain=" << default_middleware_domain_id;
     if (cmd_dds_initial_peer.size() > 0) {
         middleware_argument_stream 
             << " --dds_initial_peer=" << cmd_dds_initial_peer;
