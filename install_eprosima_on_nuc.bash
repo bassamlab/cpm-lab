@@ -29,7 +29,7 @@ then
 fi
 
 # Path to replace the MATLAB executable for C++ by the system version to avoid problems with the generated MEX files
-MATLAB_LIBSTDCPP_PATH="/opt/MATLAB/R2019a/sys/os/glnxa64"
+MATLAB_LIBSTDCPP_PATH="/opt/MATLAB/R2020a/sys/os/glnxa64"
 
 IFS=,
 for val in $vehicle_ids;
