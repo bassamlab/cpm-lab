@@ -3,7 +3,7 @@ parameters:
     {}
   uint64_t:
     middleware_period_ms:
-      value: 400
+      value: 200
       info: "The period with which the middleware calls the HLC, in milliseconds"
   int:
     {}
@@ -18,7 +18,8 @@ parameters:
     {}
   ints:
     active_vehicle_ids:
-        value: []
-        info: "Currently active vehicle ids"
+      value:
+        - 1
+      info: "Currently active vehicle ids"
   doubles:
     {}
