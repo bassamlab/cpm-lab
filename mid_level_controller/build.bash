@@ -37,6 +37,7 @@ if [ -z $SIMULATION ]; then
     cp build/src/cpp/libfast* package
     cp build/thirdparty/fastcdr/src/cpp/libfast* package
     cp ../../cpm_lib/build_arm/libcpm.so package
+    cp ../../cpm_lib/QOS_LOCAL_COMMUNICATION.xml.template package
     tar -czf package.tar.gz package
     popd
     

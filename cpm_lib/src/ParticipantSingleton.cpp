@@ -24,7 +24,6 @@
 // 
 // Author: i11 - Embedded Software, RWTH Aachen University
 
-
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/InternalConfiguration.hpp"
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>

@@ -66,7 +66,14 @@ set(SOURCE_CPM
     include/cpm/TimeMeasurement.hpp
     src/TimeMeasurement.cpp
 )
-
+if(NOT BUILD_ARM) 
+    # With RTIs ARM toolchain this leads to linker errors
+    set(SOURCE_CPM
+        ${SOURCE_CPM}
+        include/cpm/HLCCommunicator.hpp
+        src/HLCCommunicator.cpp
+    )
+endif()
 
 include_directories(dds_idl_cpp)
 
@@ -98,11 +105,10 @@ else()
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m64 -Wl,--no-as-needed")
 endif()
 
-
 add_library(cpm SHARED
     ${SOURCE_DDS}
     ${SOURCE_CPM}
-)
+    )
 
 #include_directories(${CMAKE_SOURCE_DIR}/build/thirdparty/Fast-DDS/include)
 #include_directories(${CMAKE_SOURCE_DIR}/thirdparty/Fast-DDS/include)
@@ -162,4 +168,8 @@ if(NOT BUILD_ARM)
     )
 
     target_link_libraries(MatlabEprosimaWriteTest cpm fastrtps fastcdr foonathan_memory)
+endif()
+
+if($ENV{TIMING-ANALYSIS})
+    add_definitions( -DTIMINGANALYSIS )
 endif()
