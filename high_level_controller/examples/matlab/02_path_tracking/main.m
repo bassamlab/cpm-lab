@@ -1,19 +1,31 @@
-function main(vehicle_id)
+function main(matlabDomainId, vehicle_id)
     % Get current path
     script_directoy = fileparts([mfilename('fullpath') '.m']);
 
+    % Get dev path
+    dev_directory = script_directoy;
+    for i=1:4
+        last_slash_pos = find(dev_directory == '/', 1, 'last');
+        dev_directory = dev_directory(1 : last_slash_pos - 1);
+    end
+
+    cpm_build_directory = [dev_directory '/cpm_lib/build/'];
+    cpm_lib_directory = [cpm_build_directory 'libcpm.so'];
+
+    % Some of these may not be necessary
+    setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
+    setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
+    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), '/usr/lib/x86_64-linux-gnu/libstdc++.so.6', [':' cpm_lib_directory], ':/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
+
     % Initialize data readers/writers...
     common_cpm_functions_path = fullfile( ...
-        script_directoy, '/..' ...
+        script_directoy, '../../../../cpm_lib/matlab_mex_bindings/' ...
     );
     assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
     addpath(common_cpm_functions_path);
-    
-    matlabDomainId = 1;
-    % CAVE `matlabParticipant`must be stored for RTI DDS somewhere
-    %   in the workspace  (so it doesn't get gc'ed)
-    [matlabParticipant, reader_vehicleStateList, ~, writer_vehicleCommandPathTracking, reader_systemTrigger, writer_readyStatus, trigger_stop] = init_script(matlabDomainId);
 
+    % Type cast domain ID to expected type
+    matlabDomainId = uint32(matlabDomainId);
     
     %% Sync start with infrastructure
     % Send ready signal
@@ -23,24 +35,28 @@ function main(vehicle_id)
     disp('Sending ready signal');
     ready_msg = ReadyStatus;
     ready_msg.source_id = strcat('hlc_', num2str(vehicle_id));
-    ready_stamp = TimeStamp;
-    ready_stamp.nanoseconds = uint64(0);
-    ready_msg.next_start_stamp = ready_stamp;
-    writer_readyStatus.write(ready_msg);
+    ready_msg.next_start_stamp = uint64(0);
+    ready_status_writer(ready_msg, matlabDomainId);
 
     % Wait for start or stop signal
     disp('Waiting for start or stop signal');    
+    stop_symbol = uint64((0xffffffffffffffffu64));
     got_stop = false;
     got_start = false;
     while (~got_stop && ~got_start)
-        [got_start, got_stop] = read_system_trigger(reader_systemTrigger, trigger_stop);
+        system_trigger = systemTriggerReader(matlabDomainId, true);
+        if system_trigger.is_valid
+            if system_trigger.next_start == stop_symbol
+                got_stop = true;
+            else
+                got_start = true;
+            end
+        end
     end
+    disp('Done');  
     
 
     %% Run the HLC
-    % Set reader properties
-    reader_vehicleStateList.WaitSet = true;
-    reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
     % Reference path generation
     map_center_x = 2.25;    % [m]
@@ -61,12 +77,15 @@ function main(vehicle_id)
     % Main control loop
     while (~got_stop)
         % Read vehicle states
-        [sample, ~, sample_count, ~] = reader_vehicleStateList.take();
-        if (sample_count > 1)
-            warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
-            sample = sample(end); % Use latest sample
+        sample = vehicleStateListReader(matlabDomainId, uint32(5000));
+        if ~sample.is_valid
+            disp('No new sample received within 5 seconds, stopping...');
+            break;
         end
+        % assert(sample_count == 1, 'Received %d samples, expected 1', sample_count);
         fprintf('Received sample at time: %d\n',sample.t_now);
+
+        TODO: No binding implemented
         
         % Middleware period and maximum communication delay estimation for valid_after stamp
         dt_period_nanos = uint64(sample.period_ms*1e6);
