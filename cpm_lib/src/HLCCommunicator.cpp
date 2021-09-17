@@ -25,13 +25,11 @@
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 #include "cpm/HLCCommunicator.hpp"
-HLCCommunicator::HLCCommunicator(std::vector<uint8_t> _vehicle_ids, int middleware_domain, std::string qos_file, std::string qos_profile):
+HLCCommunicator::HLCCommunicator(std::vector<uint8_t> _vehicle_ids, int middleware_domain):
     vehicle_ids(_vehicle_ids),
     p_local_comms_participant(
             new cpm::Participant(
-                middleware_domain,
-                qos_file,
-                qos_profile
+                middleware_domain, true
             )
     ),
     writer_readyStatus(
@@ -123,12 +121,15 @@ void HLCCommunicator::runTimestep(){
 }
 
 void HLCCommunicator::sendReadyMessage(){
-    TimeStamp timestamp(11111);
+    TimeStamp timestamp;
+    timestamp.nanoseconds(11111);
     // The middleware expects a message like "hlc_${vehicle_id}", e.g. hlc_1
     for( auto vehicle_id : vehicle_ids ) {
         std::string hlc_identification("hlc_");
         hlc_identification.append(std::to_string(vehicle_id));
-        ReadyStatus readyStatus(hlc_identification, timestamp);
+        ReadyStatus readyStatus;
+        readyStatus.next_start_stamp(timestamp);
+        readyStatus.source_id(hlc_identification);
         writer_readyStatus.write(readyStatus);
     }
 }
@@ -144,7 +145,8 @@ bool HLCCommunicator::stopSignalReceived(){
 }
 
 void HLCCommunicator::stop(int vehicle_id){
-    StopRequest request(vehicle_id);
+    StopRequest request;
+    request.vehicle_id(vehicle_id);
     writer_stopRequest.write(request);
     // Our own planning will stop once we get the SystemTrigger
 }

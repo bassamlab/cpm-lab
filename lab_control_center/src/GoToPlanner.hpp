@@ -4,7 +4,7 @@
 #include <thread>
 #include <vector>
 
-#include "Pose2D.hpp"
+#include "Pose2DPubSubTypes.h"
 #include "TimeSeriesAggregator.hpp"
 #include "TrajectoryCommand.hpp"
 

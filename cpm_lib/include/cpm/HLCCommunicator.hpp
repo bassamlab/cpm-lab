@@ -36,17 +36,16 @@
 #include <unistd.h>                         // For usleep; Change to sleep_for is possible as soon as the ARM Build supports C++11
 
 // cpm_lib
-#include "cpm/get_topic.hpp"
 #include "cpm/Writer.hpp"
 #include "cpm/ReaderAbstract.hpp"
 #include "cpm/Participant.hpp"
 #include "cpm/Logging.hpp"
 
 // DDS topics
-#include "ReadyStatus.hpp"
-#include "SystemTrigger.hpp"
-#include "VehicleStateList.hpp"
-#include "StopRequest.hpp"
+#include "ReadyStatusPubSubTypes.h"
+#include "SystemTriggerPubSubTypes.h"
+#include "VehicleStateListPubSubTypes.h"
+#include "StopRequestPubSubTypes.h"
 
 class HLCCommunicator{
     /**
@@ -79,13 +78,13 @@ class HLCCommunicator{
     VehicleStateList vehicle_state_list;
 
     //! Writer to write a ReadyStatus message to Middleware (to signal we can start)
-    cpm::Writer<ReadyStatus>    writer_readyStatus;
+    cpm::Writer<ReadyStatusPubSubType>    writer_readyStatus;
     //! Writer to write a StopRequest to Middleware (currently unused)
-    cpm::Writer<StopRequest>    writer_stopRequest;
+    cpm::Writer<StopRequestPubSubType>    writer_stopRequest;
     //! Reader to read VehicleStateList messages from Middleware (for timing)
-    cpm::ReaderAbstract<VehicleStateList>   reader_vehicleStateList;
+    cpm::ReaderAbstract<VehicleStateListPubSubType>   reader_vehicleStateList;
     //! Reader to read SystemTrigger messages from Middleware (for stop signal)
-    cpm::ReaderAbstract<SystemTrigger>      reader_systemTrigger;
+    cpm::ReaderAbstract<SystemTriggerPubSubType>      reader_systemTrigger;
 
     //! Callback function for when we need to take on the first timestep
     std::function<void(VehicleStateList)>   on_first_timestep;
@@ -135,9 +134,7 @@ public:
      * To be used when one HLC controls multiple vehicles (e.g. central_routing_example)
      */
     HLCCommunicator(std::vector<uint8_t> _vehicle_ids,
-            int middleware_domain=DEFAULT_MIDDLEWARE_DOMAIN,
-            std::string qos_file=std::string(getenv("HOME"))+"/dev/software/cpm_lib/build/QOS_LOCAL_COMMUNICATION.xml",
-            std::string qos_profile="MatlabLibrary::LocalCommunicationProfile"
+            int middleware_domain=DEFAULT_MIDDLEWARE_DOMAIN
             );
 
     /**
@@ -147,13 +144,9 @@ public:
      * or when there's just one vehicle and HLC overall (e.g. basic_circle).
      */
     HLCCommunicator(uint8_t _vehicle_id,
-            int middleware_domain=DEFAULT_MIDDLEWARE_DOMAIN,
-            std::string qos_file=std::string(getenv("HOME"))+"/dev/software/cpm_lib/build/QOS_LOCAL_COMMUNICATION.xml",
-            std::string qos_profile="MatlabLibrary::LocalCommunicationProfile"):
+            int middleware_domain=DEFAULT_MIDDLEWARE_DOMAIN):
             HLCCommunicator(std::vector<uint8_t>{_vehicle_id},
-                    middleware_domain,
-                    qos_file,
-                    qos_profile
+                    middleware_domain
                     ){}
 
     /**

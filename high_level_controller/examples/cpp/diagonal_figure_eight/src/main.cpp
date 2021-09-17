@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     // Writer for sending trajectory commands, Writer writes the trajectory commands in the DDS "Cloud" so other programs can access them.
     // Instead of creating a new participant, we can just use the one created by the HLCCommunicator
     //For more information see our documentation about RTI DDS
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory(
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory(
             hlc_communicator.getLocalParticipant()->get_participant(),
             "vehicleCommandTrajectory");
 

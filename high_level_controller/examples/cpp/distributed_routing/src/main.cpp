@@ -10,14 +10,18 @@
 #include "cpm/init.hpp"                         //->cpm_lib->include->cpm
 #include "cpm/ParticipantSingleton.hpp"         //->cpm_lib->include->cpm
 #include "cpm/Timer.hpp"                        //->cpm_lib->include->cpm
-#include "cpm/get_topic.hpp"
 #include "cpm/Writer.hpp"
 #include "cpm/ReaderAbstract.hpp"
 #include "cpm/HLCCommunicator.hpp"
 
 // IDL files
-#include "VehicleCommandTrajectory.hpp"
-#include "VehicleStateList.hpp"
+#include "VehicleCommandTrajectoryPubSubTypes.h"
+#include "TimeStampPubSubTypes.h"
+#include "ReadyStatusPubSubTypes.h"
+#include "SystemTriggerPubSubTypes.h"
+#include "VehicleStateListPubSubTypes.h"
+#include "StopRequestPubSubTypes.h"
+#include "HlcCommunicationPubSubTypes.h"
 
 // General C++ libs
 #include <chrono>
@@ -28,6 +32,7 @@
 #include <thread>
 #include <limits>                           // To get maximum integer value (for stop condition)
 #include <exception>
+#include <unistd.h>
 
 #include "CouplingGraph.hpp"
 // Planner
@@ -154,7 +159,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Writer to send trajectory to middleware
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory(
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory(
             hlc_communicator.getLocalParticipant()->get_participant(),
             "vehicleCommandTrajectory"
     );
@@ -164,11 +169,11 @@ int main(int argc, char *argv[]) {
      * ---------------------------------------------------------------------------------
      */
     // Writer to communicate plans with other vehicles
-    cpm::Writer<HlcCommunication> writer_HlcCommunication(
+    cpm::Writer<HlcCommunicationPubSubType> writer_HlcCommunication(
             "hlcCommunication");
 
     // Reader to receive planned trajectories of other vehicles
-    cpm::ReaderAbstract<HlcCommunication> reader_HlcCommunication(
+    cpm::ReaderAbstract<HlcCommunicationPubSubType> reader_HlcCommunication(
             "hlcCommunication");
     
     /* ---------------------------------------------------------------------------------
@@ -179,13 +184,13 @@ int main(int argc, char *argv[]) {
 
     // Set reader/writers of planner so it can communicate with other planners
     planner->set_writer(
-    std::unique_ptr<cpm::Writer<HlcCommunication>>(
-        new cpm::Writer<HlcCommunication>("hlcCommunication")
+    std::unique_ptr<cpm::Writer<HlcCommunicationPubSubType>>(
+        new cpm::Writer<HlcCommunicationPubSubType>("hlcCommunication")
         )
     );
     planner->set_reader(
-    std::unique_ptr<cpm::ReaderAbstract<HlcCommunication>>(
-        new cpm::ReaderAbstract<HlcCommunication>("hlcCommunication")
+    std::unique_ptr<cpm::ReaderAbstract<HlcCommunicationPubSubType>>(
+        new cpm::ReaderAbstract<HlcCommunicationPubSubType>("hlcCommunication")
         )
     );
 
