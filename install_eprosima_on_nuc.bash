@@ -57,7 +57,7 @@ do
         git clone https://github.com/eProsima/Fast-CDR.git
         cd Fast-CDR
         sudo git clean -dfx
-        git checkout cff6ea98f66d5fd4d53541e183676257a42a6c23
+        git checkout f986b0122ddc2d4476ba86c13852597900c03bc0
         mkdir -p build
         cd build
         cmake .. 
@@ -67,7 +67,7 @@ do
         git clone https://github.com/eProsima/Fast-DDS.git
         cd Fast-DDS
         sudo git clean -dfx
-        git checkout 5e96b4f5044ef1fc2932b9b622db48dab299d0c2
+        git checkout 14cf9c7543b5437c26bc4215700fb0544c763ec7
         mkdir -p build
         cd build
         cmake .. 
