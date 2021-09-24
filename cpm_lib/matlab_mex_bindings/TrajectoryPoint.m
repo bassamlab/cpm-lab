@@ -1,4 +1,4 @@
-% Contains an object definition of TrajectoryPoint for Matlab, to be used for ready_signal_writer
+% Contains an object definition of TrajectoryPoint for Matlab, to be used for vehicle_command_trajectory_writer
 classdef TrajectoryPoint
     properties
         t uint64 = 0

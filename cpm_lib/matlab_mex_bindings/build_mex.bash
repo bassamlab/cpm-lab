@@ -57,6 +57,7 @@ then
     $MEX_PATH vehicle_command_trajectory_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
     $MEX_PATH vehicle_command_speed_curvature_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
     $MEX_PATH vehicle_command_direct_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
+    $MEX_PATH vehicle_command_path_tracking_writer.cpp -L"$CPM_DIR/build/" -lcpm -I"$CPM_DIR/include/" -L/usr/local/lib -lfastcdr -lfastrtps
     echo "Done"
 fi
 

@@ -1,4 +1,4 @@
-% Contains an object definition of VehicleCommandTrajectory for Matlab, to be used for ready_signal_writer
+% Contains an object definition of VehicleCommandTrajectory for Matlab, to be used for vehicle_command_trajectory_writer
 classdef VehicleCommandTrajectory
     properties
         vehicle_id uint8 = 0
