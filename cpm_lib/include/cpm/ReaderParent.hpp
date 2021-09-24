@@ -61,7 +61,7 @@ namespace cpm
         //! eProsima reader, which is used to read received data
         std::shared_ptr<eprosima::fastdds::dds::DataReader> reader;
         //! eProsima topic, the topic that the reader is supposed to use
-        std::shared_ptr<eprosima::fastdds::dds::TopicDescription> topic;
+        std::shared_ptr<eprosima::fastdds::dds::Topic> topic;
         //! eProsima type support to create the right topic type
         eprosima::fastdds::dds::TypeSupport type_support;
 
