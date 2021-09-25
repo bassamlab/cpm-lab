@@ -40,6 +40,15 @@ do
     echo $ip
     sshpass -p $password ssh -t controller@$ip << EOF
         echo "${password}" | sudo -S apt-get update;sudo apt-get install cmake g++ python3-pip wget git libasio-dev libtinyxml2-dev libssl-dev -y
+        
+        ## To make sure that no outdated eProsima version is used, delete the compiled .so files
+        cd /usr/local/lib/
+        sudo rm ./libfastcdr* || true # Makes sure that the script does not stop if the files does not exist without using -f
+        sudo rm ./libfastrtps* || true # Makes sure that the script does not stop if the files does not exist without using -f
+        sudo rm ./libfoonathan* || true # Makes sure that the script does not stop if the files does not exist without using -f
+        sudo rm -rf ./foonathan_memory/ || true # Makes sure that the script does not stop if the files does not exist without using -f
+        sudo rm -rf ./cmake/fastcdr/ || true # Makes sure that the script does not stop if the files does not exist without using -f
+        
         cd ~
         mkdir -p eprosima_files
         cd eprosima_files
