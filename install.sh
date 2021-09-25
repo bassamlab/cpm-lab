@@ -133,15 +133,25 @@ apt install jstest-gtk
 
 ### 3. Eprosima #################################################################
 ## 3.1 Init submodules and / or update them (in case of version change)
-git submodule update --init --recursive
+## Clean old cmake files that caused problems when re-building with a newer eProsima verions
+## Also: Use sudo because some of the files have been created with sudo privileges (e.g. eProsima to be able to install it globally using sudo cmake --build . --target install)
+cd "$DIR"
+sudo git clean -xfd
+sudo git submodule foreach --recursive git clean -xfd
+sudo git reset --hard
+sudo git submodule foreach --recursive git reset --hard
+sudo git submodule update --init --recursive
+
+# Also: Make sure that the right user owns these files, so that they can be changed without requiring sudo for everything
+sudo chown -R $real_user ./
 
 ## To make sure that no outdated eProsima version is used, delete the compile .so files
 cd /usr/local/lib/
-sudo rm ./libfastcdr*
-sudo rm ./libfastrtps*
-sudo rm ./libfoonathan*
-sudo rm -rf ./foonathan_memory/
-sudo rm -rf ./cmake/fastcdr/
+sudo rm ./libfastcdr* || true # Makes sure that the script does not stop if the files does not exist without using -f
+sudo rm ./libfastrtps* || true # Makes sure that the script does not stop if the files does not exist without using -f
+sudo rm ./libfoonathan* || true # Makes sure that the script does not stop if the files does not exist without using -f
+sudo rm -rf ./foonathan_memory/ || true # Makes sure that the script does not stop if the files does not exist without using -f
+sudo rm -rf ./cmake/fastcdr/ || true # Makes sure that the script does not stop if the files does not exist without using -f
 
 ## 3.2 Install FastDDS (system-wide, thus flags changed as specified in the note on the eProsima website)
 ### 3.2.1 Install Foonathan memory vendor
