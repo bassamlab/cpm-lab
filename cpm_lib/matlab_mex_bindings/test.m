@@ -32,7 +32,7 @@ function main(vehicle_id)
     % Add all libraries to the path
     %setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), ':/home/leon/dev/software/cpm_lib/build/', ':/usr/local/lib/']);
     setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), ':/home/leon/dev/software/cpm_lib/build/', ':/usr/local/lib/']);
-    %setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), '/usr/lib/x86_64-linux-gnu/libstdc++.so.6', ':/home/leon/dev/software/cpm_lib/build/libcpm.so:/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
+    %setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), ':/usr/lib/x86_64-linux-gnu/libstdc++.so.6', ':/home/leon/dev/software/cpm_lib/build/libcpm.so:/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
     % disp(getenv('LD_LIBRARY_PATH'));
 
     %%WARNING: THIS DOES NOT WORK - INSTEAD, CALL THIS BEFORE STARTING MATLAB (replace with your own file locations)

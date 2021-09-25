@@ -1,5 +1,5 @@
 % Contains an object definition of VehicleCommandPathTracking for Matlab, to be used for vehicle_command_path_tracking_writer
-classdef VehicleCommandTrajectory
+classdef VehicleCommandPathTracking
     properties
         vehicle_id uint8 = 0
 

@@ -7,8 +7,8 @@ function [matlabParticipant, stateReader, trajectoryWriter,...
     % Inputs
     %   matlab_domain_id (int):         domain ID to be used for DDS
 
-    script_directoy = fileparts([mfilename('fullpath') '.m']);
-    previous_folder = cd(script_directoy); % Remember folder of calling function
+    script_directory = fileparts([mfilename('fullpath') '.m']);
+    previous_folder = cd(script_directory); % Remember folder of calling function
 
     % Import IDL files from cpm library
     dds_idl_matlab = fullfile('../../../cpm_lib/dds_idl_matlab/');

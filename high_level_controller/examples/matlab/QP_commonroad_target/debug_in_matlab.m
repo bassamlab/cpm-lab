@@ -7,11 +7,11 @@ function main_vehicle_matlab(matlabDomainId, varargin)
 
     % Get current path
     clc
-    script_directoy = fileparts([mfilename('fullpath') '.m']);
+    script_directory = fileparts([mfilename('fullpath') '.m']);
     cd(script_directory);
 
     % Get dev path
-    dev_directory = script_directoy;
+    dev_directory = script_directory;
     for i=1:4
         last_slash_pos = find(dev_directory == '/', 1, 'last');
         dev_directory = dev_directory(1 : last_slash_pos - 1);
@@ -23,11 +23,11 @@ function main_vehicle_matlab(matlabDomainId, varargin)
     % Some of these may not be necessary
     setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
     setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
-    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), '/usr/lib/x86_64-linux-gnu/libstdc++.so.6', [':' cpm_lib_directory], ':/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
+    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), ':/usr/lib/x86_64-linux-gnu/libstdc++.so.6', [':' cpm_lib_directory], ':/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
 
     % Initialize data readers/writers...
     common_cpm_functions_path = fullfile( ...
-        script_directoy, '../../../../cpm_lib/matlab_mex_bindings/' ...
+        script_directory, '../../../../cpm_lib/matlab_mex_bindings/' ...
     );
     assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
     addpath(common_cpm_functions_path);

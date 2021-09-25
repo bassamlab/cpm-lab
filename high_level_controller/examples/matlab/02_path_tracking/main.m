@@ -1,9 +1,9 @@
 function main(matlabDomainId, vehicle_id)
     % Get current path
-    script_directoy = fileparts([mfilename('fullpath') '.m']);
+    script_directory = fileparts([mfilename('fullpath') '.m']);
 
     % Get dev path
-    dev_directory = script_directoy;
+    dev_directory = script_directory;
     for i=1:4
         last_slash_pos = find(dev_directory == '/', 1, 'last');
         dev_directory = dev_directory(1 : last_slash_pos - 1);
@@ -15,11 +15,11 @@ function main(matlabDomainId, vehicle_id)
     % Some of these may not be necessary
     setenv("LD_RUN_PATH", [getenv('LD_RUN_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
     setenv("LD_LIBRARY_PATH", [getenv('LD_LIBRARY_PATH'), [':' cpm_build_directory], ':/usr/local/lib/']);
-    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), '/usr/lib/x86_64-linux-gnu/libstdc++.so.6', [':' cpm_lib_directory], ':/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
+    setenv("LD_PRELOAD", [getenv('LD_PRELOAD'), ':/usr/lib/x86_64-linux-gnu/libstdc++.so.6', [':' cpm_lib_directory], ':/usr/local/lib/libfastcdr.so', ':/usr/local/lib/libfastrtps.so']);
 
     % Initialize data readers/writers...
     common_cpm_functions_path = fullfile( ...
-        script_directoy, '../../../../cpm_lib/matlab_mex_bindings/' ...
+        script_directory, '../../../../cpm_lib/matlab_mex_bindings/' ...
     );
     assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
     addpath(common_cpm_functions_path);
@@ -66,12 +66,15 @@ function main(matlabDomainId, vehicle_id)
     yaw   = [1*pi/2, 2*pi/2, 3*pi/2,      0, 1*pi/2];                  % [rad]
     s     = [     0, 1*pi/2, 2*pi/2, 3*pi/2, 4*pi/2];                  % [m]
     
-    path_points = struct;
+    path_points = [];
     for i = 1:numel(s)
-        path_points(i).pose.x = x(i);
-        path_points(i).pose.y = y(i);
-        path_points(i).pose.yaw = yaw(i);
-        path_points(i).s = s(i);
+        path_point = PathPoint;
+        path_point.x = x(i);
+        path_point.y = y(i);
+        path_point.yaw = yaw(i);
+        path_point.s = s(i);
+
+        path_points = [path_points [path_point]];
     end
     
     % Main control loop
@@ -84,8 +87,6 @@ function main(matlabDomainId, vehicle_id)
         end
         % assert(sample_count == 1, 'Received %d samples, expected 1', sample_count);
         fprintf('Received sample at time: %d\n',sample.t_now);
-
-        TODO: No binding implemented
         
         % Middleware period and maximum communication delay estimation for valid_after stamp
         dt_period_nanos = uint64(sample.period_ms*1e6);
@@ -99,13 +100,25 @@ function main(matlabDomainId, vehicle_id)
         vehicle_command_path_tracking.vehicle_id = uint8(vehicle_id);
         vehicle_command_path_tracking.path = path_points;
         vehicle_command_path_tracking.speed = 1.0;
-        vehicle_command_path_tracking.header.create_stamp.nanoseconds = ...
+        vehicle_command_path_tracking.create_stamp = ...
             uint64(sample(end).t_now);
-        vehicle_command_path_tracking.header.valid_after_stamp.nanoseconds = ...
+        vehicle_command_path_tracking.valid_after_stamp = ...
             uint64(sample(end).t_now + dt_valid_after);
-        writer_vehicleCommandPathTracking.write(vehicle_command_path_tracking);
+        vehicle_command_path_tracking_writer(vehicle_command_path_tracking);
         
-        % Check for stop signal
-        [~, got_stop] = read_system_trigger(reader_systemTrigger, trigger_stop);
+        % Check for stop signal, don't wait infinitely for a msg here
+        system_trigger = systemTriggerReader(matlabDomainId);
+        if system_trigger.is_valid
+            if system_trigger.next_start == stop_symbol
+                got_stop = true;
+            end
+        end
     end
+
+    % Clear mex files etc. from system memory
+    % Else: The transient local ready signal etc. are still being sent
+    clear vehicle_command_path_tracking_writer
+    clear ready_status_writer
+    clear systemTriggerReader.m
+    clear vehicleStateListReader.m
 end

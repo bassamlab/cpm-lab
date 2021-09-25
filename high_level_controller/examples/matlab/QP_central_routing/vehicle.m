@@ -103,7 +103,7 @@ classdef vehicle < handle
             % plan for pos(k=0) and pos(k=1) are already fixed 
             % pos(k=2) also fixed because of central difference tangents
             if obj.bool_isFirstIter % first iteration 
-                pos_eval = [obj.pose_x;obj.pose_y];
+                pos_eval = [obj.pose.x;obj.pose.y];
                 obj.t_eval = t_now_sample+ obj.control_delay*dt_nanos;
                 obj.speed_eval = obj.minSpeed;
             else % default case
@@ -119,7 +119,7 @@ classdef vehicle < handle
         
         % resets the scheduled path
         function resetPathPlanner(obj)
-            pos_eval = [obj.pose_x;obj.pose_y];
+            pos_eval = [obj.pose.x;obj.pose.y];
             obj.PathPlanner.initializeRandomPathFromStart(obj.r_tree,obj.map,pos_eval);
            
         end
@@ -247,8 +247,8 @@ classdef vehicle < handle
             % Create msg for VehicleTrajCommand
             trajectory = VehicleCommandTrajectory;
             trajectory.vehicle_id = uint8(obj.ext_vehicle_id);
-            trajectory.header.create_stamp.nanoseconds = obj.t_eval;
-            trajectory.header.valid_after_stamp.nanoseconds = obj.t_eval ;    
+            trajectory.create_stamp = obj.t_eval;
+            trajectory.valid_after_stamp = obj.t_eval ;    
             trajectory_points = [];
             nTimePoints = size(obj.lastTraj,2);
            for k = 1: nTimePoints
@@ -257,9 +257,7 @@ classdef vehicle < handle
                 
                 point1 = TrajectoryPoint;
                   
-                stamp = TimeStamp;
-                stamp.nanoseconds = uint64(obj.lastTime(k));
-                point1.t = stamp;
+                point1.t = uint64(obj.lastTime(k));
                 point1.px = trajectory_point(1);
                 point1.py = trajectory_point(2);
                 point1.vx = trajectory_point(3);
