@@ -132,8 +132,16 @@ apt install jstest-gtk
 
 
 ### 3. Eprosima #################################################################
-## 3.1 Init submodules
+## 3.1 Init submodules and / or update them (in case of version change)
 git submodule update --init --recursive
+
+## To make sure that no outdated eProsima version is used, delete the compile .so files
+cd /usr/local/lib/
+sudo rm ./libfastcdr*
+sudo rm ./libfastrtps*
+sudo rm ./libfoonathan*
+sudo rm -rf ./foonathan_memory/
+sudo rm -rf ./cmake/fastcdr/
 
 ## 3.2 Install FastDDS (system-wide, thus flags changed as specified in the note on the eProsima website)
 ### 3.2.1 Install Foonathan memory vendor
