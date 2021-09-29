@@ -142,7 +142,9 @@ sudo git reset --hard
 sudo git submodule foreach --recursive git reset --hard
 sudo git submodule update --init --recursive
 
-# Also: Make sure that the right user owns these files, so that they can be changed without requiring sudo for everything
+# As sudo is used here, chown is used later on to make sure that the user can call build_all.bash
+# Needs to be done before and after the calls for eProsima building, as not all of them use sudo commands
+cd "$DIR/"
 sudo chown -R $real_user ./
 
 ## To make sure that no outdated eProsima version is used, delete the compile .so files
@@ -207,6 +209,12 @@ source /etc/profile.d/rti_connext_dds.sh
 # Get the executable path
 cd "$DIR/"
 sudo bash ./matlab_setup.sh
+
+## 3.7 Also: Make sure that the right user owns these files, so that they can be changed without requiring sudo for everything
+# If this is not done, build_all etc. will not work without using sudo
+# Needs to be done before and after the calls for eProsima building, as not all of them use sudo commands
+cd "$DIR/"
+sudo chown -R $real_user ./
 
 ### 4. Indoor Positioning System (Setup) #######################################
 # The Indoor Positioning System depends on the camera software Basler Pylon and
