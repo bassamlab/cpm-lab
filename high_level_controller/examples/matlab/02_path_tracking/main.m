@@ -104,7 +104,7 @@ function main(matlabDomainId, vehicle_id)
             uint64(sample(end).t_now);
         vehicle_command_path_tracking.valid_after_stamp = ...
             uint64(sample(end).t_now + dt_valid_after);
-        vehicle_command_path_tracking_writer(vehicle_command_path_tracking);
+        vehicle_command_path_tracking_writer(vehicle_command_path_tracking, matlabDomainId);
         
         % Check for stop signal, don't wait infinitely for a msg here
         system_trigger = systemTriggerReader(matlabDomainId);

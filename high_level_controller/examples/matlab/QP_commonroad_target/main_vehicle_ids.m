@@ -258,7 +258,7 @@ function main_vehicle_ids(matlabDomainId, varargin)
                         %% call MPC
                         vehicles{k}.optimizeTraj(dynamicObstaclesVehicles);
                         [msg, position, time ]= vehicles{1,k}.getTrajMsg();
-                        vehicle_command_trajectory_writer(msg);
+                        vehicle_command_trajectory_writer(msg, matlabDomainId);
                         
                         % write hlc output into storage to pass it
                         % to lower priorized vehicles

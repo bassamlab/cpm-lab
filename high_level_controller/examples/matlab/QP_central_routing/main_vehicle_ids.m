@@ -186,7 +186,7 @@ function main_vehicle_ids(matlabDomainId, varargin)
                         
                         % convert to message
                         [msg, position, time ]= vehicles{1,k}.getTrajMsg();
-                        vehicle_command_trajectory_writer(msg);
+                        vehicle_command_trajectory_writer(msg, matlabDomainId);
                         
                         % update collision trajectory.
                         hlc_trajectoryLastIter{k,1} = position;  % update;
