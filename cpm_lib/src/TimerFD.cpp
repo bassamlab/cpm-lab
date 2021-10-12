@@ -206,7 +206,7 @@ namespace cpm {
                 {
                     Logging::Instance().write(
                         1,
-                        "TimerFD: Periods missed: %d %d %d", 
+                        "TimerFD: Periods missed: %d %u %u", 
                         static_cast<int>((current_time - deadline) / period_nanoseconds) + 1, current_time, deadline);
 
                     Logging::Instance().write(1,"%s", TimeMeasurement::Instance().get_str().c_str());
