@@ -126,6 +126,44 @@ if [ $SIMULATION == 0 ]; then
     eval "${PM}" "${DEP_NO_SIM}"
 fi
 
+### 1.1 CMake #######################################################
+# Download, verify and install a newer CMake version than distributed in Ubuntu 18.04
+if [ -d "./cmake_tmp" ]; then rm -rf ./cmake_tmp; fi
+mkdir cmake_tmp
+cd cmake_tmp
+
+curl -OL https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-SHA-256.txt
+curl -OL https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1.tar.gz
+sha256sum -c --ignore-missing cmake-3.22.1-SHA-256.txt
+
+if [ ! $? -eq 0 ];
+then
+    echo "The CMake SHA256 is not valid, aborting..." >&2
+    exit 1
+fi
+
+curl -OL https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-SHA-256.txt.asc
+gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys C6C265324BBEBDC350B513D02D2CEF1034921684
+gpg --verify cmake-3.22.1-SHA-256.txt.asc cmake-3.22.1-SHA-256.txt
+
+if [ ! $? -eq 0 ];
+then
+    echo "The CMake GPG for SHA256 is not valid, aborting..." >&2
+    exit 1
+fi
+
+# Install CMake
+tar -xvzf cmake-3.22.1.tar.gz
+cd cmake-3.22.1
+cmake .
+make
+sudo make install
+
+# Get rid of tmp cmake folder
+cd ..
+cd ..
+rm -rf ./cmake_tmp
+
 ### 2. Joystick / Gamepad ######################################################
 #With a Joystick or a Gamepad you can drive vehicles manually in the Lab Control Center (LCC)
 apt install jstest-gtk 
