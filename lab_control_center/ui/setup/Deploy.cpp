@@ -829,7 +829,7 @@ std::vector<std::string> Deploy::check_for_crashes(bool script_started,bool depl
     }
     if (check_for_recording)
     {
-        //if(! session_exists(recording_session)) crashed_participants.push_back("DDS Recording");
+        if(! session_exists(recording_session)) crashed_participants.push_back("DDS Recording");
         if(! session_exists(labcam_session)) crashed_participants.push_back("LabCam");
     }
 
