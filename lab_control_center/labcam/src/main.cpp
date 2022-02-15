@@ -14,6 +14,9 @@
 #include <string>
 #include <stdlib.h>
 #include <thread>
+#include <fstream>
+#include <cstdlib>
+#include <experimental/filesystem> //Used instead of std::filesystem, because some compilers still seem to be outdated
 #include "labcam/LabCamIface.hpp"
 #include "cpm/CommandLineReader.hpp"
 
@@ -48,7 +51,13 @@ int main(int argc, char *argv[])
     // If no path is given, the default location is software/lab_control_center/build/labcam (due to "." and creation of tmux session)
     std::string path = cpm::cmd_parameter_string("path", ".", argc, argv);
     std::string file_name = cpm::cmd_parameter_string("file_name", "awesome_recording", argc, argv);
-
+    
+    // Check wether recording folder already was created (e.g.: by the dds recording feature)
+    if (!(std::experimental::filesystem::exists(path)))
+    {
+        std::experimental::filesystem::create_directories(path);
+    }
+    
     // Start recording by using the given input parameters
     labcam.startRecording(path, file_name);
 
