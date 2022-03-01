@@ -164,9 +164,11 @@ sudo make install
 cd ..
 cd ..
 rm -rf ./cmake_tmp
+cmake --version
 
 # Remove old cmake
 sudo apt remove -y cmake
+cmake --version
 
 ### 2. Joystick / Gamepad ######################################################
 #With a Joystick or a Gamepad you can drive vehicles manually in the Lab Control Center (LCC)
