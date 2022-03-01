@@ -152,10 +152,13 @@ then
     exit 1
 fi
 
+# Uninstall old cmake
+sudo apt remove -y --purge --auto-remove cmake
+
 # Install CMake
 tar -xvzf cmake-3.22.1.tar.gz
 cd cmake-3.22.1
-cmake .
+./bootstrap
 make
 sudo make install
 
@@ -164,10 +167,6 @@ sudo make install
 cd ..
 cd ..
 rm -rf ./cmake_tmp
-cmake --version
-
-# Remove old cmake
-sudo apt remove -y cmake
 cmake --version
 
 ### 2. Joystick / Gamepad ######################################################
