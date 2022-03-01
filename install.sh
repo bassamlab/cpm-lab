@@ -128,7 +128,7 @@ fi
 
 ### 1.1 CMake #######################################################
 # Remove old system cmake
-sudo apt remove cmake
+sudo apt remove -y cmake
 
 # Download, verify and install a newer CMake version than distributed in Ubuntu 18.04
 if [ -d "./cmake_tmp" ]; then rm -rf ./cmake_tmp; fi
