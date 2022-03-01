@@ -127,6 +127,9 @@ if [ $SIMULATION == 0 ]; then
 fi
 
 ### 1.1 CMake #######################################################
+# Remove old system cmake
+sudo apt remove cmake
+
 # Download, verify and install a newer CMake version than distributed in Ubuntu 18.04
 if [ -d "./cmake_tmp" ]; then rm -rf ./cmake_tmp; fi
 mkdir cmake_tmp
@@ -158,6 +161,7 @@ cd cmake-3.22.1
 cmake .
 make
 sudo make install
+
 
 # Get rid of tmp cmake folder
 cd ..
