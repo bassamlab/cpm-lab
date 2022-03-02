@@ -118,12 +118,14 @@ BUILD_TOOLS="install iproute2 git libasio-dev libtinyxml2-dev libssl-dev tmux cm
 DEP_NO_SIM="install apache2 libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio -y"
 OPENJDK="install openjdk-11-jdk -y"
 PYLON_URL="https://www.baslerweb.com/fp-1523350893/media/downloads/software/pylon_software/pylon_5.0.12.11829-deb0_amd64.deb"
+UNZIP="install unzip -y"
 eval "${PM}" "${UPDATE}"
 eval "${PM}" "${BUILD_ESSENTIALS}"
 eval "${PM}" "${BUILD_TOOLS}"
 eval "${PM}" "${OPENJDK}"
 if [ $SIMULATION == 0 ]; then
     eval "${PM}" "${DEP_NO_SIM}"
+    eval "${PM}" "${UNZIP}"
 fi
 
 ### 1.1 CMake #######################################################
