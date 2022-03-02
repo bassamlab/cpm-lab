@@ -123,7 +123,7 @@ eval "${PM}" "${UPDATE}"
 eval "${PM}" "${BUILD_ESSENTIALS}"
 eval "${PM}" "${BUILD_TOOLS}"
 eval "${PM}" "${OPENJDK}"
-if [ $SIMULATION == 0 ]; then
+if [ -z $SIMULATION ]; then
     eval "${PM}" "${DEP_NO_SIM}"
     eval "${PM}" "${UNZIP}"
 fi
@@ -203,7 +203,7 @@ sudo rm -rf ./cmake/fastcdr/ || true # Makes sure that the script does not stop 
 ## 3.1.2 Download raspbian toolchain
 if [ -z $SIMULATION ]; then
     # Remove old toolchain if it exists
-    if [-d "/opt/cross-pi-gcc" ]; then 
+    if [ -d "/opt/cross-pi-gcc" ]; then 
         sudo rm /opt/cross-pi-gcc* || true
     fi
     cd /opt/
