@@ -158,7 +158,7 @@ fi
 sudo apt remove -y --purge --auto-remove cmake
 
 # Install CMake
-tar -xvzf cmake-3.22.1.tar.gz
+tar -xzf cmake-3.22.1.tar.gz
 cd cmake-3.22.1
 ./bootstrap
 make
@@ -208,7 +208,7 @@ if [ -z $SIMULATION ]; then
     fi
     cd /opt/
     sudo -u $real_user wget "https://rwth-aachen.sciebo.de/s/aw1UGIULZGV4L07/download"
-    sudo -u $real_user unzip ./download
+    sudo -u $real_user unzip -q ./download
     sudo rm ./download
 fi
 
