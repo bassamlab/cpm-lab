@@ -200,12 +200,14 @@ sudo rm -rf ./cmake/fastcdr/ || true # Makes sure that the script does not stop 
 
 ## 3.1.2 Download raspbian toolchain
 if [ -z $SIMULATION ]; then
-    if [! -d "/opt/cross-pi-gcc" ]; then 
-        cd /opt/
-        sudo -u $real_user wget "https://rwth-aachen.sciebo.de/s/aw1UGIULZGV4L07/download"
-        sudo -u $real_user unzip ./download
-        sudo rm ./download
+    # Remove old toolchain if it exists
+    if [-d "/opt/cross-pi-gcc" ]; then 
+        sudo rm /opt/cross-pi-gcc* || true
     fi
+    cd /opt/
+    sudo -u $real_user wget "https://rwth-aachen.sciebo.de/s/aw1UGIULZGV4L07/download"
+    sudo -u $real_user unzip ./download
+    sudo rm ./download
 fi
 
 ## 3.2 Install FastDDS (system-wide, thus flags changed as specified in the note on the eProsima website)
