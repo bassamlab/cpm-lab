@@ -204,11 +204,11 @@ sudo rm -rf ./cmake/fastcdr/ || true # Makes sure that the script does not stop 
 if [ -z $SIMULATION ]; then
     # Remove old toolchain if it exists
     if [ -d "/opt/cross-pi-gcc" ]; then 
-        sudo rm /opt/cross-pi-gcc* || true
+        sudo rm -rf /opt/cross-pi-gcc/ || true
     fi
     cd /opt/
-    sudo -u $real_user wget "https://rwth-aachen.sciebo.de/s/aw1UGIULZGV4L07/download"
-    sudo -u $real_user unzip -q ./download
+    sudo wget "https://rwth-aachen.sciebo.de/s/aw1UGIULZGV4L07/download"
+    sudo unzip -q ./download
     sudo rm ./download
 fi
 
