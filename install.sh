@@ -298,7 +298,7 @@ if [ -z $SIMULATION ]; then
     rm -rf /tmp/opencv
 
     ## 4.2 Basler Pylon 5
-    mkdir "$DIR/tmp"
+    sudo -u $real_user mkdir "$DIR/tmp" # Use $real_user to allow dowloading into it as $real_user
     cd "$DIR/tmp"
     sudo -u $real_user wget https://www.baslerweb.com/fp-1523350893/media/downloads/software/pylon_software/pylon_5.0.12.11829-deb0_amd64.deb
     dpkg -i pylon*.deb
