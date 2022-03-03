@@ -93,9 +93,9 @@ fi
 echo "CI =" $CI
 echo "Domain ID =" $DOMAIN_ID
 if [ -z $SIMULATION ]; then
-    echo "Simulation =" $SIMULATION
-else
     echo "Simulation only mode is disabled"
+else
+    echo "Simulation =" $SIMULATION
 fi
 
 
