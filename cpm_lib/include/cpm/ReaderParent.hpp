@@ -39,6 +39,7 @@
 #include <fastdds/dds/subscriber/DataReader.hpp>
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 
+#include "cpm/DebugFilter.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Participant.hpp"
 
@@ -62,6 +63,8 @@ namespace cpm
         std::shared_ptr<eprosima::fastdds::dds::DataReader> reader;
         //! eProsima topic, the topic that the reader is supposed to use
         std::shared_ptr<eprosima::fastdds::dds::Topic> topic;
+        //! eProsima content filtered topic, only used for vehicles
+        std::shared_ptr<eprosima::fastdds::dds::ContentFilteredTopic> content_filtered_topic;
         //! eProsima type support to create the right topic type
         eprosima::fastdds::dds::TypeSupport type_support;
 
@@ -340,17 +343,78 @@ namespace cpm
     
         assert(topic);
 
+        // Create content filtered topic, if required
+        if (vehicle_id_filter > 0)
+        {
+            // Below: NOW DONE IN THE TEST CASE FOR FILTERS (really unclean, but just for debugging anyway)
+            // // Debugging, as the default filter does not work: Implement own one just for tests
+            // DebugFilter debug_filter;
+            // participant_->register_content_filter_factory("debug_filter", &debug_filter);
+
+            const std::string filtered_topic_name = topic_name + "_content_filtered_" + std::to_string(vehicle_id_filter);
+            auto find_topic = participant_->lookup_topicdescription(filtered_topic_name);
+            if(find_topic == nullptr){
+                //Define the filter
+                const std::string filter_expression = "vehicle_id = " + std::to_string(vehicle_id_filter);
+                const std::vector<std::string> expression_parameters; // We do not use this part
+
+                //Define the topic
+                content_filtered_topic = std::shared_ptr<eprosima::fastdds::dds::ContentFilteredTopic>(
+                    participant_->create_contentfilteredtopic(
+                        filtered_topic_name, 
+                        topic.get(),
+                        filter_expression,
+                        expression_parameters,
+                        "debug_filter"
+                    ),
+                    [&](eprosima::fastdds::dds::ContentFilteredTopic* content_filtered_topic) {
+                        if (content_filtered_topic != nullptr)
+                        {
+                            participant_->delete_contentfilteredtopic(content_filtered_topic);
+                        }
+                    }
+                );
+            }else{
+                std::cout << "Creating content filtered topic based on already created topic" << std::endl;
+                content_filtered_topic = std::shared_ptr<eprosima::fastdds::dds::ContentFilteredTopic>(
+                    (eprosima::fastdds::dds::ContentFilteredTopic*)find_topic,
+                    [&](eprosima::fastdds::dds::ContentFilteredTopic* content_filtered_topic) {
+                        if (content_filtered_topic != nullptr)
+                        {
+                            participant_->delete_contentfilteredtopic(content_filtered_topic);
+                        }
+                    }
+                );
+            }
+        
+            assert(content_filtered_topic);
+        }
+
         // Create Reader
         std::cout << "Creating ReaderParent" << std::endl;
-        reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
-            sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), &listener_),
-            [&](eprosima::fastdds::dds::DataReader* reader) {
-                if (sub != nullptr)
-                {
-                    sub->delete_datareader(reader);
+        if (vehicle_id_filter > 0)
+        {
+            reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
+                sub->create_datareader(content_filtered_topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), &listener_),
+                [&](eprosima::fastdds::dds::DataReader* reader) {
+                    if (sub != nullptr)
+                    {
+                        sub->delete_datareader(reader);
+                    }
                 }
-            }
-        );
+            );
+        }
+        else {
+            reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
+                sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), &listener_),
+                [&](eprosima::fastdds::dds::DataReader* reader) {
+                    if (sub != nullptr)
+                    {
+                        sub->delete_datareader(reader);
+                    }
+                }
+            );
+        }
         assert(reader);      
     }
 
