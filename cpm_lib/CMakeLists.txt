@@ -65,8 +65,6 @@ set(SOURCE_CPM
     src/RTTTool.cpp
     include/cpm/TimeMeasurement.hpp
     src/TimeMeasurement.cpp
-
-    include/cpm/DebugFilter.hpp
 )
 if(NOT BUILD_ARM) 
     # With RTIs ARM toolchain this leads to linker errors

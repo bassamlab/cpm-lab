@@ -2,13 +2,12 @@
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/VehicleIDFilteredTopic.hpp"
 #include "cpm/dds/VehicleStatePubSubTypes.h"
+#include "cpm/dds/VehicleStateTypeObject.h"
 #include "cpm/Reader.hpp"
 #include "cpm/Writer.hpp"
 #include <unistd.h>
-#include "cpm/dds/VehicleStateTypeObject.h"
 
 // Just for debugging
-#include "cpm/DebugFilter.hpp"
 
 /**
  * \test Tests VehicleIDFilteredTopic

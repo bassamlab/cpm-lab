@@ -39,7 +39,6 @@
 #include <fastdds/dds/subscriber/DataReader.hpp>
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 
-#include "cpm/DebugFilter.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Participant.hpp"
 
