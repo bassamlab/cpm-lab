@@ -346,11 +346,6 @@ namespace cpm
         // Create content filtered topic, if required
         if (vehicle_id_filter > 0)
         {
-            // Below: NOW DONE IN THE TEST CASE FOR FILTERS (really unclean, but just for debugging anyway)
-            // // Debugging, as the default filter does not work: Implement own one just for tests
-            // DebugFilter debug_filter;
-            // participant_->register_content_filter_factory("debug_filter", &debug_filter);
-
             const std::string filtered_topic_name = topic_name + "_content_filtered_" + std::to_string(vehicle_id_filter);
             auto find_topic = participant_->lookup_topicdescription(filtered_topic_name);
             if(find_topic == nullptr){
@@ -364,8 +359,7 @@ namespace cpm
                         filtered_topic_name, 
                         topic.get(),
                         filter_expression,
-                        expression_parameters,
-                        "debug_filter"
+                        {}
                     ),
                     [&](eprosima::fastdds::dds::ContentFilteredTopic* content_filtered_topic) {
                         if (content_filtered_topic != nullptr)

@@ -5,6 +5,7 @@
 #include "cpm/Reader.hpp"
 #include "cpm/Writer.hpp"
 #include <unistd.h>
+#include "cpm/dds/VehicleStateTypeObject.h"
 
 // Just for debugging
 #include "cpm/DebugFilter.hpp"
@@ -17,13 +18,9 @@
  * \ingroup cpmlib
  */
 TEST_CASE("VehicleIDFilteredTopic") {
+    registerVehicleStateTypes();
     // One writer for all vehicle state test packages
     cpm::Writer<VehicleStatePubSubType> writer_vehicleState("my_topic_name");
-
-    // Register debug filter before using it in the constructor of the readers
-    // Debugging, as the default filter does not work: Implement own one just for tests
-    DebugFilter debug_filter;
-    cpm::ParticipantSingleton::Instance()->register_content_filter_factory("debug_filter", &debug_filter);
 
     {
         // Reader for state packages with these IDs
@@ -110,5 +107,5 @@ TEST_CASE("VehicleIDFilteredTopic") {
         REQUIRE(reader_samples11[0].odometer_distance() == 3);
     }
 
-    cpm::ParticipantSingleton::Instance()->unregister_content_filter_factory("debug_filter");
+    //cpm::ParticipantSingleton::Instance()->unregister_content_filter_factory("debug_filter");
 }
