@@ -93,9 +93,9 @@ fi
 echo "CI =" $CI
 echo "Domain ID =" $DOMAIN_ID
 if [ -z $SIMULATION ]; then
-    echo "Simulation =" $SIMULATION
-else
     echo "Simulation only mode is disabled"
+else
+    echo "Simulation =" $SIMULATION
 fi
 
 
@@ -118,12 +118,14 @@ BUILD_TOOLS="install iproute2 git libasio-dev libtinyxml2-dev libssl-dev tmux cm
 DEP_NO_SIM="install apache2 libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio -y"
 OPENJDK="install openjdk-11-jdk -y"
 PYLON_URL="https://www.baslerweb.com/fp-1523350893/media/downloads/software/pylon_software/pylon_5.0.12.11829-deb0_amd64.deb"
+UNZIP="install unzip -y"
 eval "${PM}" "${UPDATE}"
 eval "${PM}" "${BUILD_ESSENTIALS}"
 eval "${PM}" "${BUILD_TOOLS}"
 eval "${PM}" "${OPENJDK}"
-if [ $SIMULATION == 0 ]; then
+if [ -z $SIMULATION ]; then
     eval "${PM}" "${DEP_NO_SIM}"
+    eval "${PM}" "${UNZIP}"
 fi
 
 ### 1.1 CMake #######################################################
@@ -152,17 +154,22 @@ then
     exit 1
 fi
 
+# Uninstall old cmake
+sudo apt remove -y --purge --auto-remove cmake
+
 # Install CMake
-tar -xvzf cmake-3.22.1.tar.gz
+tar -xzf cmake-3.22.1.tar.gz
 cd cmake-3.22.1
-cmake .
+./bootstrap
 make
 sudo make install
+
 
 # Get rid of tmp cmake folder
 cd ..
 cd ..
 rm -rf ./cmake_tmp
+cmake --version
 
 ### 2. Joystick / Gamepad ######################################################
 #With a Joystick or a Gamepad you can drive vehicles manually in the Lab Control Center (LCC)
@@ -170,7 +177,7 @@ apt install jstest-gtk
 
 
 ### 3. Eprosima #################################################################
-## 3.1 Init submodules and / or update them (in case of version change)
+## 3.1.1 Init submodules and / or update them (in case of version change)
 ## Clean old cmake files that caused problems when re-building with a newer eProsima verions
 ## Also: Use sudo because some of the files have been created with sudo privileges (e.g. eProsima to be able to install it globally using sudo cmake --build . --target install)
 cd "$DIR"
@@ -192,6 +199,18 @@ sudo rm ./libfastrtps* || true # Makes sure that the script does not stop if the
 sudo rm ./libfoonathan* || true # Makes sure that the script does not stop if the files does not exist without using -f
 sudo rm -rf ./foonathan_memory/ || true # Makes sure that the script does not stop if the files does not exist without using -f
 sudo rm -rf ./cmake/fastcdr/ || true # Makes sure that the script does not stop if the files does not exist without using -f
+
+## 3.1.2 Download raspbian toolchain
+if [ -z $SIMULATION ]; then
+    # Remove old toolchain if it exists
+    if [ -d "/opt/cross-pi-gcc" ]; then 
+        sudo rm -rf /opt/cross-pi-gcc/ || true
+    fi
+    cd /opt/
+    sudo wget "https://rwth-aachen.sciebo.de/s/aw1UGIULZGV4L07/download"
+    sudo unzip -q ./download
+    sudo rm ./download
+fi
 
 ## 3.2 Install FastDDS (system-wide, thus flags changed as specified in the note on the eProsima website)
 ### 3.2.1 Install Foonathan memory vendor
@@ -279,6 +298,7 @@ if [ -z $SIMULATION ]; then
     rm -rf /tmp/opencv
 
     ## 4.2 Basler Pylon 5
+    sudo -u $real_user mkdir "$DIR/tmp" # Use $real_user to allow dowloading into it as $real_user
     cd "$DIR/tmp"
     sudo -u $real_user wget https://www.baslerweb.com/fp-1523350893/media/downloads/software/pylon_software/pylon_5.0.12.11829-deb0_amd64.deb
     dpkg -i pylon*.deb
