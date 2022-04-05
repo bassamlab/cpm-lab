@@ -10,13 +10,18 @@
 #include <ios>
 using std::vector;
 
+
+#include "dds/VehicleObservationTypeObject.h"
+#include "dds/VehicleCommandDirectTypeObject.h"
+#include "dds/VehicleCommandSpeedCurvatureTypeObject.h"
+#include "dds/VehicleCommandTrajectoryTypeObject.h"
+#include "dds/VehicleStateTypeObject.h"
 #include "dds/VehicleObservationPubSubTypes.h"
 #include "dds/VehicleCommandDirectPubSubTypes.h"
 #include "dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
 #include "dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "dds/VehicleStatePubSubTypes.h"
 #include "cpm/Timer.hpp"
-#include "cpm/VehicleIDFilteredTopic.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Reader.hpp"
 #include "cpm/RTTTool.hpp"
@@ -70,8 +75,11 @@ int main(int argc, char *argv[])
     // DDS setup
     cpm::Writer<VehicleStatePubSubType> writer_vehicleState("vehicleState");
 
+    registerVehicleObservationTypes();
     std::string topic_vehicleObservation_name = "vehicleObservation";
-    cpm::Reader<VehicleObservationPubSubType> reader_vehicleObservation(topic_vehicleObservation_name, vehicle_id);
+    std::unique_ptr< cpm::Reader<VehicleObservationPubSubType> > reader_vehicleObservation;
+    reader_vehicleObservation = std::unique_ptr<cpm::Reader<VehicleObservationPubSubType>>(new cpm::Reader<VehicleObservationPubSubType>(topic_vehicleObservation_name, vehicle_id));
+    //reader_vehicleObservation(topic_vehicleObservation_name, vehicle_id);
 
 #ifndef VEHICLE_SIMULATION
     // Hardware setup
@@ -144,7 +152,7 @@ int main(int argc, char *argv[])
                 // get IPS observation
                 VehicleObservation sample_vehicleObservation;
                 uint64_t sample_vehicleObservation_age;
-                reader_vehicleObservation.get_sample(
+                reader_vehicleObservation->get_sample(
                     t_now,
                     sample_vehicleObservation,
                     sample_vehicleObservation_age
@@ -152,6 +160,12 @@ int main(int argc, char *argv[])
                 auto end_vehicle_observation = cpm::get_time_ns();
 
                 //std::cout << "Observation = " << end_vehicle_observation - start_vehicle_observation << std::endl;
+                std::cout << "received observation for id: " << std::to_string(sample_vehicleObservation.vehicle_id()) << ";" ;
+                std::cout << "pose: "
+                    << sample_vehicleObservation.pose().x()
+                    << ","
+                    << sample_vehicleObservation.pose().y()
+                    << std::endl;
 
 
                 double motor_throttle = 0;
