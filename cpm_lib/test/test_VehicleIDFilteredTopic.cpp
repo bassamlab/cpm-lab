@@ -4,6 +4,7 @@
 #include "cpm/dds/VehicleStatePubSubTypes.h"
 #include "cpm/dds/VehicleStateTypeObject.h"
 #include "cpm/Reader.hpp"
+#include "cpm/ReaderAbstract.hpp"
 #include "cpm/Writer.hpp"
 #include <unistd.h>
 
@@ -25,6 +26,7 @@ TEST_CASE("VehicleIDFilteredTopic") {
         // Reader for state packages with these IDs
         cpm::Reader<VehicleStatePubSubType> reader_vehicle11("my_topic_name", 11);
         cpm::Reader<VehicleStatePubSubType> reader_vehicle42("my_topic_name", 42);
+        cpm::ReaderAbstract<VehicleStatePubSubType> reader_all("my_topic_name", false, true, false);
 
         //It usually takes some time for all instances to see each other - wait until then
             std::cout << "Waiting for DDS entity match in VehicleIDFilteredTopic test" << std::endl << "\t";
@@ -36,7 +38,8 @@ TEST_CASE("VehicleIDFilteredTopic") {
 
                 if  (writer_vehicleState.matched_subscriptions_size() > 0 && 
                         reader_vehicle11.matched_publications_size() >=1 && 
-                        reader_vehicle42.matched_publications_size() >= 1
+                        reader_vehicle42.matched_publications_size() >= 1 &&
+                        reader_all.matched_publications_size() >= 1
                     )
                     wait = false;
             }
@@ -71,14 +74,22 @@ TEST_CASE("VehicleIDFilteredTopic") {
             writer_vehicleState.write(vehicleState);
         }
 
+        {
+            VehicleState vehicleState;
+            vehicleState.odometer_distance(2);
+            vehicleState.vehicle_id(123);
+            writer_vehicleState.write(vehicleState);
+        }
+
         // wait for 'transmission' for up to 1 second
             std::vector<VehicleState> reader_samples11;
             std::vector<VehicleState> reader_samples42;
+            std::vector<VehicleState> reader_samplesall;
             for (int i = 0; i < 10; ++i)
             {
                 auto reader_samples11_dds = reader_vehicle11.get_all_samples();
                 auto reader_samples42_dds = reader_vehicle42.get_all_samples();
-
+                auto reader_samplesall_dds = reader_all.take(); 
                 for (auto& sample : reader_samples11_dds)
                 {
                     reader_samples11.push_back(sample);
@@ -87,14 +98,21 @@ TEST_CASE("VehicleIDFilteredTopic") {
                 {
                     reader_samples42.push_back(sample);
                 }
+                for (auto& sample : reader_samplesall_dds)
+                {
+                    reader_samplesall.push_back(sample);
+                }
+                
 
                 //Abort early if condition is fulfilled, else wait and repeat read
                 if (reader_samples11.size() >=1 && reader_samples42.size() >= 2) break;
                 else usleep(100000);
             }
 
+        std::cout << "read id " << std::to_string(reader_samplesall[0].vehicle_id()); 
         REQUIRE(reader_samples11.size() == 1);
         REQUIRE(reader_samples42.size() == 2);
+        REQUIRE(reader_samplesall.size() == 5);
 
         REQUIRE(reader_samples42[0].vehicle_id() == 42);
         REQUIRE(reader_samples42[0].odometer_distance() == 2);
