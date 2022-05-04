@@ -50,16 +50,19 @@ namespace cpm {
 
 
     std::string TimeMeasurement::get_str(){
-        std::string res = "Time Measurement";
+        std::string res = "Duration [ms]";
 
         for (auto const& it : measurements){
             res += " | " + it.first + ":";
+            uint64_t mio = 1e6;
             if (it.second.end_time == 0){
                 // Measurement not finished
-                res += std::to_string(cpm::get_time_ns(it.second.clockid) - it.second.start_time) + "(nf)";
+                uint64_t dt_ms = (cpm::get_time_ns(it.second.clockid) - it.second.start_time) / mio;
+                res += std::to_string(dt_ms) + "(nf)";
             }
             else {
-                res += std::to_string(it.second.end_time - it.second.start_time);
+                uint64_t dt_ms = (it.second.end_time - it.second.start_time) / mio;
+                res += std::to_string(dt_ms);
             }
         }
 
