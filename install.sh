@@ -182,6 +182,8 @@ apt install jstest-gtk
 ## Also: Use sudo because some of the files have been created with sudo privileges (e.g. eProsima to be able to install it globally using sudo cmake --build . --target install)
 cd "$DIR"
 sudo git clean -xfd
+# NOTE: If the git version is below v2.35.2 the following might pose a security risk. See CVE-2022-24765 and CVE-2022-24767 
+sudo git config --global --add safe.directory '*'
 sudo git submodule foreach --recursive git clean -xfd
 sudo git reset --hard
 sudo git submodule foreach --recursive git reset --hard
