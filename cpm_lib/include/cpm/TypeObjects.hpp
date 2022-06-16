@@ -21,6 +21,7 @@
 #include "cpm/dds/VehicleCommandDirectTypeObject.h"
 #include "cpm/dds/VehicleCommandTrajectoryTypeObject.h"
 #include "cpm/dds/VehicleCommandPathTrackingTypeObject.h"
+#include "cpm/dds/VehicleCommandSpeedCurvatureTypeObject.h"
 #include "cpm/dds/VehicleObservationTypeObject.h"
 #include "cpm/dds/VehicleStateListTypeObject.h"
 #include "cpm/dds/VehicleStateTypeObject.h"
@@ -53,6 +54,7 @@ void register_type_objects(){
     registerVehicleCommandDirectTypes();
     registerVehicleCommandPathTrackingTypes();
     registerVehicleCommandTrajectoryTypes();
+    registerVehicleCommandSpeedCurvatureTypes();
     registerVehicleObservationTypes();
     registerVehicleStateListTypes();
     registerVehicleStateTypes();
