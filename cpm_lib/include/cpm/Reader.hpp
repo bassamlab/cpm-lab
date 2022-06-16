@@ -142,6 +142,7 @@ namespace cpm {
             false,
             true,
             false,
+            true,
             vehicle_id_filter)
         {
             typename T::type topic_type;

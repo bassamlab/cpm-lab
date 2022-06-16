@@ -79,8 +79,9 @@ namespace cpm
          * \param is_reliable For reliable (true) or best effort (false)
          * \param history_keep_all Keep all samples in the reader until takes gets called (true) or only the last one (false)
          * \param is_transient_local Resend older data to newly joined participants (true) or don't (false)
+         * \param is_data_sharing Use shared memory communication (true) or (false)
          */
-        eprosima::fastdds::dds::DataWriterQos get_qos(bool is_reliable, bool history_keep_all, bool is_transient_local)
+        eprosima::fastdds::dds::DataWriterQos get_qos(bool is_reliable, bool history_keep_all, bool is_transient_local, bool is_data_sharing)
         {
             auto qos = eprosima::fastdds::dds::DataWriterQos();
 
@@ -120,6 +121,12 @@ namespace cpm
                 policy.kind = eprosima::fastdds::dds::VOLATILE_DURABILITY_QOS;
                 qos.durability(policy);
             }
+            // Can be used to enforce writer side contentfiltering (https://fast-dds.docs.eprosima.com/en/latest/fastdds/dds_layer/topic/contentFilteredTopic/writerFiltering.html)
+            if(!is_data_sharing){
+                auto policy = eprosima::fastdds::dds::DataSharingQosPolicy();
+                policy.off();
+                qos.data_sharing(policy);
+            }
 
             return qos;
         }
@@ -154,7 +161,8 @@ namespace cpm
             std::string topic_name, 
             bool reliable = false, 
             bool history_keep_all = false, 
-            bool transient_local = false
+            bool transient_local = false,
+            bool data_sharing = true
         ) : type_support(new T()), participant_(_participant)
         {
             std::cout << "Creating Writer " << topic_name << " : " << topic_data_type.getName() << std::endl;
@@ -213,7 +221,7 @@ namespace cpm
 
             //Create Writer
             writer = std::shared_ptr<eprosima::fastdds::dds::DataWriter>(
-                publisher->create_datawriter(topic.get(), get_qos(reliable, history_keep_all, transient_local), &listener_),
+                publisher->create_datawriter(topic.get(), get_qos(reliable, history_keep_all, transient_local, data_sharing), &listener_),
                 [&](eprosima::fastdds::dds::DataWriter* writer) {
                     if (writer != nullptr)
                     {

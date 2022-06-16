@@ -159,8 +159,9 @@ namespace cpm
          * \param is_reliable Set receiving to best effort (false) / reliable (true)
          * \param is_transient_local Set receiving to transient local
          * \param history_keep_all Set receiving to keep all messages (true) / only the last one (false)
+         * \param is_data_sharing Use shared memory communication (true) or (false)
          */
-        eprosima::fastdds::dds::DataReaderQos get_qos(bool is_reliable, bool is_transient_local, bool history_keep_all)
+        eprosima::fastdds::dds::DataReaderQos get_qos(bool is_reliable, bool is_transient_local, bool history_keep_all, bool is_data_sharing)
         {
             eprosima::fastdds::dds::DataReaderQos data_reader_qos;
 
@@ -197,6 +198,13 @@ namespace cpm
               data_reader_qos.history(policy);
             }
 
+            // Can be used to enforce writer side contentfiltering (https://fast-dds.docs.eprosima.com/en/latest/fastdds/dds_layer/topic/contentFilteredTopic/writerFiltering.html)
+            if(!is_data_sharing){
+                auto policy = eprosima::fastdds::dds::DataSharingQosPolicy();
+                policy.off();
+                data_reader_qos.data_sharing(policy);
+            }
+
             return data_reader_qos;
         }
     public:
@@ -219,6 +227,7 @@ namespace cpm
             bool is_reliable = false,
             bool history_keep_all = true,
             bool is_transient_local = false,
+            bool is_data_sharing = true,
             uint8_t vehicle_id_filter = 0
         );
 
@@ -243,6 +252,7 @@ namespace cpm
         bool is_reliable,
         bool history_keep_all,
         bool is_transient_local,
+        bool is_data_sharing,
         uint8_t vehicle_id_filter
     )
     : type_support(new MessageType()), participant_(participant), topic_name(topic_name), listener_(on_read_callback)
@@ -344,7 +354,7 @@ namespace cpm
         if (vehicle_id_filter > 0)
         {
             reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
-                sub->create_datareader(content_filtered_topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), &listener_),
+                sub->create_datareader(content_filtered_topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all, is_data_sharing), &listener_),
                 [&](eprosima::fastdds::dds::DataReader* reader) {
                     if (sub != nullptr)
                     {
@@ -355,7 +365,7 @@ namespace cpm
         }
         else {
             reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(
-                sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all), &listener_),
+                sub->create_datareader(topic.get(), get_qos(is_reliable, is_transient_local, history_keep_all, is_data_sharing), &listener_),
                 [&](eprosima::fastdds::dds::DataReader* reader) {
                     if (sub != nullptr)
                     {
