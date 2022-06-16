@@ -180,6 +180,13 @@ namespace cpm {
             //      If so: A 'timeout' for this could be set in the constructor
             remove_old_msgs(sample_out);
         }
+
+        /**
+         *   \brief Clears the message buffer.
+         */
+        void clear_samples(){
+            messages_buffer.clear();
+        }
     };
 
 }
