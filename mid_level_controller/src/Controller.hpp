@@ -79,7 +79,32 @@ class Controller
     VehicleCommandTrajectory m_vehicleCommandTrajectory;
     //! TODO
     VehicleCommandPathTracking m_vehicleCommandPathTracking;
+
+    //! Buffer for received VehicleCommandDirect sample
+    VehicleCommandDirect sample_CommandDirect;
+    //! Buffer sample age
+    uint64_t sample_CommandDirect_age;
+
+    //! Buffer for received VehicleCommandDirect sample
+    VehicleCommandSpeedCurvature b_sample_CommandSpeedCurvature;
+    //! Buffer sample age
+    uint64_t b_sample_CommandSpeedCurvature_age;
+
+    //! Buffer for received VehicleCommandDirect sample
+    VehicleCommandTrajectory b_sample_CommandTrajectory;
+    //! Buffer sample age
+    uint64_t b_sample_CommandTrajectory_age;
+
+    //! Buffer for received VehicleCommandDirect sample
+    VehicleCommandPathTracking b_sample_CommandPathTracking;
+    //! Buffer sample age
+    uint64_t b_sample_CommandPathTracking_age;
     
+    //! Buffer for trajectory interpolation
+    TrajectoryPoint start_point = TrajectoryPoint();
+    //! Buffer for trajectory interpolation
+    TrajectoryPoint end_point = TrajectoryPoint();
+
     //! TODO
     uint8_t vehicle_id;
 

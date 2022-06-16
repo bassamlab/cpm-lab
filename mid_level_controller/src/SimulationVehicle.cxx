@@ -165,7 +165,7 @@ std::map<uint8_t, uint64_t>  SimulationVehicle::get_collisions(
     
     std::map<uint8_t, VehicleObservation> sample_out; 
     std::map<uint8_t, uint64_t> sample_age_out;
-    reader_vehiclePoseSimulated.get_samples(t_now, sample_out, sample_age_out);
+    //reader_vehiclePoseSimulated.get_samples(t_now, sample_out, sample_age_out);
     for(const auto& entry : sample_out)
     {
         const auto vehicle_id_in = entry.first;

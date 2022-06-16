@@ -34,22 +34,10 @@ void Controller::receive_commands(uint64_t t_now)
 {
     std::lock_guard<std::mutex> lock(command_receive_mutex);
 
-    VehicleCommandDirect sample_CommandDirect;
-    uint64_t sample_CommandDirect_age;
-
-    VehicleCommandSpeedCurvature sample_CommandSpeedCurvature;
-    uint64_t sample_CommandSpeedCurvature_age;
-
-    VehicleCommandTrajectory sample_CommandTrajectory;
-    uint64_t sample_CommandTrajectory_age;
-
-    VehicleCommandPathTracking sample_CommandPathTracking;
-    uint64_t sample_CommandPathTracking_age;
-
     reader_CommandDirect->get_sample(t_now, sample_CommandDirect, sample_CommandDirect_age);
-    reader_CommandSpeedCurvature->get_sample(t_now, sample_CommandSpeedCurvature, sample_CommandSpeedCurvature_age);
-    reader_CommandTrajectory->get_sample(t_now, sample_CommandTrajectory, sample_CommandTrajectory_age);
-    reader_CommandPathTracking->get_sample(t_now, sample_CommandPathTracking, sample_CommandPathTracking_age);
+    reader_CommandSpeedCurvature->get_sample(t_now, b_sample_CommandSpeedCurvature, b_sample_CommandSpeedCurvature_age);
+    reader_CommandTrajectory->get_sample(t_now, b_sample_CommandTrajectory, b_sample_CommandTrajectory_age);
+    reader_CommandPathTracking->get_sample(t_now, b_sample_CommandPathTracking, b_sample_CommandPathTracking_age);
 
     if(sample_CommandDirect_age < command_timeout)
     {
@@ -64,9 +52,9 @@ void Controller::receive_commands(uint64_t t_now)
             sample_CommandDirect.header().valid_after_stamp().nanoseconds()
         );
     }
-    else if(sample_CommandSpeedCurvature_age < command_timeout)
+    else if(b_sample_CommandSpeedCurvature_age < command_timeout)
     {
-        m_vehicleCommandSpeedCurvature = sample_CommandSpeedCurvature;  
+        m_vehicleCommandSpeedCurvature = b_sample_CommandSpeedCurvature;  
         state = ControllerState::SpeedCurvature;
 
         //Evaluation: Log received timestamp
@@ -74,12 +62,12 @@ void Controller::receive_commands(uint64_t t_now)
             3,
             "Controller: Read speed curvature message. "
             "Valid after %llu",
-            sample_CommandSpeedCurvature.header().valid_after_stamp().nanoseconds()
+            b_sample_CommandSpeedCurvature.header().valid_after_stamp().nanoseconds()
         );
     }
-    else if (sample_CommandTrajectory_age < command_timeout)
+    else if (b_sample_CommandTrajectory_age < command_timeout)
     {
-        m_vehicleCommandTrajectory = sample_CommandTrajectory;  
+        m_vehicleCommandTrajectory = b_sample_CommandTrajectory;  
         state = ControllerState::Trajectory;
 
         //Evaluation: Log received timestamp
@@ -87,12 +75,12 @@ void Controller::receive_commands(uint64_t t_now)
             3,
             "Controller: Read trajectory message. "
             "Valid after %llu",
-            sample_CommandTrajectory.header().valid_after_stamp().nanoseconds()
+            b_sample_CommandTrajectory.header().valid_after_stamp().nanoseconds()
         );
     }
-    else if (sample_CommandPathTracking_age < command_timeout)
+    else if (b_sample_CommandPathTracking_age < command_timeout)
     {
-        m_vehicleCommandPathTracking = sample_CommandPathTracking;  
+        m_vehicleCommandPathTracking = b_sample_CommandPathTracking;  
         state = ControllerState::PathTracking;
 
         //Evaluation: Log received timestamp
@@ -100,7 +88,7 @@ void Controller::receive_commands(uint64_t t_now)
             3,
             "Controller: Read PathTracking message. "
             "Valid after %llu",
-            sample_CommandPathTracking.header().valid_after_stamp().nanoseconds()
+            b_sample_CommandPathTracking.header().valid_after_stamp().nanoseconds()
         );
     }
     // no new commands received
@@ -164,8 +152,6 @@ std::shared_ptr<TrajectoryInterpolation> Controller::interpolate_trajectory_comm
     if(m_vehicleCommandTrajectory.header().create_stamp().nanoseconds() > 0) 
     {
         //Get current segment (trajectory points) in current trajectory for interpolation
-        auto start_point = TrajectoryPoint();
-        auto end_point = TrajectoryPoint();
         start_point.t().nanoseconds(0);
         end_point.t().nanoseconds(0);
 
