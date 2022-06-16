@@ -458,10 +458,10 @@ void Controller::reset()
     std::lock_guard<std::mutex> lock(command_receive_mutex);
 
     cpm::TimeMeasurement::Instance().start("reset_reader");
-    reader_CommandDirect.reset(new cpm::Reader<VehicleCommandDirectPubSubType>("vehicleCommandDirect", vehicle_id));
-    reader_CommandSpeedCurvature.reset(new cpm::Reader<VehicleCommandSpeedCurvaturePubSubType>("vehicleCommandSpeedCurvature", vehicle_id));
-    reader_CommandPathTracking.reset(new cpm::Reader<VehicleCommandPathTrackingPubSubType>("vehicleCommandPathTracking", vehicle_id));
-    reader_CommandTrajectory.reset(new cpm::Reader<VehicleCommandTrajectoryPubSubType>("vehicleCommandTrajectory", vehicle_id));
+    reader_CommandDirect->clear_samples();
+    reader_CommandSpeedCurvature->clear_samples();
+    reader_CommandPathTracking->clear_samples();
+    reader_CommandTrajectory->clear_samples();
     cpm::TimeMeasurement::Instance().stop("reset_reader");
 
     //Set current state to stop until new commands are received
