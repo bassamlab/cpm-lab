@@ -8,7 +8,7 @@
  * \ingroup cpmlib_idl
  */
 struct FutureCollisionAssessment {    
-    Header header;
+    Header _header;
 
     octet vehicle_id; //@key
     int16 fca;

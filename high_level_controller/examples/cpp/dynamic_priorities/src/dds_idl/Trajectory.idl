@@ -41,7 +41,7 @@ struct Trajectory
     //! TODO
     octet vehicle_id; //@key
     //! TODO
-    Header header;
+    Header _header;
     //! TODO
     MessageType type;
     //! TODO

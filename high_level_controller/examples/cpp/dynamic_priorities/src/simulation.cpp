@@ -2,15 +2,14 @@
 #include <vector>
 #include <string> 
 #include "VehicleTrajectoryPlanner.hpp"
-#include "VehicleState.hpp"
-#include "Pose2D.hpp"
+#include "VehicleStatePubSubTypes.h"
+#include "Pose2DPubSubTypes.h"
 #include "lane_graph_tools.hpp"
 #include "cpm/Logging.hpp"                      //->cpm_lib->include->cpm
 #include "cpm/CommandLineReader.hpp"            //->cpm_lib->include->cpm
 #include "cpm/init.hpp"                         //->cpm_lib->include->cpm
 #include "cpm/ParticipantSingleton.hpp"         //->cpm_lib->include->cpm
 #include "cpm/Timer.hpp"                        //->cpm_lib->include->cpm
-#include "cpm/get_topic.hpp"
 #include "cpm/Writer.hpp"
 #include "cpm/ReaderAbstract.hpp"
 #include "cpm/Reader.hpp"

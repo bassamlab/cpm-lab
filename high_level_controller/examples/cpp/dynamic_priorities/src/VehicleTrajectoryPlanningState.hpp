@@ -32,8 +32,8 @@
 #include <cstdint>
 #include <random>
 #include "cpm/Logging.hpp"
-#include "VehicleCommandTrajectory.hpp"
-#include "Trajectory.hpp"
+#include "VehicleCommandTrajectoryPubSubTypes.h"
+#include "TrajectoryPubSubTypes.h"
 
 using std::vector;
 using std::array;

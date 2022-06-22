@@ -40,11 +40,11 @@
 #include "cpm/ReaderAbstract.hpp"
 #include "cpm/AsyncReader.hpp"
 
-#include "VehicleCommandTrajectory.hpp"
-#include "FutureCollisionAssessment.hpp"
-#include "Visualization.hpp"
-#include "Trajectory.hpp"
-#include "FallbackSync.hpp"
+#include "VehicleCommandTrajectoryPubSubTypes.h"
+#include "FutureCollisionAssessmentPubSubTypes.h"
+#include "VisualizationPubSubTypes.h"
+#include "TrajectoryPubSubTypes.h"
+#include "FallbackSyncPubSubTypes.h"
 
 #include "VehicleTrajectoryPlanningState.hpp"
 #include "CouplingGraph.hpp"

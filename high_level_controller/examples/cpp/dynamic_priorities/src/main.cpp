@@ -36,7 +36,6 @@
 #include "cpm/init.hpp"                         //->cpm_lib->include->cpm
 #include "cpm/ParticipantSingleton.hpp"         //->cpm_lib->include->cpm
 #include "cpm/Timer.hpp"                        //->cpm_lib->include->cpm
-#include "cpm/get_topic.hpp"
 #include "cpm/Writer.hpp"
 #include "cpm/ReaderAbstract.hpp"
 #include "cpm/Reader.hpp"
@@ -44,9 +43,9 @@
 #include "cpm/Participant.hpp"
 
 // IDL files
-#include "VehicleCommandTrajectory.hpp"
-#include "VehicleStateList.hpp"
-#include "Trajectory.hpp"
+#include "VehicleCommandTrajectoryPubSubTypes.h"
+#include "VehicleStateListPubSubTypes.h"
+#include "TrajectoryPubSubTypes.h"
 
 // General C++ libs
 #include <chrono>
