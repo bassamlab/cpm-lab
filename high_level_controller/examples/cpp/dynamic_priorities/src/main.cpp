@@ -200,12 +200,12 @@ int main(int argc, char *argv[]) {
     );
 
     // Writer to send trajectory to middleware
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory(
+    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory(
             hlc_communicator.getLocalParticipant()->get_participant(),
             "vehicleCommandTrajectory"
     );
 
-    cpm::Writer<Visualization> writer_visualization(
+    cpm::Writer<VisualizationPubSubType> writer_visualization(
             hlc_communicator.getLocalParticipant()->get_participant(),
             "visualization");
     /* --------------------------------------------------------------------------------- 
@@ -213,11 +213,11 @@ int main(int argc, char *argv[]) {
      * ---------------------------------------------------------------------------------
      */
     // Writer to communicate plans with other vehicles
-    cpm::Writer<Trajectory> writer_trajectory(
+    cpm::Writer<TrajectoryPubSubType> writer_trajectory(
             "trajectory");
 
     // Reader to receive planned trajectories of other vehicles
-    cpm::ReaderAbstract<Trajectory> reader_trajectory(
+    cpm::ReaderAbstract<TrajectoryPointPubSubType> reader_trajectory(
             "trajectory");
     
     /* ---------------------------------------------------------------------------------
@@ -228,31 +228,31 @@ int main(int argc, char *argv[]) {
 
     // Set reader/writers of planner so it can communicate with other planners
     planner->set_writer(
-    std::unique_ptr<cpm::Writer<Trajectory>>(
-        new cpm::Writer<Trajectory>("trajectory")
+    std::unique_ptr<cpm::Writer<TrajectoryPubSubType>>(
+        new cpm::Writer<TrajectoryPubSubType>("trajectory")
         )
     );
     planner->set_reader(
-    std::unique_ptr<cpm::ReaderAbstract<Trajectory>>(
-        new cpm::ReaderAbstract<Trajectory>("trajectory")
+    std::unique_ptr<cpm::ReaderAbstract<TrajectoryPubSubType>>(
+        new cpm::ReaderAbstract<TrajectoryPubSubType>("trajectory")
         )
     );
     // set fca reader and writer
     planner->set_fca_reader(
-        std::unique_ptr<cpm::ReaderAbstract<FutureCollisionAssessment>>(
-        new cpm::ReaderAbstract<FutureCollisionAssessment>("futureCollisionAssessment")
+        std::unique_ptr<cpm::ReaderAbstract<FutureCollisionAssessmentPubSubType>>(
+        new cpm::ReaderAbstract<FutureCollisionAssessmentPubSubType>("futureCollisionAssessment")
         )
     );
     planner->set_fca_writer(
-        std::unique_ptr<cpm::Writer<FutureCollisionAssessment>>(
-        new cpm::Writer<FutureCollisionAssessment>("futureCollisionAssessment")
+        std::unique_ptr<cpm::Writer<FutureCollisionAssessmentPubSubType>>(
+        new cpm::Writer<FutureCollisionAssessmentPubSubType>("futureCollisionAssessment")
         )
     );
 
     // Writer to send visualization to middleware
     planner->set_visualization_writer(
-        std::unique_ptr<cpm::Writer<Visualization>>(
-            new cpm::Writer<Visualization>(
+        std::unique_ptr<cpm::Writer<VisualizationPubSubType>>(
+            new cpm::Writer<VisualizationPubSubType>(
             "visualization"
         )
         )

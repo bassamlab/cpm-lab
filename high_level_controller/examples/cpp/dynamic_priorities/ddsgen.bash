@@ -20,4 +20,4 @@ find src/dds_idl/ -type f | xargs -n 1 ../../../../cpm_lib/thirdparty/Fast-DDS-G
 
 # Copy headers to public inclues
 mkdir -p include/dds
-(cd dds_idl_cpp;find -type f) | grep \\.h | xargs -n 1 -I ARG cp dds_idl_cpp/ARG include/cpm/dds/
+(cd src/dds_idl_cpp;find -type f) | grep \\.h | xargs -n 1 -I ARG cp src/dds_idl_cpp/ARG include/dds/

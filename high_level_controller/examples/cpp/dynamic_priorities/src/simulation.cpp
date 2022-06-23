@@ -16,7 +16,7 @@
 #include "cpm/HLCCommunicator.hpp"
 #include "cpm/Participant.hpp"
 #include <atomic>
-#include<thread>
+#include <thread>
 
 void simulate(std::shared_ptr<VehicleTrajectoryPlanner> planner);
 
@@ -29,18 +29,19 @@ int n_steps;
 // vehicles always plan for dt segments (in ns) 
 uint64_t dt = 400000000;
 
-// start poses on the commonroad map (central routing map)
-std::vector<Pose2D>  start_poses( {Pose2D(3.15802,3.88862,-0.0507011), Pose2D(3.8791,3.72123,-0.497375), 
-                                    Pose2D(4.35882,2.95562,-1.41334), Pose2D(4.39471,1.99965,-1.56801), 
-                                    Pose2D(4.35932,1.04568,-1.72724), Pose2D(3.87964,0.278448,-2.64031), 
-                                    Pose2D(3.15654,0.111178,-3.09329), Pose2D(2.24999,0.104926,3.14091),
-                                    Pose2D(1.34368,0.111556,3.08998), Pose2D(0.62071,0.278691,2.63872),
-                                    Pose2D(0.141397,1.04581,1.7287), Pose2D(0.104006,2.00092,1.57371),
-                                    Pose2D(0.141131,2.9547,1.4113), Pose2D(0.62021,3.72161,0.500138),
-                                    Pose2D(1.34238,3.88924,0.0494666), Pose2D(3.05031,2.22542,3.14112),
-                                    Pose2D(3.05088,1.77524,-0.00189507), Pose2D(2.47512,1.19944,1.57269),
-                                    Pose2D(2.02503,1.19963,-1.57305), Pose2D(1.4504,1.77449,-0.0020518)});
+std::vector<std::vector<float_t>> start_poses_raw( {{3.15802,3.88862,-0.0507011}, {3.8791,3.72123,-0.497375}, 
+                                    {4.35882,2.95562,-1.41334}, {4.39471,1.99965,-1.56801}, 
+                                    {4.35932,1.04568,-1.72724}, {3.87964,0.278448,-2.64031}, 
+                                    {3.15654,0.111178,-3.09329}, {2.24999,0.104926,3.14091},
+                                    {1.34368,0.111556,3.08998}, {0.62071,0.278691,2.63872},
+                                    {0.141397,1.04581,1.7287}, {0.104006,2.00092,1.57371},
+                                    {0.141131,2.9547,1.4113}, {0.62021,3.72161,0.500138},
+                                    {1.34238,3.88924,0.0494666}, {3.05031,2.22542,3.14112},
+                                    {3.05088,1.77524,-0.00189507}, {2.47512,1.19944,1.57269},
+                                    {2.02503,1.19963,-1.57305}, {1.4504,1.77449,-0.0020518}});
 
+// start poses on the commonroad map (central routing map)
+std::vector<Pose2D>  start_poses;
 /*
 *   Simulates a vehicle for n_steps. Synced to the other vehicle via iterations.
 */
@@ -67,6 +68,15 @@ void simulate(std::shared_ptr<VehicleTrajectoryPlanner> planner){
 */
 int main(int argc, char* argv[])
 {
+    Pose2D b_pose; //buffer
+    for (auto &r_pose : start_poses_raw)
+    {
+        b_pose.x(r_pose[0]);
+        b_pose.y(r_pose[1]);
+        b_pose.yaw(r_pose[2]);
+        start_poses.push_back(b_pose);
+    }
+
     std::vector<std::string> arguments = {"dds_domain=21", "dds_initial_peer=rtps@udpv4://192.168.1.249:25598"};
 
     n_vehicles = cpm::cmd_parameter_int("n", 5, argc, argv);
@@ -98,33 +108,33 @@ int main(int argc, char* argv[])
     {
         vehicle_id++;
         // Writer to communicate plans with other vehicles
-        cpm::Writer<Trajectory> writer_trajectory(
+        cpm::Writer<TrajectoryPubSubType> writer_trajectory(
             "trajectory");
         // Reader to receive planned trajectories of other vehicles
-        cpm::ReaderAbstract<Trajectory> reader_trajectory(
+        cpm::ReaderAbstract<TrajectoryPubSubType> reader_trajectory(
             "trajectory");
         
         planner->set_writer(
-            std::unique_ptr<cpm::Writer<Trajectory>>(
-                new cpm::Writer<Trajectory>( "trajectory")));
+            std::unique_ptr<cpm::Writer<TrajectoryPubSubType>>(
+                new cpm::Writer<TrajectoryPubSubType>( "trajectory")));
         planner->set_reader(
-            std::unique_ptr<cpm::ReaderAbstract<Trajectory>>(
-                new cpm::ReaderAbstract<Trajectory>( "trajectory")));
+            std::unique_ptr<cpm::ReaderAbstract<TrajectoryPubSubType>>(
+                new cpm::ReaderAbstract<TrajectoryPubSubType>( "trajectory")));
         // set fca reader and writer
         planner->set_fca_reader(
-            std::unique_ptr<cpm::ReaderAbstract<FutureCollisionAssessment>>(
-                new cpm::ReaderAbstract<FutureCollisionAssessment>("futureCollisionAssessment")));
+            std::unique_ptr<cpm::ReaderAbstract<FutureCollisionAssessmentPubSubType>>(
+                new cpm::ReaderAbstract<FutureCollisionAssessmentPubSubType>("futureCollisionAssessment")));
         planner->set_fca_writer(
-            std::unique_ptr<cpm::Writer<FutureCollisionAssessment>>(
-                new cpm::Writer<FutureCollisionAssessment>("futureCollisionAssessment")));
+            std::unique_ptr<cpm::Writer<FutureCollisionAssessmentPubSubType>>(
+                new cpm::Writer<FutureCollisionAssessmentPubSubType>("futureCollisionAssessment")));
 
         // Writer to send visualization to middleware
         planner->set_visualization_writer(
-            std::unique_ptr<cpm::Writer<Visualization>>(
-                new cpm::Writer<Visualization>(
+            std::unique_ptr<cpm::Writer<VisualizationPubSubType>>(
+                new cpm::Writer<VisualizationPubSubType>(
                     "visualization")));
 
-
+    
         // sets the vehicles up at the starting poses, mathes them to the nodes of the map graph (include/lane_graph)
         Pose2D pose = start_poses.at(vehicle_id - 1); // ids start at 1; start_poses at 0
 

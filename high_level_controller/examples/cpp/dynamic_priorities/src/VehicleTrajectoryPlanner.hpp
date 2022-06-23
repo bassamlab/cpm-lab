@@ -84,19 +84,19 @@ class VehicleTrajectoryPlanner
     //! Mutex to safely access the stored fcas 
     std::mutex collision_assessments_mutex;
     //! Writer to broadcast our own planned or optimal trajectory
-    std::unique_ptr< cpm::Writer<Trajectory> > writer_trajectory;
+    std::unique_ptr< cpm::Writer<TrajectoryPubSubType>> writer_trajectory;
     //! Reader to receive other planned or optimal trajectories
-    std::unique_ptr< cpm::ReaderAbstract<Trajectory> > reader_trajectory;
+    std::unique_ptr< cpm::ReaderAbstract<TrajectoryPubSubType>> reader_trajectory;
     //! Writer to visualize priority and fca
-    std::unique_ptr< cpm::Writer<Visualization> > writer_visualization;
+    std::unique_ptr< cpm::Writer<VisualizationPubSubType>> writer_visualization;
     //! Reader to read FutureCollisionAssessment messages
-    std::unique_ptr< cpm::ReaderAbstract<FutureCollisionAssessment> > reader_fca;
+    std::unique_ptr< cpm::ReaderAbstract<FutureCollisionAssessmentPubSubType>> reader_fca;
     //! Writer to send FutureCollisionAssessments
-    std::unique_ptr< cpm::Writer<FutureCollisionAssessment> > writer_fca;
+    std::unique_ptr< cpm::Writer<FutureCollisionAssessmentPubSubType>> writer_fca;
     //! Reader to read FallbackSync messages
-    std::unique_ptr< cpm::ReaderAbstract<FallbackSync> > reader_sync;
+    std::unique_ptr< cpm::ReaderAbstract<FallbackSyncPubSubType>> reader_sync;
     //! Writer to send FallbackSync messages
-    std::unique_ptr< cpm::Writer<FallbackSync> > writer_sync;
+    std::unique_ptr< cpm::Writer<FallbackSyncPubSubType>> writer_sync;
     //! Is false on the first planning step and after the planner crashed
     bool started = false;
     //! Is true, when we either couldn't find any trajectory, or we missed too many timesteps
@@ -343,25 +343,25 @@ public:
      * \brief Set writer to send planned trajectories
      * \param writer cpm::Writer object
      */
-    void set_writer(std::unique_ptr< cpm::Writer<Trajectory> > writer);
+    void set_writer(std::unique_ptr< cpm::Writer<TrajectoryPubSubType>> writer);
 
     /**
      * \brief Set reader to read planned trajectories
      * \param reader cpm::ReaderAbstract object
      */
-    void set_reader(std::unique_ptr< cpm::ReaderAbstract<Trajectory> > reader);
+    void set_reader(std::unique_ptr< cpm::ReaderAbstract<TrajectoryPubSubType>> reader);
     
     /**
      * \brief Set reader to read planned trajectories
      * \param reader cpm::ReaderAbstract object
      */
-    void set_fca_reader(std::unique_ptr< cpm::ReaderAbstract<FutureCollisionAssessment> > reader);
+    void set_fca_reader(std::unique_ptr< cpm::ReaderAbstract<FutureCollisionAssessmentPubSubType>> reader);
     
     /**
      * \brief Set writer to send planned trajectories
      * \param writer cpm::Writer object
      */
-    void set_fca_writer(std::unique_ptr< cpm::Writer<FutureCollisionAssessment> > writer);
+    void set_fca_writer(std::unique_ptr< cpm::Writer<FutureCollisionAssessmentPubSubType>> writer);
 
     /**
      * \brief Creates a FutureCollisionAssessment message and publishes it.
@@ -373,7 +373,7 @@ public:
      * \brief Sets the visualisation writer
      * \param writer cpm::Writer object
      */
-    void set_visualization_writer(std::unique_ptr< cpm::Writer<Visualization> > writer);
+    void set_visualization_writer(std::unique_ptr< cpm::Writer<VisualizationPubSubType>> writer);
 
     /**
      * \brief Writes out the info to be displayed by the LCC near the vehicle.
