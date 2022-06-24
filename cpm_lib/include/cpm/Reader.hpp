@@ -185,6 +185,7 @@ namespace cpm {
          *   \brief Clears the message buffer.
          */
         void clear_samples(){
+            std::lock_guard<std::mutex> lock(m_mutex);
             messages_buffer.clear();
         }
     };
