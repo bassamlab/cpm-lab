@@ -242,6 +242,19 @@ namespace cpm
         std::shared_ptr<eprosima::fastdds::dds::DataReader> get_reader(){
             return reader;
         }
+
+        /**
+         * \brief
+         * 
+         */
+        void max_blocking(eprosima::fastrtps::Time_t _max_blocking_time){
+            eprosima::fastdds::dds::DataReaderQos data_reader_qos = reader->get_qos();
+            auto reliable_policy = data_reader_qos.reliability();
+            
+            reliable_policy.max_blocking_time = _max_blocking_time;//eprosima::fastrtps::Time_t(0,15);
+            data_reader_qos.reliability(reliable_policy);
+            reader->set_qos(data_reader_qos);
+        }
     };
 
     template<class MessageType> 

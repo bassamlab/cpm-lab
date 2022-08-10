@@ -188,6 +188,10 @@ namespace cpm {
             std::lock_guard<std::mutex> lock(m_mutex);
             messages_buffer.clear();
         }
+
+        void max_blocking(eprosima::fastrtps::Time_t _max_blocking_time){
+            ReaderParent<T>::max_blocking(_max_blocking_time);
+        }
     };
 
 }

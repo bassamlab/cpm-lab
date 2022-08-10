@@ -250,5 +250,18 @@ namespace cpm
         {
             return static_cast<size_t>(listener_.matched_.load());
         }
+
+        /**
+         * \brief
+         * 
+         */
+        void max_blocking(eprosima::fastrtps::Time_t _max_blocking_time){
+            eprosima::fastdds::dds::DataWriterQos data_writer_qos = writer->get_qos();
+            auto reliable_policy = data_writer_qos.reliability();
+            
+            reliable_policy.max_blocking_time = _max_blocking_time;//eprosima::fastrtps::Time_t(0,15);
+            data_writer_qos.reliability(reliable_policy);
+            writer->set_qos(data_writer_qos);
+        }
     };
 }
