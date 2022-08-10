@@ -17,6 +17,7 @@ if(BUILD_ARM)
     # eProsima gets compiled together with the ARM files
     option(THIRDPARTY "" ON)
     option(BUILD_TESTING "" OFF)
+    option(DSTRICT_REALTIME "" ON)
     add_subdirectory(../cpm_lib/thirdparty/Fast-DDS/ build)
 else()
     # Fast-DDS
@@ -84,19 +85,17 @@ endif()
 
 if(BUILD_ARM)
     link_directories(../cpm_lib/build_arm/)
-    link_directories($ENV{NDDSHOME}/lib/armv6vfphLinux3.xgcc4.7.2)
 else()
     link_directories(../cpm_lib/build/)
-    link_directories($ENV{NDDSHOME}/lib/x64Linux4gcc7.3.0)
 endif()
 
 
 add_executable(vehicle_rpi_firmware ${SOURCE})
 
 if(BUILD_ARM)
-    target_compile_options(vehicle_rpi_firmware PUBLIC -fpic -DRTI_UNIX -DRTI_LINUX -march=armv6 -mfpu=vfp -mfloat-abi=hard -mlong-calls)
+    target_compile_options(vehicle_rpi_firmware PUBLIC -fpic -march=armv6 -mfpu=vfp -mfloat-abi=hard -mlong-calls)
 else()
-    target_compile_options(vehicle_rpi_firmware PUBLIC -fpic -DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -m64 -Wl,--no-as-needed)
+    target_compile_options(vehicle_rpi_firmware PUBLIC -fpic -m64 -Wl,--no-as-needed)
     set_target_properties(vehicle_rpi_firmware PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
 endif()
 
