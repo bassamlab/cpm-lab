@@ -8,6 +8,7 @@
 #include <iterator>
 #include <iomanip>
 #include <ios>
+#include <unistd.h>
 using std::vector;
 
 
@@ -74,11 +75,13 @@ int main(int argc, char *argv[])
 
     // DDS setup
     cpm::Writer<VehicleStatePubSubType> writer_vehicleState("vehicleState");
+    writer_vehicleState.max_blocking(eprosima::fastrtps::Time_t(2000000,0));
 
     registerVehicleObservationTypes();
     std::string topic_vehicleObservation_name = "vehicleObservation";
     std::unique_ptr< cpm::Reader<VehicleObservationPubSubType> > reader_vehicleObservation;
     reader_vehicleObservation = std::unique_ptr<cpm::Reader<VehicleObservationPubSubType>>(new cpm::Reader<VehicleObservationPubSubType>(topic_vehicleObservation_name, vehicle_id));
+    reader_vehicleObservation->max_blocking(eprosima::fastrtps::Time_t(2000000,0));
     //reader_vehicleObservation(topic_vehicleObservation_name, vehicle_id);
 
 #ifndef VEHICLE_SIMULATION
@@ -160,12 +163,12 @@ int main(int argc, char *argv[])
                 auto end_vehicle_observation = cpm::get_time_ns();
 
                 //std::cout << "Observation = " << end_vehicle_observation - start_vehicle_observation << std::endl;
-                std::cout << "received observation for id: " << std::to_string(sample_vehicleObservation.vehicle_id()) << ";" ;
-                std::cout << "pose: "
-                    << sample_vehicleObservation.pose().x()
-                    << ","
-                    << sample_vehicleObservation.pose().y()
-                    << std::endl;
+                //std::cout << "received observation for id: " << std::to_string(sample_vehicleObservation.vehicle_id()) << ";" ;
+                //std::cout << "pose: "
+                //    << sample_vehicleObservation.pose().x()
+                //    << ","
+                //    << sample_vehicleObservation.pose().y()
+                //    << std::endl;
 
 
                 double motor_throttle = 0;
