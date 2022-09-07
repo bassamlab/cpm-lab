@@ -129,47 +129,21 @@ if [ -z $SIMULATION ]; then
 fi
 
 ### 1.1 CMake #######################################################
-# Download, verify and install a newer CMake version than distributed in Ubuntu 18.04
-if [ -d "./cmake_tmp" ]; then rm -rf ./cmake_tmp; fi
-mkdir cmake_tmp
-cd cmake_tmp
+# Download, verify and install a newer CMake version from Kitware APT Repository
+# 1.1.1 Obtain a copy of signing key
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
 
-curl -OL https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-SHA-256.txt
-curl -OL https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1.tar.gz
-sha256sum -c --ignore-missing cmake-3.22.1-SHA-256.txt
+# 1.1.2 Add the repository to your sources list and update
+echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ bionic main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
+sudo apt update -y
 
-if [ ! $? -eq 0 ];
-then
-    echo "The CMake SHA256 is not valid, aborting..." >&2
-    exit 1
-fi
+# 1.1.3 Install the kitware-archive-keyring package to ensure that keyring stays up to date
+sudo rm /usr/share/keyrings/kitware-archive-keyring.gpg || true
+sudo apt install kitware-archive-keyring -y
 
-curl -OL https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-SHA-256.txt.asc
-gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys C6C265324BBEBDC350B513D02D2CEF1034921684
-gpg --verify cmake-3.22.1-SHA-256.txt.asc cmake-3.22.1-SHA-256.txt
+# 1.1.4 Install cmake
+sudo apt install cmake -y
 
-if [ ! $? -eq 0 ];
-then
-    echo "The CMake GPG for SHA256 is not valid, aborting..." >&2
-    exit 1
-fi
-
-# Uninstall old cmake
-sudo apt remove -y --purge --auto-remove cmake
-
-# Install CMake
-tar -xzf cmake-3.22.1.tar.gz
-cd cmake-3.22.1
-./bootstrap
-make
-sudo make install
-
-
-# Get rid of tmp cmake folder
-cd ..
-cd ..
-rm -rf ./cmake_tmp
-cmake --version
 
 ### 2. Joystick / Gamepad ######################################################
 #With a Joystick or a Gamepad you can drive vehicles manually in the Lab Control Center (LCC)
@@ -251,11 +225,11 @@ sudo ./gradlew assemble # TODO: Fails without sudo, but is this safe enough? Gra
 # the network. The domain ID is assumed to be in the environment variable
 # DDS_DOMAIN.
 
-echo "export DDS_DOMAIN=""${DOMAIN_ID}" > /etc/profile.d/rti_connext_dds.sh
-echo "export RASPBIAN_TOOLCHAIN=/opt/cross-pi-gcc" >> /etc/profile.d/rti_connext_dds.sh
-echo "export RPIPWD=cpmcpmcpm" >> /etc/profile.d/rti_connext_dds.sh
+echo "export DDS_DOMAIN=""${DOMAIN_ID}" > /etc/profile.d/cpmlab.sh
+echo "export RASPBIAN_TOOLCHAIN=/opt/cross-pi-gcc" >> /etc/profile.d/cpmlab.sh
+echo "export RPIPWD=cpmcpmcpm" >> /etc/profile.d/cpmlab.sh
 # Reboot or source to apply the changes made to the environment variables.
-source /etc/profile.d/rti_connext_dds.sh
+source /etc/profile.d/cpmlab.sh
 
 ## 3.4 Install eProsima ARM libraries
 # only needed in real lab mode
@@ -310,7 +284,7 @@ rm -rf "${DIR}/tmp"
 
 ### 5. Inform user about success and next steps ################################
 echo "Success! Ready to build the cpm software suite."
-echo "Reboot your PC or execute 'source /etc/profile.d/rti_connext_dds.sh'"
+echo "Reboot your PC or execute 'source /etc/profile.d/cpmlab.sh'"
 echo "Then execute './build_all.bash' or './build_all.bash --simulation'"
 
 exit 0
