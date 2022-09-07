@@ -8,7 +8,7 @@
  * \ingroup cpmlib_idl
  */
 struct FallbackSync {    
-    Header header;
+    Header _header;
 
     octet vehicle_id; //@key
     octet syncid;

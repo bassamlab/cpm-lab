@@ -536,9 +536,7 @@ void VehicleTrajectoryPlanningState::get_lane_graph_positions(
         lane_graph_positions.push_back(lane_graph_pos);
     }
 
-    lane_graph_trajectory.lane_graph_positions(
-            rti::core::vector<LaneGraphPosition>(lane_graph_positions)
-    );
+    lane_graph_trajectory.lane_graph_positions(lane_graph_positions);
 }
 
 std::pair<double, double> VehicleTrajectoryPlanningState::get_position(){

@@ -47,11 +47,11 @@
  */
 
 VehicleTrajectoryPlanner::VehicleTrajectoryPlanner(PriorityMode _mode, int _seed){
-    writer_sync = std::unique_ptr<cpm::Writer<FallbackSync>>(
-        new cpm::Writer<FallbackSync>("fallbacksync")
+    writer_sync = std::unique_ptr<cpm::Writer<FallbackSyncPubSubType>>(
+        new cpm::Writer<FallbackSyncPubSubType>("fallbacksync")
         );
-    reader_sync =  std::unique_ptr<cpm::ReaderAbstract<FallbackSync>>(
-        new cpm::ReaderAbstract<FallbackSync>("fallbacksync")
+    reader_sync =  std::unique_ptr<cpm::ReaderAbstract<FallbackSyncPubSubType>>(
+        new cpm::ReaderAbstract<FallbackSyncPubSubType>("fallbacksync")
         );
     mode = _mode;
     
@@ -66,9 +66,7 @@ VehicleCommandTrajectory VehicleTrajectoryPlanner::get_trajectory_command(uint64
 {
     VehicleCommandTrajectory vehicleCommandTrajectory;
     vehicleCommandTrajectory.vehicle_id(trajectoryPlan->get_vehicle_id());
-    vehicleCommandTrajectory.trajectory_points(
-            rti::core::vector<TrajectoryPoint>(trajectory_point_buffer)
-    );
+    vehicleCommandTrajectory.trajectory_points(trajectory_point_buffer);
     vehicleCommandTrajectory.header().create_stamp().nanoseconds(t_now); //You just need to set t_now here, as it was created at t_now
     vehicleCommandTrajectory.header().valid_after_stamp().nanoseconds(t_now + dt_nanos);
 
@@ -796,20 +794,20 @@ void VehicleTrajectoryPlanner::clear_past_trajectory_point_buffer() {
 }
 
 void VehicleTrajectoryPlanner::set_writer(
-        std::unique_ptr< cpm::Writer<Trajectory> > writer){
+        std::unique_ptr< cpm::Writer<TrajectoryPubSubType>> writer){
     writer_trajectory = std::move(writer);
 }
 void VehicleTrajectoryPlanner::set_reader(
-        std::unique_ptr< cpm::ReaderAbstract<Trajectory> > reader){
+        std::unique_ptr< cpm::ReaderAbstract<TrajectoryPubSubType>> reader){
     reader_trajectory = std::move(reader);
 }
 
 void VehicleTrajectoryPlanner::set_fca_writer(
-        std::unique_ptr< cpm::Writer<FutureCollisionAssessment> > writer){
+        std::unique_ptr< cpm::Writer<FutureCollisionAssessmentPubSubType>> writer){
     writer_fca = std::move(writer);
 }
 void VehicleTrajectoryPlanner::set_fca_reader(
-        std::unique_ptr< cpm::ReaderAbstract<FutureCollisionAssessment> > reader){
+        std::unique_ptr< cpm::ReaderAbstract<FutureCollisionAssessmentPubSubType>> reader){
     reader_fca = std::move(reader);
 }
 
@@ -817,7 +815,7 @@ void VehicleTrajectoryPlanner::set_fca_reader(
  * 
  */
 void VehicleTrajectoryPlanner::set_visualization_writer(
-    std::unique_ptr< cpm::Writer<Visualization> > writer){
+    std::unique_ptr< cpm::Writer<VisualizationPubSubType>> writer){ 
         writer_visualization  = std::move(writer);
 }
 
@@ -837,10 +835,18 @@ void VehicleTrajectoryPlanner::display_infos(uint8_t id, std::string info){
     vis.time_to_live(15000000);
     vis.size(0.1);
 
-    std::vector<Point2D> vis_points{ Point2D(trajectory_point_buffer[5].px(), trajectory_point_buffer[5].py()) };
-    vis.points(rti::core::vector<Point2D>(vis_points));
+    std::vector<Point2D> vis_points;
+    Point2D point;
+    point.x(trajectory_point_buffer[5].px());
+    point.y(trajectory_point_buffer[5].py());
+    vis_points.push_back(point);
+    vis.points(vis_points);
     
-    Color vis_color(100, 255, 100, 0);
+    Color vis_color;
+    vis_color.r(100);
+    vis_color.g(255);
+    vis_color.b(100);
+    vis_color.a(0);
     vis.color(vis_color);
     vis.string_message(info);
     writer_visualization->write(vis);

@@ -10,7 +10,7 @@ sed -e "s/TEMPLATE_IP/${IP_SELF}/g" \
 <./QOS_LOCAL_COMMUNICATION.xml.template \
 >./build/QOS_LOCAL_COMMUNICATION.xml
 
-./rtigen.bash
+./ddsgen.bash
 cd build
 cmake .. 
 make -j$(nproc)
