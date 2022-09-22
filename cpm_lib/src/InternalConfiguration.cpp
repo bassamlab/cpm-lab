@@ -51,7 +51,10 @@ namespace cpm
         InternalConfiguration::the_instance = InternalConfiguration(
             cmd_parameter_int("dds_domain", 0, argc, argv),
             cmd_parameter_string("logging_id", "uninitialized", argc, argv),
-            cmd_parameter_string("dds_initial_peer", "", argc, argv)
+            cmd_parameter_string("client_server", "", argc, argv),
+            cmd_parameter_string("discovery_server_id", "", argc, argv),
+            cmd_parameter_string("discovery_server_ip", "", argc, argv),
+            cmd_parameter_int("discovery_server_port", -1, argc, argv)
         );
 
         // TODO reverse access, i.e. access the config from the logging
