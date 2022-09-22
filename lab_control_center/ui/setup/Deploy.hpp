@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include "cpm/Logging.hpp"
+#include "cpm/InternalConfiguration.hpp"
 #include "ProgramExecutor.hpp"
 
 /**
