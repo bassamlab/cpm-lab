@@ -36,6 +36,21 @@
 #include <fastrtps/xmlparser/XMLProfileManager.h>
 #include <fastdds/rtps/transport/shared_mem/SharedMemTransportDescriptor.h>
 
+#include <sstream>
+
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/rtps/transport/TCPv4TransportDescriptor.h>
+#include <fastdds/rtps/transport/TCPv6TransportDescriptor.h>
+
+#include <fastrtps/utils/IPLocator.h>
+
+using namespace eprosima::fastrtps;
+using namespace eprosima::fastrtps::rtps;
+
+using namespace eprosima::fastdds;
+using namespace eprosima::fastdds::dds;
+using namespace eprosima::fastdds::rtps;
 namespace cpm
 {
 
@@ -102,9 +117,88 @@ namespace cpm
         }
     }
     
+    /**
+     * \brief Constructor for a Server participant 
+     * \param domain_number Set the domain ID of the domain within which the communication takes place
+     * \param qos_file QoS settings to be imported from an .xml file
+     */
+    Participant::Participant(int domain_number, discovery_mode server_client, std::string guid, std::string ip, int port)
+    {
+        DomainParticipantQos pqos;
+        switch (server_client)
+        {
+        case SERVER:
+            pqos = create_server_qos(guid, ip, port);
+            break;
+        case CLIENT:
+            pqos = create_client_qos(guid, ip, port);
+            break;
+        default:
+            pqos = PARTICIPANT_QOS_DEFAULT;
+            break;
+        }
+
+        participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
+            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, pqos),
+            [] (eprosima::fastdds::dds::DomainParticipant* participant) {
+                if (participant != nullptr)
+                    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+            }
+        );
+        
+
+    }
     std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> Participant::get_participant()
     {
         return participant;
     }
 
+    DomainParticipantQos Participant::create_client_qos(std::string guid, std::string ip, uint32_t port)
+    {
+        // Get default participant QoS
+        DomainParticipantQos client_qos = PARTICIPANT_QOS_DEFAULT;
+
+        // Set participant as CLIENT
+        client_qos.wire_protocol().builtin.discovery_config.discoveryProtocol =
+                DiscoveryProtocol_t::CLIENT;
+
+        // Set SERVER's GUID prefix
+        RemoteServerAttributes remote_server_att;
+        remote_server_att.ReadguidPrefix(guid.c_str());
+
+        // Set SERVER's listening locator for PDP
+        Locator_t locator;
+        IPLocator::setIPv4(locator, ip);
+        locator.port = port;
+        remote_server_att.metatrafficUnicastLocatorList.push_back(locator);
+
+        // Add remote SERVER to CLIENT's list of SERVERs
+        client_qos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(remote_server_att);
+
+        // Set ping period to 250 ms
+        client_qos.wire_protocol().builtin.discovery_config.discoveryServer_client_syncperiod =
+               eprosima::fastrtps::Duration_t(0, 250000000);
+
+        return client_qos;
+    }
+
+    DomainParticipantQos Participant::create_server_qos(std::string guid, std::string ip, uint32_t port)
+    {
+        DomainParticipantQos server_qos = PARTICIPANT_QOS_DEFAULT;
+
+        // Set participant as SERVER
+        server_qos.wire_protocol().builtin.discovery_config.discoveryProtocol =
+                DiscoveryProtocol_t::SERVER;
+
+        // Set SERVER's GUID prefix
+        std::istringstream(guid) >> server_qos.wire_protocol().prefix;
+
+        // Set SERVER's listening locator for PDP
+        Locator_t locator;
+        IPLocator::setIPv4(locator, ip);
+        locator.port = port;
+        server_qos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(locator);
+
+        return server_qos;
+    }
 }
