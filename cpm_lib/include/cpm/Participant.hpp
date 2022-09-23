@@ -67,5 +67,10 @@ namespace cpm
          * \brief Creates QOS settings that are needed for a client Participant when using client the discovery server mode
          */
         static eprosima::fastdds::dds::DomainParticipantQos create_server_qos(std::string guid, std::string ip, uint32_t port);
+
+        /**
+         * \brief Creates QOS settings for preallocation. Useful for RT behaviour.
+         */
+        static eprosima::fastdds::dds::DomainParticipantQos create_preallocation_qos(eprosima::fastdds::dds::DomainParticipantQos participant_qos, size_t participants, size_t readers, size_t writers);
     };
 }

@@ -71,7 +71,8 @@ namespace cpm
             cmd_parameter_string("discovery_mode", "", argc, argv),
             cmd_parameter_string("discovery_server_id", "", argc, argv),
             cmd_parameter_string("discovery_server_ip", "", argc, argv),
-            cmd_parameter_int("discovery_server_port", -1, argc, argv)
+            cmd_parameter_int("discovery_server_port", -1, argc, argv),
+            cmd_parameter_int("realtime", false, argc, argv)
         );
 
         // TODO reverse access, i.e. access the config from the logging

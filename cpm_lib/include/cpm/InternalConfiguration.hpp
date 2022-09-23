@@ -28,7 +28,8 @@ namespace cpm
         std::string discovery_server_ip;
         //! //! Discovery server port
         int discovery_server_port;
-       
+        //! Wether realtime behaviour should be used. Results in reduction of dynamic allocations.
+        bool realtime;
 
         /**
          * \brief Empty default constructor, private, can / should not be used
@@ -47,14 +48,16 @@ namespace cpm
             std::string _discovery_mode,
             std::string _discovery_server_id,
             std::string _discovery_server_ip,
-            int _discovery_server_port
+            int _discovery_server_port,
+            bool _realtime
         )
         :dds_domain(_dds_domain)
         ,logging_id(_logging_id)
         ,discovery_mode(_discovery_mode)
         ,discovery_server_id(_discovery_server_id)
         ,discovery_server_ip(_discovery_server_ip)
-        ,discovery_server_port(_discovery_server_port)
+        ,discovery_server_port(_discovery_server_port),
+        realtime(_realtime)
         {}
 
     public:
@@ -88,6 +91,12 @@ namespace cpm
          * \brief Get the the discovery server port
          */
         int get_discovery_server_port() { return discovery_server_port; }
+
+        /**
+         * \brief Get wether realtime behaviour should be used.
+         *  Realtime behaviour enabled results in the use of measures that are described here: https://fast-dds.docs.eprosima.com/en/v2.7.1/fastdds/use_cases/realtime/realtime.html
+         */
+        bool get_realtime() { return realtime; }
         
         /**
          * \brief Init function that should be called at the start of every program that uses the cpm lib
@@ -99,6 +108,7 @@ namespace cpm
          * --discovery_server_id
          * --discovery_server_ip
          * --discovery_server_port
+         * --realtime
          */
         static void init(int argc, char *argv[]);
 
