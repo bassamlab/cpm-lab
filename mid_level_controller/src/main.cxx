@@ -47,6 +47,9 @@ using std::vector;
 
 #include "bcm2835.h"
 
+//! Maximum time in nanoseconds read and write operations are allowed to block the process.
+const int MAX_BLOCKING_NS = 10000000; 
+
 /**
  * \brief Main function of the vehicle software, for real and simulated usage
  * \ingroup vehicle
@@ -75,13 +78,13 @@ int main(int argc, char *argv[])
 
     // DDS setup
     cpm::Writer<VehicleStatePubSubType> writer_vehicleState("vehicleState");
-    writer_vehicleState.max_blocking(eprosima::fastrtps::Time_t(2000000,0));
+    writer_vehicleState.max_blocking(eprosima::fastrtps::Time_t(0,MAX_BLOCKING_NS));
 
     registerVehicleObservationTypes();
     std::string topic_vehicleObservation_name = "vehicleObservation";
     std::unique_ptr< cpm::Reader<VehicleObservationPubSubType> > reader_vehicleObservation;
     reader_vehicleObservation = std::unique_ptr<cpm::Reader<VehicleObservationPubSubType>>(new cpm::Reader<VehicleObservationPubSubType>(topic_vehicleObservation_name, vehicle_id));
-    reader_vehicleObservation->max_blocking(eprosima::fastrtps::Time_t(2000000,0));
+    reader_vehicleObservation->max_blocking(eprosima::fastrtps::Time_t(0,MAX_BLOCKING_NS));
     //reader_vehicleObservation(topic_vehicleObservation_name, vehicle_id);
 
 #ifndef VEHICLE_SIMULATION
