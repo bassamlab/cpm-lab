@@ -252,14 +252,19 @@ namespace cpm
         }
 
         /**
-         * \brief
+         * \brief Sets a maximum blocking time for the write operation. Only in effect when compiled with -DSTRICT_REALTIME.
          * 
+         * The QOS of the wrapped DataWriter in gets updated.
+         * This affects the writing operation `write()`.
+         * 
+         * For further reference see https://fast-dds.docs.eprosima.com/en/latest/fastdds/use_cases/realtime/blocking.html.
+         * \param _max_blocking_time The maximum time the writing operation blocks.
          */
         void max_blocking(eprosima::fastrtps::Time_t _max_blocking_time){
             eprosima::fastdds::dds::DataWriterQos data_writer_qos = writer->get_qos();
             auto reliable_policy = data_writer_qos.reliability();
             
-            reliable_policy.max_blocking_time = _max_blocking_time;//eprosima::fastrtps::Time_t(0,15);
+            reliable_policy.max_blocking_time = _max_blocking_time;
             data_writer_qos.reliability(reliable_policy);
             writer->set_qos(data_writer_qos);
         }

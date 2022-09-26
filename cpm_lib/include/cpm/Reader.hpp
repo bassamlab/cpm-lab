@@ -189,6 +189,15 @@ namespace cpm {
             messages_buffer.clear();
         }
 
+        /**
+         * \brief Sets a maximum blocking time for read operations. Only in effect when compiled with -DSTRICT_REALTIME.
+         * 
+         * The QOS of the wrapped DataReader in the ReaderParent gets updated.
+         * This affects the reading operations `take_next_sample()`, `read_next_sample()`, `wait_for_unread_message()`.
+         * 
+         * For further reference see https://fast-dds.docs.eprosima.com/en/latest/fastdds/use_cases/realtime/blocking.html.
+         * \param _max_blocking_time The maximum time the reading operations block.
+         */
         void max_blocking(eprosima::fastrtps::Time_t _max_blocking_time){
             ReaderParent<T>::max_blocking(_max_blocking_time);
         }

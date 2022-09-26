@@ -244,14 +244,19 @@ namespace cpm
         }
 
         /**
-         * \brief
+         * \brief Sets a maximum blocking time for read operations. Only in effect when compiled with -DSTRICT_REALTIME.
          * 
+         * The QOS of the wrapped DataReader gets updated.
+         * This affects the reading operations `take_next_sample()`, `read_next_sample()`, `wait_for_unread_message()`.
+         * 
+         * For further reference see https://fast-dds.docs.eprosima.com/en/latest/fastdds/use_cases/realtime/blocking.html.
+         * \param _max_blocking_time The maximum time the reading operations block.
          */
         void max_blocking(eprosima::fastrtps::Time_t _max_blocking_time){
             eprosima::fastdds::dds::DataReaderQos data_reader_qos = reader->get_qos();
             auto reliable_policy = data_reader_qos.reliability();
             
-            reliable_policy.max_blocking_time = _max_blocking_time;//eprosima::fastrtps::Time_t(0,15);
+            reliable_policy.max_blocking_time = _max_blocking_time;
             data_reader_qos.reliability(reliable_policy);
             reader->set_qos(data_reader_qos);
         }
