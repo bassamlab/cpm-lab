@@ -56,9 +56,6 @@ const int MAX_BLOCKING_NS = 10000000;
  */
 int main(int argc, char *argv[])
 {
-    //rti::config::Logger::instance().verbosity(rti::config::Verbosity::STATUS_ALL);
-    //rti::config::Logger::instance().verbosity(rti::config::Verbosity::WARNING);
-
     if(argc < 2) {
         std::cerr << "Usage: vehicle_rpi_firmware --simulated_time=BOOL --vehicle_id=INT --dds_domain=INT(optional) --pose=DOUBLE,DOUBLE,DOUBLE(optional;only simulation; x,y,yaw)" << std::endl;
         return 1;
@@ -164,15 +161,6 @@ int main(int argc, char *argv[])
                     sample_vehicleObservation_age
                 );
                 auto end_vehicle_observation = cpm::get_time_ns();
-
-                //std::cout << "Observation = " << end_vehicle_observation - start_vehicle_observation << std::endl;
-                //std::cout << "received observation for id: " << std::to_string(sample_vehicleObservation.vehicle_id()) << ";" ;
-                //std::cout << "pose: "
-                //    << sample_vehicleObservation.pose().x()
-                //    << ","
-                //    << sample_vehicleObservation.pose().y()
-                //    << std::endl;
-
 
                 double motor_throttle = 0;
                 double steering_servo = 0;
