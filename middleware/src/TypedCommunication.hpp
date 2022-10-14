@@ -43,6 +43,9 @@ template<class MessageType> class TypedCommunication {
         //! DDS writer to send commands received by the HLC to a vehicle
         cpm::Writer<MessageType> vehicleWriter;
 
+        //! DDS writres to send commands received by the HLC to the vehicles on their corresponding topic
+        std::vector<std::unique_ptr<cpm::Writer<MessageType>>> vehicleWriters;
+
         //! For access to get_time (in simulated time, only the timer instance knows the current simulated time)
         std::shared_ptr<cpm::Timer> timer;
         /** 
@@ -168,7 +171,22 @@ template<class MessageType> class TypedCommunication {
         ,timer(_timer)
         ,lastHLCResponseTimes()
         ,vehicle_ids(_vehicle_ids)
-        {}
+        {
+
+            std::string topic_name = "";
+            // TODO define MAX_NUM_VEHICLES or sth
+            for (size_t vehicle_id = 1; vehicle_id < 30; vehicle_id++)
+            {
+                topic_name = "vehicle/" + std::to_string(vehicle_id) + "/" + vehicleCommandTopicName;
+                vehicleWriters.push_back(
+                    std::make_unique<cpm::Writer<MessageType>>(topic_name)
+                    //std::unique_ptr(
+                    //    new cpm::Writer<MessageType>(topic_name)
+                    //)
+                );
+            }
+            
+        }
 
         /**
          * \brief Returns latest HLC response time (for the last received vehicle command) or an empty optional if no entry could be found
@@ -196,7 +214,20 @@ template<class MessageType> class TypedCommunication {
          * \param message The command to send
          */
         void sendToVehicle(typename MessageType::type& message) {
-            vehicleWriter.write(message);
+            constexpr bool has_vehicle_id = requires(const MessageType& message) {
+                message.vehicle_id();
+            };
+
+            if constexpr (has_vehicle_id)
+            {
+                vehicleWriters[message.vehicle_id() - 1]->write(message);
+            } else {
+                cpm::Logging::Instance().write(1,
+                "ERROR: The message that was sent contains no vehicle id."
+                "The middleware needs one to forward it on the corresponding topic."
+                "The message will be send on a global topic.");
+                vehicleWriter.write(message);
+            }
         }
 
         /**
