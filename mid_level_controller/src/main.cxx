@@ -74,15 +74,15 @@ int main(int argc, char *argv[])
     cpm::Logging::Instance().set_id("vehicle_raspberry_" + std::to_string(vehicle_id));
 
     // DDS setup
-    cpm::Writer<VehicleStatePubSubType> writer_vehicleState("vehicleState");
+    std::string vehicle_state_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleState";
+    cpm::Writer<VehicleStatePubSubType> writer_vehicleState(vehicle_state_topic);
     writer_vehicleState.max_blocking(eprosima::fastrtps::Time_t(0,MAX_BLOCKING_NS));
 
     registerVehicleObservationTypes();
-    std::string topic_vehicleObservation_name = "vehicleObservation";
+    std::string observation_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleObservation";
     std::unique_ptr< cpm::Reader<VehicleObservationPubSubType> > reader_vehicleObservation;
-    reader_vehicleObservation = std::unique_ptr<cpm::Reader<VehicleObservationPubSubType>>(new cpm::Reader<VehicleObservationPubSubType>(topic_vehicleObservation_name, vehicle_id));
+    reader_vehicleObservation = std::unique_ptr<cpm::Reader<VehicleObservationPubSubType>>(new cpm::Reader<VehicleObservationPubSubType>(observation_topic));
     reader_vehicleObservation->max_blocking(eprosima::fastrtps::Time_t(0,MAX_BLOCKING_NS));
-    //reader_vehicleObservation(topic_vehicleObservation_name, vehicle_id);
 
 #ifndef VEHICLE_SIMULATION
     // Hardware setup
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     if(starting_position.size() != 1 && starting_position.size() != 3) {
         starting_position = {0.0};
     }
-    SimulationIPS simulationIPS(topic_vehicleObservation_name);
+    SimulationIPS simulationIPS(observation_topic);
     SimulationVehicle simulationVehicle(simulationIPS, vehicle_id, starting_position);
     const bool allow_simulated_time = true;
 #endif
