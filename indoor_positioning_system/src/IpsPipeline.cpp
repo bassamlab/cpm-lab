@@ -10,8 +10,18 @@
  */
 
 IpsPipeline::IpsPipeline(const bool enable_visualization)
-:writer_vehicleObservation("vehicleObservation")
 {
+    // Create MAX_NUM_VEHICLES writers
+    std::string vehicle_observation_topic = "";
+    for (size_t i = 1; i <= MAX_NUM_VEHICLES; i++)
+    {
+        vehicle_observation_topic = "vehicle/" + std::to_string(i) + "/vehicleObservation";
+        writers_vehicleObservation.push_back(
+            std::unique_ptr<cpm::Writer<VehicleObservationPubSubType>>(
+                new cpm::Writer<VehicleObservationPubSubType>(vehicle_observation_topic)
+            )
+        );
+    }
     undistortPointsFn = std::make_shared<UndistortPoints>(
         std::vector<double>{4.641747e+00, -5.379232e+00, -3.469735e-01, 1.598328e+00, 9.661605e-01, 3.870296e-01, -1.125387e+00, -1.264416e-01, -9.323793e-01, 5.223107e-02, 5.771384e-02, 7.367979e-02, 5.512993e-02, 3.857936e-02, -2.401879e-02},
         std::vector<double>{-5.985142e-01, 6.235073e-01, 5.412047e+00, -6.668763e-01, -1.038656e+00, -1.593830e+00, 2.284258e-01, 1.090997e+00, 9.839002e-02, 1.065165e+00, -8.319799e-02, -8.929741e-02, -5.524760e-02, -2.687517e-02, -5.680051e-02}
@@ -66,9 +76,9 @@ void IpsPipeline::apply(LedPoints led_points)
     // Send via DDS
     for(auto &vehicleObservation:vehicleObservations)
     {
-        if(vehicleObservation.vehicle_id() > 0)
+        if(vehicleObservation.vehicle_id() > 0 && vehicleObservation.vehicle_id() < MAX_NUM_VEHICLES)
         {
-            writer_vehicleObservation.write(vehicleObservation);
+            writers_vehicleObservation[vehicleObservation.vehicle_id() - 1]->write(vehicleObservation);
         }
     }
 

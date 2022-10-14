@@ -37,8 +37,14 @@ struct IpsVisualizationInput
  */
 class IpsPipeline
 {
-    //! TODO 
-    cpm::Writer<VehicleObservationPubSubType> writer_vehicleObservation;
+    /**
+    * \brief The maximum number of vehicles to be handled by the IPS pipeline.
+    * \ingroup ips
+    */
+    #define MAX_NUM_VEHICLES 30
+
+    //! A vector containing pointers to a observation writer for every vehicle
+    std::vector<std::unique_ptr<cpm::Writer<VehicleObservationPubSubType>>> writers_vehicleObservation;
 
     //! TODO
     std::shared_ptr<UndistortPoints> undistortPointsFn;
