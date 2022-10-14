@@ -38,10 +38,34 @@
  */
 #define BUTTON_SPEED_CONST (5)
 
+/**
+ * \brief Maximum number of vehicles.
+ * \ingroup lcc
+ */
+const size_t MAX_NUM_VEHICLES = 30;
+
 VehicleManualControl::VehicleManualControl()
 {
-  writer_vehicleCommandDirect = std::make_shared<cpm::Writer<VehicleCommandDirectPubSubType>>("vehicleCommandDirect");
-  writer_vehicleCommandSpeedCurvature = std::make_shared<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>>("vehicleCommandSpeedCurvature");
+    std::string vehicle_command_direct_topic = "";
+    std::string vehicle_command_speed_curvature_topic = "";
+    
+    for (size_t vehicle_id = 1; vehicle_id < MAX_NUM_VEHICLES; vehicle_id++)
+    {
+        vehicle_command_direct_topic = "vehicle/" + std::to_string(vehicle_id) + "/CommandDirect";
+        writers_vehicleCommandDirect.push_back(
+            std::unique_ptr<cpm::Writer<VehicleCommandDirectPubSubType>>(
+                new cpm::Writer<VehicleCommandDirectPubSubType>(vehicle_command_direct_topic)
+            )
+        );
+
+        vehicle_command_speed_curvature_topic = "vehicle/" + std::to_string(vehicle_id) + "/CommandSpeedCurvature";
+        writers_vehicleCommandSpeedCurvature.push_back(
+            std::unique_ptr<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>>(
+                new cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>(vehicle_command_speed_curvature_topic)
+            )
+        );
+    }
+
 }
 
 void VehicleManualControl::start(uint8_t vehicleId, string joystick_device_file) 
@@ -78,8 +102,7 @@ void VehicleManualControl::start(uint8_t vehicleId, string joystick_device_file)
             //    sample.data().speed_curvature().curvature());
             
             cpm::stamp_message(sample, t_now, 40000000ull);
-            writer_vehicleCommandSpeedCurvature->write(sample);
-
+            writers_vehicleCommandSpeedCurvature[vehicle_id - 1]->write(sample);
         }
         else { // direct control
 
@@ -93,8 +116,7 @@ void VehicleManualControl::start(uint8_t vehicleId, string joystick_device_file)
             sample.steering_servo(steering_servo);
 
             cpm::stamp_message(sample, t_now, 40000000ull);
-            writer_vehicleCommandDirect->write(sample);
-
+            writers_vehicleCommandDirect[vehicle_id - 1]->write(sample);
             // mode reset
             ref_speed = 0;
 

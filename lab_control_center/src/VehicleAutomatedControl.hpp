@@ -22,6 +22,8 @@ private:
     //DDS data structures to send automated commands to the vehicles
     //! DDS Writer to send the stop signal (speed = 0) to the vehicles
     shared_ptr<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>> writer_vehicleCommandSpeedCurvature = nullptr;
+    std::vector<std::unique_ptr<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>>> writers_vehicleCommandSpeedCurvature;
+
 
     //Vehicle commands need to be sent regularly to be interpreted correctly, so e.g. a stop signal should not be sent only once (TODO: Check that)
     //! Loop to send the speed = 0 stop signal multiple times, s.t. it is definitely received and obeyed for some time period

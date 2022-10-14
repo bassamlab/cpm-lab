@@ -28,7 +28,7 @@ class TrajectoryCommand
     std::shared_ptr<cpm::TimerFD> timer;
 
     //! Writer to send trajectories to the vehicles 
-    cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory;
+    std::vector<std::unique_ptr<cpm::Writer<VehicleCommandTrajectoryPubSubType>>> writers_vehicleCommandTrajectory;
 
     /**
      * \brief Function to send a current trajectory, created from the drawn path in the LCC's MapView using set_path and stored

@@ -5,11 +5,28 @@
  * \ingroup lcc
  */
 
+/**
+ * \brief Maximum number of vehicles.
+ * \ingroup lcc
+ */
+const size_t MAX_NUM_VEHICLES = 30;
+
 VehicleAutomatedControl::VehicleAutomatedControl() 
 {
 
     writer_vehicleCommandSpeedCurvature = make_shared<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>>("vehicleCommandSpeedCurvature");
     
+    std::string command_speed_curvature_topic = "";
+    for (size_t vehicle_id = 1; vehicle_id < MAX_NUM_VEHICLES; vehicle_id++)
+    {
+        command_speed_curvature_topic = "vehicle/" + std::to_string(vehicle_id) + "/CommandSpeedCurvature";
+        writers_vehicleCommandSpeedCurvature.push_back(
+            std::unique_ptr<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>>(
+                new cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>(command_speed_curvature_topic)
+            )
+        );
+    }
+
     //Initialize the timer (task loop) - here, different tasks like stopping the vehicle are performed
     task_loop = std::make_shared<cpm::TimerFD>("LCCAutomatedControl", 200000000ull, 0, false);
     
