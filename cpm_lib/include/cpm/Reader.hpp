@@ -100,7 +100,6 @@ namespace cpm {
          */
         void get_newest_sample(const uint64_t t_now, typename T::type& sample_out, uint64_t& sample_age_out)
         {
-            sample_out = typename T::type();
             sample_out.header().create_stamp().nanoseconds(0);
             sample_age_out = t_now;
 
