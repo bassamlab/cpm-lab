@@ -65,6 +65,12 @@ class MpcController
     //! TODO
     double steering_output_history[MPC_DELAY_COMPENSATION_STEPS];
 
+    //! Buffer to interpolate reference trajectory
+    TrajectoryPoint start_point = TrajectoryPoint();
+    //! Buffer to interpolate reference trajectory
+    TrajectoryPoint end_point = TrajectoryPoint();
+    //! Visualization message for predicted trajectory
+    Visualization vis = Visualization();
 
     // Take the current state measurement and predict it into the future a few steps.
     // This is necessary to compensate the delay of the inputs.

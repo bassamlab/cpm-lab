@@ -168,6 +168,15 @@ if(NOT BUILD_ARM)
     )
 
     target_link_libraries(MatlabEprosimaWriteTest cpm fastrtps fastcdr foonathan_memory)
+
+    add_executable(test_read_content
+    test_apps/test_read_contentfiltered.cpp
+    )
+    target_link_libraries(test_read_content cpm fastrtps fastcdr foonathan_memory)
+    add_executable(test_write_content
+    test_apps/test_write_contentfiltered.cpp
+    )
+    target_link_libraries(test_write_content cpm fastrtps fastcdr foonathan_memory)
 endif()
 
 if($ENV{TIMING-ANALYSIS})

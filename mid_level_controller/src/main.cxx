@@ -8,15 +8,21 @@
 #include <iterator>
 #include <iomanip>
 #include <ios>
+#include <unistd.h>
 using std::vector;
 
+
+#include "dds/VehicleObservationTypeObject.h"
+#include "dds/VehicleCommandDirectTypeObject.h"
+#include "dds/VehicleCommandSpeedCurvatureTypeObject.h"
+#include "dds/VehicleCommandTrajectoryTypeObject.h"
+#include "dds/VehicleStateTypeObject.h"
 #include "dds/VehicleObservationPubSubTypes.h"
 #include "dds/VehicleCommandDirectPubSubTypes.h"
 #include "dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
 #include "dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "dds/VehicleStatePubSubTypes.h"
 #include "cpm/Timer.hpp"
-#include "cpm/VehicleIDFilteredTopic.hpp"
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Reader.hpp"
 #include "cpm/RTTTool.hpp"
@@ -41,15 +47,15 @@ using std::vector;
 
 #include "bcm2835.h"
 
+//! Maximum time in nanoseconds read and write operations are allowed to block the process.
+const int MAX_BLOCKING_NS = 10000000; 
+
 /**
  * \brief Main function of the vehicle software, for real and simulated usage
  * \ingroup vehicle
  */
 int main(int argc, char *argv[])
 {
-    //rti::config::Logger::instance().verbosity(rti::config::Verbosity::STATUS_ALL);
-    //rti::config::Logger::instance().verbosity(rti::config::Verbosity::WARNING);
-
     if(argc < 2) {
         std::cerr << "Usage: vehicle_rpi_firmware --simulated_time=BOOL --vehicle_id=INT --dds_domain=INT(optional) --pose=DOUBLE,DOUBLE,DOUBLE(optional;only simulation; x,y,yaw)" << std::endl;
         return 1;
@@ -69,9 +75,14 @@ int main(int argc, char *argv[])
 
     // DDS setup
     cpm::Writer<VehicleStatePubSubType> writer_vehicleState("vehicleState");
+    writer_vehicleState.max_blocking(eprosima::fastrtps::Time_t(0,MAX_BLOCKING_NS));
 
+    registerVehicleObservationTypes();
     std::string topic_vehicleObservation_name = "vehicleObservation";
-    cpm::Reader<VehicleObservationPubSubType> reader_vehicleObservation(topic_vehicleObservation_name, vehicle_id);
+    std::unique_ptr< cpm::Reader<VehicleObservationPubSubType> > reader_vehicleObservation;
+    reader_vehicleObservation = std::unique_ptr<cpm::Reader<VehicleObservationPubSubType>>(new cpm::Reader<VehicleObservationPubSubType>(topic_vehicleObservation_name, vehicle_id));
+    reader_vehicleObservation->max_blocking(eprosima::fastrtps::Time_t(0,MAX_BLOCKING_NS));
+    //reader_vehicleObservation(topic_vehicleObservation_name, vehicle_id);
 
 #ifndef VEHICLE_SIMULATION
     // Hardware setup
@@ -144,15 +155,12 @@ int main(int argc, char *argv[])
                 // get IPS observation
                 VehicleObservation sample_vehicleObservation;
                 uint64_t sample_vehicleObservation_age;
-                reader_vehicleObservation.get_sample(
+                reader_vehicleObservation->get_sample(
                     t_now,
                     sample_vehicleObservation,
                     sample_vehicleObservation_age
                 );
                 auto end_vehicle_observation = cpm::get_time_ns();
-
-                //std::cout << "Observation = " << end_vehicle_observation - start_vehicle_observation << std::endl;
-
 
                 double motor_throttle = 0;
                 double steering_servo = 0;

@@ -79,8 +79,9 @@ namespace cpm
          * \param is_reliable For reliable (true) or best effort (false)
          * \param history_keep_all Keep all samples in the reader until takes gets called (true) or only the last one (false)
          * \param is_transient_local Resend older data to newly joined participants (true) or don't (false)
+         * \param is_data_sharing Use shared memory communication (true) or (false)
          */
-        eprosima::fastdds::dds::DataWriterQos get_qos(bool is_reliable, bool history_keep_all, bool is_transient_local)
+        eprosima::fastdds::dds::DataWriterQos get_qos(bool is_reliable, bool history_keep_all, bool is_transient_local, bool is_data_sharing)
         {
             auto qos = eprosima::fastdds::dds::DataWriterQos();
 
@@ -120,6 +121,12 @@ namespace cpm
                 policy.kind = eprosima::fastdds::dds::VOLATILE_DURABILITY_QOS;
                 qos.durability(policy);
             }
+            // Can be used to enforce writer side contentfiltering (https://fast-dds.docs.eprosima.com/en/latest/fastdds/dds_layer/topic/contentFilteredTopic/writerFiltering.html)
+            if(!is_data_sharing){
+                auto policy = eprosima::fastdds::dds::DataSharingQosPolicy();
+                policy.off();
+                qos.data_sharing(policy);
+            }
 
             return qos;
         }
@@ -154,7 +161,8 @@ namespace cpm
             std::string topic_name, 
             bool reliable = false, 
             bool history_keep_all = false, 
-            bool transient_local = false
+            bool transient_local = false,
+            bool data_sharing = true
         ) : type_support(new T()), participant_(_participant)
         {
             std::cout << "Creating Writer " << topic_name << " : " << topic_data_type.getName() << std::endl;
@@ -213,7 +221,7 @@ namespace cpm
 
             //Create Writer
             writer = std::shared_ptr<eprosima::fastdds::dds::DataWriter>(
-                publisher->create_datawriter(topic.get(), get_qos(reliable, history_keep_all, transient_local), &listener_),
+                publisher->create_datawriter(topic.get(), get_qos(reliable, history_keep_all, transient_local, data_sharing), &listener_),
                 [&](eprosima::fastdds::dds::DataWriter* writer) {
                     if (writer != nullptr)
                     {
@@ -241,6 +249,24 @@ namespace cpm
         size_t matched_subscriptions_size()
         {
             return static_cast<size_t>(listener_.matched_.load());
+        }
+
+        /**
+         * \brief Sets a maximum blocking time for the write operation. Only in effect when compiled with -DSTRICT_REALTIME.
+         * 
+         * The QOS of the wrapped DataWriter in gets updated.
+         * This affects the writing operation `write()`.
+         * 
+         * For further reference see https://fast-dds.docs.eprosima.com/en/latest/fastdds/use_cases/realtime/blocking.html.
+         * \param _max_blocking_time The maximum time the writing operation blocks.
+         */
+        void max_blocking(eprosima::fastrtps::Time_t _max_blocking_time){
+            eprosima::fastdds::dds::DataWriterQos data_writer_qos = writer->get_qos();
+            auto reliable_policy = data_writer_qos.reliability();
+            
+            reliable_policy.max_blocking_time = _max_blocking_time;
+            data_writer_qos.reliability(reliable_policy);
+            writer->set_qos(data_writer_qos);
         }
     };
 }

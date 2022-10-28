@@ -155,7 +155,7 @@ void MpcController::update(
 {
     battery_voltage_lowpass_filtered += 0.1 * (vehicleState.battery_voltage() - battery_voltage_lowpass_filtered);
 
-    const VehicleState vehicleState_predicted_start = delay_compensation_prediction(vehicleState);
+    const VehicleState vehicleState_predicted_start = VehicleState(std::move(delay_compensation_prediction(vehicleState)));
 
     std::vector<double> mpc_reference_trajectory_x;
     std::vector<double> mpc_reference_trajectory_y;
@@ -260,7 +260,6 @@ void MpcController::optimize_control_inputs(
 
 
         // publish visualization of predicted trajectory
-        Visualization vis;
         vis.id(vehicle_id);
         vis.type(VisualizationType::LineStrips);
         vis.time_to_live(25000000ull);
@@ -405,8 +404,7 @@ bool MpcController::interpolate_reference_trajectory(
 
         //Get end point w.r.t. t_interpolation
         //Get current segment (trajectory points) in current trajectory for interpolation
-        auto start_point = TrajectoryPoint();
-        auto end_point = TrajectoryPoint();
+        
         start_point.t().nanoseconds(0);
         end_point.t().nanoseconds(0);
 

@@ -71,15 +71,31 @@ class Controller
     //! TODO
     VehicleState m_vehicleState;
 
-    //! TODO
+    //! Last received VehicleCommandDirect message
     VehicleCommandDirect m_vehicleCommandDirect;
-    //! TODO
+    //! Buffer VehicleCommandDirect sample age (when read with get_newest_sample(): (t_now - sample_out.header().valid_after_stamp().nanoseconds()))
+    uint64_t m_sample_CommandDirect_age;
+
+    //! Last received VehicleSpeedCurvature message
     VehicleCommandSpeedCurvature m_vehicleCommandSpeedCurvature;
-    //! TODO
+    //! Buffer VehicleSpeedCurvature sample age (when read with get_newest_sample(): (t_now - sample_out.header().valid_after_stamp().nanoseconds()))
+    uint64_t m_sample_CommandSpeedCurvature_age;
+
+    //! Last received VehicleCommandTrajectory message
     VehicleCommandTrajectory m_vehicleCommandTrajectory;
-    //! TODO
+    //! Buffer VehicleCommandTrajectory sample age (when read with get_newest_sample(): (t_now - sample_out.header().valid_after_stamp().nanoseconds()))
+    uint64_t m_sample_CommandTrajectory_age;
+
+    //! Last received VehicleCommandPathTracking message
     VehicleCommandPathTracking m_vehicleCommandPathTracking;
+    //! Buffer VehicleCommandPathTracking sample age (when read with get_newest_sample(): (t_now - sample_out.header().valid_after_stamp().nanoseconds()))
+    uint64_t m_sample_CommandPathTracking_age;
     
+    //! Buffer for trajectory interpolation
+    TrajectoryPoint b_start_point = TrajectoryPoint();
+    //! Buffer for trajectory interpolation
+    TrajectoryPoint b_end_point = TrajectoryPoint();
+
     //! TODO
     uint8_t vehicle_id;
 

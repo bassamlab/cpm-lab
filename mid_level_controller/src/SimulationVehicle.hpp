@@ -9,6 +9,7 @@
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/stamp_message.hpp"
 #include "cpm/Writer.hpp"
+#include "cpm/Reader.hpp"
 #include "geometry.hpp"
 #include "VehicleModel.hpp"
 #include "cpm/dds/VehicleObservationPubSubTypes.h"

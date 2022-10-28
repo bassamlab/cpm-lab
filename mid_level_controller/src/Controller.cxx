@@ -34,26 +34,13 @@ void Controller::receive_commands(uint64_t t_now)
 {
     std::lock_guard<std::mutex> lock(command_receive_mutex);
 
-    VehicleCommandDirect sample_CommandDirect;
-    uint64_t sample_CommandDirect_age;
+    reader_CommandDirect->get_sample(t_now, m_vehicleCommandDirect, m_sample_CommandDirect_age);
+    reader_CommandSpeedCurvature->get_sample(t_now, m_vehicleCommandSpeedCurvature, m_sample_CommandSpeedCurvature_age);
+    reader_CommandTrajectory->get_sample(t_now, m_vehicleCommandTrajectory, m_sample_CommandTrajectory_age);
+    reader_CommandPathTracking->get_sample(t_now, m_vehicleCommandPathTracking, m_sample_CommandPathTracking_age);
 
-    VehicleCommandSpeedCurvature sample_CommandSpeedCurvature;
-    uint64_t sample_CommandSpeedCurvature_age;
-
-    VehicleCommandTrajectory sample_CommandTrajectory;
-    uint64_t sample_CommandTrajectory_age;
-
-    VehicleCommandPathTracking sample_CommandPathTracking;
-    uint64_t sample_CommandPathTracking_age;
-
-    reader_CommandDirect->get_sample(t_now, sample_CommandDirect, sample_CommandDirect_age);
-    reader_CommandSpeedCurvature->get_sample(t_now, sample_CommandSpeedCurvature, sample_CommandSpeedCurvature_age);
-    reader_CommandTrajectory->get_sample(t_now, sample_CommandTrajectory, sample_CommandTrajectory_age);
-    reader_CommandPathTracking->get_sample(t_now, sample_CommandPathTracking, sample_CommandPathTracking_age);
-
-    if(sample_CommandDirect_age < command_timeout)
+    if(m_sample_CommandDirect_age < command_timeout)
     {
-        m_vehicleCommandDirect = sample_CommandDirect;
         state = ControllerState::Direct;
 
         //Evaluation: Log received timestamp
@@ -61,12 +48,11 @@ void Controller::receive_commands(uint64_t t_now)
             3,
             "Controller: Read direct message. "
             "Valid after %llu.",
-            sample_CommandDirect.header().valid_after_stamp().nanoseconds()
+            m_vehicleCommandDirect.header().valid_after_stamp().nanoseconds()
         );
     }
-    else if(sample_CommandSpeedCurvature_age < command_timeout)
+    else if(m_sample_CommandSpeedCurvature_age < command_timeout)
     {
-        m_vehicleCommandSpeedCurvature = sample_CommandSpeedCurvature;  
         state = ControllerState::SpeedCurvature;
 
         //Evaluation: Log received timestamp
@@ -74,12 +60,11 @@ void Controller::receive_commands(uint64_t t_now)
             3,
             "Controller: Read speed curvature message. "
             "Valid after %llu",
-            sample_CommandSpeedCurvature.header().valid_after_stamp().nanoseconds()
+            m_vehicleCommandSpeedCurvature.header().valid_after_stamp().nanoseconds()
         );
     }
-    else if (sample_CommandTrajectory_age < command_timeout)
+    else if (m_sample_CommandTrajectory_age < command_timeout)
     {
-        m_vehicleCommandTrajectory = sample_CommandTrajectory;  
         state = ControllerState::Trajectory;
 
         //Evaluation: Log received timestamp
@@ -87,12 +72,11 @@ void Controller::receive_commands(uint64_t t_now)
             3,
             "Controller: Read trajectory message. "
             "Valid after %llu",
-            sample_CommandTrajectory.header().valid_after_stamp().nanoseconds()
+            m_vehicleCommandTrajectory.header().valid_after_stamp().nanoseconds()
         );
     }
-    else if (sample_CommandPathTracking_age < command_timeout)
+    else if (m_sample_CommandPathTracking_age < command_timeout)
     {
-        m_vehicleCommandPathTracking = sample_CommandPathTracking;  
         state = ControllerState::PathTracking;
 
         //Evaluation: Log received timestamp
@@ -100,7 +84,7 @@ void Controller::receive_commands(uint64_t t_now)
             3,
             "Controller: Read PathTracking message. "
             "Valid after %llu",
-            sample_CommandPathTracking.header().valid_after_stamp().nanoseconds()
+            m_vehicleCommandPathTracking.header().valid_after_stamp().nanoseconds()
         );
     }
     // no new commands received
@@ -164,24 +148,22 @@ std::shared_ptr<TrajectoryInterpolation> Controller::interpolate_trajectory_comm
     if(m_vehicleCommandTrajectory.header().create_stamp().nanoseconds() > 0) 
     {
         //Get current segment (trajectory points) in current trajectory for interpolation
-        auto start_point = TrajectoryPoint();
-        auto end_point = TrajectoryPoint();
-        start_point.t().nanoseconds(0);
-        end_point.t().nanoseconds(0);
+        b_start_point.t().nanoseconds(0);
+        b_end_point.t().nanoseconds(0);
 
         //When looking up the current segment, start at 1, because start and end must follow each other (we look up end, and from that determine start)
         for (size_t i = 1; i < m_vehicleCommandTrajectory.trajectory_points().size(); ++i)
         {
             if (m_vehicleCommandTrajectory.trajectory_points().at(i).t().nanoseconds() >= t_now)
             {
-                end_point = m_vehicleCommandTrajectory.trajectory_points().at(i);
-                start_point = m_vehicleCommandTrajectory.trajectory_points().at(i - 1);
+                b_end_point = m_vehicleCommandTrajectory.trajectory_points().at(i);
+                b_start_point = m_vehicleCommandTrajectory.trajectory_points().at(i - 1);
                 break;
             }
         }
 
         //Log an error if we could not find a valid trajectory segment w.r.t. end
-        if (end_point.t().nanoseconds() == 0)
+        if (b_end_point.t().nanoseconds() == 0)
         {
             cpm::Logging::Instance().write(
                 2,
@@ -192,7 +174,7 @@ std::shared_ptr<TrajectoryInterpolation> Controller::interpolate_trajectory_comm
         }
 
         //Log an error if we could not find a valid trajectory segment w.r.t. start
-        if (start_point.t().nanoseconds() >= t_now)
+        if (b_start_point.t().nanoseconds() >= t_now)
         {
             cpm::Logging::Instance().write(
                 2,
@@ -202,12 +184,12 @@ std::shared_ptr<TrajectoryInterpolation> Controller::interpolate_trajectory_comm
             return nullptr;
         }
     
-        assert(t_now >= start_point.t().nanoseconds());
-        assert(t_now <= end_point.t().nanoseconds());
+        assert(t_now >= b_start_point.t().nanoseconds());
+        assert(t_now <= b_end_point.t().nanoseconds());
 
         // We have a valid trajectory segment.
         // Interpolate for the current time.
-        return std::make_shared<TrajectoryInterpolation>(t_now, start_point, end_point);
+        return std::make_shared<TrajectoryInterpolation>(t_now, b_start_point, b_end_point);
     }
     else 
     {
@@ -472,10 +454,10 @@ void Controller::reset()
     std::lock_guard<std::mutex> lock(command_receive_mutex);
 
     cpm::TimeMeasurement::Instance().start("reset_reader");
-    reader_CommandDirect.reset(new cpm::Reader<VehicleCommandDirectPubSubType>("vehicleCommandDirect", vehicle_id));
-    reader_CommandSpeedCurvature.reset(new cpm::Reader<VehicleCommandSpeedCurvaturePubSubType>("vehicleCommandSpeedCurvature", vehicle_id));
-    reader_CommandPathTracking.reset(new cpm::Reader<VehicleCommandPathTrackingPubSubType>("vehicleCommandPathTracking", vehicle_id));
-    reader_CommandTrajectory.reset(new cpm::Reader<VehicleCommandTrajectoryPubSubType>("vehicleCommandTrajectory", vehicle_id));
+    reader_CommandDirect->clear_samples();
+    reader_CommandSpeedCurvature->clear_samples();
+    reader_CommandPathTracking->clear_samples();
+    reader_CommandTrajectory->clear_samples();
     cpm::TimeMeasurement::Instance().stop("reset_reader");
 
     //Set current state to stop until new commands are received

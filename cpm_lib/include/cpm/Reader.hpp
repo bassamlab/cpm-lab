@@ -100,7 +100,6 @@ namespace cpm {
          */
         void get_newest_sample(const uint64_t t_now, typename T::type& sample_out, uint64_t& sample_age_out)
         {
-            sample_out = typename T::type();
             sample_out.header().create_stamp().nanoseconds(0);
             sample_age_out = t_now;
 
@@ -142,6 +141,7 @@ namespace cpm {
             false,
             true,
             false,
+            true,
             vehicle_id_filter)
         {
             typename T::type topic_type;
@@ -178,6 +178,27 @@ namespace cpm {
             //TODO: At reviewer: Should messages that are too old regarding their creation stamp be deleted as well?
             //      If so: A 'timeout' for this could be set in the constructor
             remove_old_msgs(sample_out);
+        }
+
+        /**
+         *   \brief Clears the message buffer.
+         */
+        void clear_samples(){
+            std::lock_guard<std::mutex> lock(m_mutex);
+            messages_buffer.clear();
+        }
+
+        /**
+         * \brief Sets a maximum blocking time for read operations. Only in effect when compiled with -DSTRICT_REALTIME.
+         * 
+         * The QOS of the wrapped DataReader in the ReaderParent gets updated.
+         * This affects the reading operations `take_next_sample()`, `read_next_sample()`, `wait_for_unread_message()`.
+         * 
+         * For further reference see https://fast-dds.docs.eprosima.com/en/latest/fastdds/use_cases/realtime/blocking.html.
+         * \param _max_blocking_time The maximum time the reading operations block.
+         */
+        void max_blocking(eprosima::fastrtps::Time_t _max_blocking_time){
+            ReaderParent<T>::max_blocking(_max_blocking_time);
         }
     };
 

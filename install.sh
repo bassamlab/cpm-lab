@@ -249,6 +249,9 @@ sudo bash ./matlab_setup.sh
 cd "$DIR/"
 sudo chown -R $real_user ./
 
+## 3.8 ldconfig - configure dynamic linker run-time bindings
+sudo /sbin/ldconfig -v
+
 ### 4. Indoor Positioning System (Setup) #######################################
 # The Indoor Positioning System depends on the camera software Basler Pylon and
 # on OpenCV 4.0.0.

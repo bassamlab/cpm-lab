@@ -22,4 +22,4 @@ wget http://192.168.1.249/raspberry/DDS_DOMAIN
 wget http://192.168.1.249/raspberry/DDS_INITIAL_PEER
 
 
-LD_LIBRARY_PATH=/tmp/package chrt -r 99 ./vehicle_rpi_firmware --simulated_time=false --dds_domain=$(cat DDS_DOMAIN) --dds_initial_peer=$(cat DDS_INITIAL_PEER) --vehicle_id=$VEHICLE_ID >stdout_$VEHICLE_ID.txt 2>stderr_$VEHICLE_ID.txt
+LD_LIBRARY_PATH=/tmp/package chrt -r 98 ./vehicle_rpi_firmware --simulated_time=false --dds_domain=$(cat DDS_DOMAIN) --dds_initial_peer=$(cat DDS_INITIAL_PEER) --vehicle_id=$VEHICLE_ID >stdout_$VEHICLE_ID.txt 2>stderr_$VEHICLE_ID.txt

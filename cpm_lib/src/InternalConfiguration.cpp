@@ -30,6 +30,8 @@
 #include "cpm/Logging.hpp"
 #include "cpm/RTTTool.hpp"
 
+#include "cpm/TypeObjects.hpp"
+
 /**
  * \file InternalConfiguration.cpp
  * \ingroup cpmlib
@@ -39,6 +41,7 @@ namespace cpm
 {
     void init(int argc, char *argv[])
     {
+        register_type_objects(); // Workaround for https://github.com/eProsima/Fast-DDS/issues/2184
         InternalConfiguration::init(argc, argv);
     }
 
