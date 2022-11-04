@@ -108,21 +108,25 @@ void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int>
             }
             else if (script_name_string.find(".") == std::string::npos)
             {
-                //Case: Any executable 
-                command 
-                << "tmux new-session -d "
-                << "-s \"" << hlc_session << "\" "
-                << "\". " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;"
-                << "cd " << script_path_string << ";./" << script_name_string
-                << " --node_id=high_level_controller"
-                << " --simulated_time=" << sim_time_string
-                << " --vehicle_ids=" << vehicle_ids_stream.str()
-                << " --dds_domain=" << cmd_domain_id
-                << " --middleware_domain=" << default_middleware_domain_id;
-            if (cmd_dds_initial_peer.size() > 0) {
-                command 
-                    << " --dds_initial_peer=" << cmd_dds_initial_peer;
-            }
+                //Case: Any executable
+                command
+                    << "tmux new-session -d "
+                    << "-s \"" << hlc_session << "\" "
+                    << "\". " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;"
+                    << "cd " << script_path_string << ";./" << script_name_string
+                    << " --node_id=high_level_controller"
+                    << " --simulated_time=" << sim_time_string
+                    << " --vehicle_ids=" << vehicle_ids_stream.str()
+                    << " --dds_domain=" << cmd_domain_id
+                    << " --middleware_domain=" << default_middleware_domain_id;
+                if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+                {
+                    command
+                        << " --client_server=client"
+                        << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
+                        << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
+                        << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+                }
             command 
                 << " " << script_params << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << hlc_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << hlc_session << ".txt\"";
             }
@@ -188,29 +192,33 @@ void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<uns
         }
         else if (script_name_string.find(".") == std::string::npos)
         {
-            //Case: Any executable 
-            command 
-            << "tmux new-session -d "
-            << "-s \"high_level_controller_"
-            << std::to_string(vehicle_id) << "\" "
-            << "\". " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;"
-            << "cd " << script_path_string << ";./" << script_name_string
-            << " --node_id=high_level_controller_"
-            << std::to_string(vehicle_id) 
-            << " --simulated_time=" << sim_time_string
-            << " --vehicle_ids=" << std::to_string(vehicle_id)
-            << " --dds_domain=" << cmd_domain_id
-            << " --middleware_domain=" << std::to_string(vehicle_id);
-        if (cmd_dds_initial_peer.size() > 0) {
-            command 
-                << " --dds_initial_peer=" << cmd_dds_initial_peer;
-        }
-        command 
-            << " " << script_params << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << hlc_session << ""
-            << std::to_string(vehicle_id) 
-            << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << hlc_session << ""
-            << std::to_string(vehicle_id) 
-            << ".txt\"";
+            //Case: Any executable
+            command
+                << "tmux new-session -d "
+                << "-s \"high_level_controller_"
+                << std::to_string(vehicle_id) << "\" "
+                << "\". " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;"
+                << "cd " << script_path_string << ";./" << script_name_string
+                << " --node_id=high_level_controller_"
+                << std::to_string(vehicle_id)
+                << " --simulated_time=" << sim_time_string
+                << " --vehicle_ids=" << std::to_string(vehicle_id)
+                << " --dds_domain=" << cmd_domain_id
+                << " --middleware_domain=" << std::to_string(vehicle_id);
+            if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+            {
+                command
+                    << " --client_server=client"
+                    << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
+                    << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
+                    << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+            }
+            command
+                << " " << script_params << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << hlc_session << ""
+                << std::to_string(vehicle_id)
+                << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << hlc_session << ""
+                << std::to_string(vehicle_id)
+                << ".txt\"";
         }
         else 
         {
@@ -280,10 +288,10 @@ void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream& v
     std::regex ip_regex ("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
     std::string ip_string;
     bool is_ip_contained = std::regex_search (cmd_dds_initial_peer,ip_matched,ip_regex);
-    if (!is_ip_contained)
+    /*if (!is_ip_contained)
     {
         throw std::runtime_error("Could not extract IP address.");
-    }
+    }*/
     ip_string = ip_matched.str(0);
     xml_qos_str = std::regex_replace(
         xml_qos_str,
@@ -300,7 +308,7 @@ void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream& v
 
     //Generate command
     std::stringstream middleware_command;
-    middleware_command 
+    middleware_command
         << "tmux new-session -d "
         << "-s \"" << middleware_session << "_" << middleware_domain_id << "\" "
         << "\". " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;cd " << software_folder_path << "/middleware/build/;./middleware"
@@ -309,11 +317,15 @@ void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream& v
         << " --vehicle_ids=" << vehicle_ids_stream.str()
         << " --dds_domain=" << cmd_domain_id
         << " --middleware_domain=" << middleware_domain_id;
-    if (cmd_dds_initial_peer.size() > 0) {
-        middleware_command 
-            << " --dds_initial_peer=" << cmd_dds_initial_peer;
+    if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+    {
+        middleware_command
+            << " --client_server=client"
+            << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
+            << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
+            << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
     }
-    middleware_command 
+    middleware_command
         << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << middleware_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << middleware_session << ".txt\"";
 
     //Execute command
@@ -340,7 +352,7 @@ void Deploy::deploy_sim_vehicle(unsigned int id, bool use_simulated_time)
 
     //Generate command
     std::stringstream command;
-    command 
+    command
         << "tmux new-session -d "
         << "-s \"" << session_name.str() << "\" "
         << "\"cd " << software_folder_path << "/mid_level_controller/build_x64_sim;./vehicle_rpi_firmware "
@@ -350,11 +362,15 @@ void Deploy::deploy_sim_vehicle(unsigned int id, bool use_simulated_time)
         << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
         << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
         << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
-    if (cmd_dds_initial_peer.size() > 0) {
-        command 
-            << " --dds_initial_peer=" << cmd_dds_initial_peer;
+    if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+    {
+        command
+            << " --client_server=client"
+            << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
+            << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
+            << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
     }
-    command 
+    command
         << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << vehicle_session << id << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << vehicle_session << id << ".txt\"";
 
     //Execute command
@@ -555,16 +571,20 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
     }
     else if (script_path.find(".") == std::string::npos)
     {        
-        //Case: Any executable 
+        //Case: Any executable
         script_argument_stream
             << " --node_id=hlc_" << vehicle_ids
             << " --simulated_time=" << sim_time_string
             << " --vehicle_ids=" << vehicle_ids
             << " --dds_domain=" << cmd_domain_id
             << " --middleware_domain=" << default_middleware_domain_id;
-        if (cmd_dds_initial_peer.size() > 0) {
-            script_argument_stream 
-                << " --dds_initial_peer=" << cmd_dds_initial_peer;
+        if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+        {
+            script_argument_stream
+                << " --client_server=client"
+                << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
+                << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
+                << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
         }
     }
     //Settings for Middleware
@@ -574,10 +594,14 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
         << " --vehicle_ids=" << vehicle_ids
         << " --dds_domain=" << cmd_domain_id
         << " --middleware_domain=" << default_middleware_domain_id;
-    if (cmd_dds_initial_peer.size() > 0) {
-        middleware_argument_stream 
-            << " --dds_initial_peer=" << cmd_dds_initial_peer;
-    }
+    if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+        {
+            middleware_argument_stream
+                << " --client_server=client"
+                << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
+                << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
+                << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+        }
     middleware_argument_stream 
             << " " << script_params;
 
@@ -621,14 +645,18 @@ void Deploy::deploy_ips()
 
     //Generate command
     std::stringstream command_ips;
-    command_ips 
+    command_ips
         << "tmux new-session -d "
         << "-s \"" << ips_session << "\" "
         << "\"cd " << software_folder_path << "/indoor_positioning_system/;./build/ips_pipeline "
         << " --dds_domain=" << cmd_domain_id;
-    if (cmd_dds_initial_peer.size() > 0) {
-        command_ips 
-            << " --dds_initial_peer=" << cmd_dds_initial_peer;
+    if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+    {
+        command_ips
+            << " --client_server=client"
+            << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
+            << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
+            << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
     }
     command_ips 
         << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << ips_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << ips_session << ".txt\"";
@@ -643,9 +671,13 @@ void Deploy::deploy_ips()
         << "-s \"" << basler_session << "\" "
         << "\"cd " << software_folder_path << "/indoor_positioning_system/;./build/BaslerLedDetection "
         << " --dds_domain=" << cmd_domain_id;
-    if (cmd_dds_initial_peer.size() > 0) {
-        command_basler 
-            << " --dds_initial_peer=" << cmd_dds_initial_peer;
+    if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+    {
+        command_basler
+            << " --client_server=client"
+            << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
+            << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
+            << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
     }
     command_basler 
         << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << basler_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << basler_session << ".txt\"";

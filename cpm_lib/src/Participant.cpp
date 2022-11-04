@@ -158,6 +158,10 @@ namespace cpm
         // Get default participant QoS
         DomainParticipantQos client_qos = PARTICIPANT_QOS_DEFAULT;
 
+        // disable all multicast
+        Locator_t default_unicast_locator;
+        client_qos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(default_unicast_locator);
+
         // Set participant as CLIENT
         client_qos.wire_protocol().builtin.discovery_config.discoveryProtocol =
                 DiscoveryProtocol_t::CLIENT;
