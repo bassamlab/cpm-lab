@@ -20,13 +20,13 @@ namespace cpm
         int dds_domain = 0;
         //! ID for log messages, usually program type, e.g. "LCC" or "middleware"
         std::string logging_id = "uninitialized";
-        //!
+        //! Wether this instance provides a discovery server or is a discovery client
         std::string client_server;
-        //! Discovery server id (network performance reasons)
+        //! Discovery server id, has to be unique in the DDS network
         std::string discovery_server_id;
-        //! 
+        //! Discovery server ip 
         std::string discovery_server_ip;
-        //!
+        //! //! Discovery server port
         int discovery_server_port;
        
 

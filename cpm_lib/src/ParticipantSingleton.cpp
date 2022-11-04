@@ -56,8 +56,6 @@ namespace cpm
         auto server_port = cpm::InternalConfiguration::Instance().get_discovery_server_port();
         if(!server_id.empty() && !server_ip.empty() && server_port >= 0)
         {
-            std::cout << "Using server Singleton" << std::endl;
-            std::cout << "ip: " << server_ip << " guid: " << server_id << " port:" << +server_port;
             participant_qos = Participant::create_client_qos(server_id, server_ip, server_port);
         }
 
