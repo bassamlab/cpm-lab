@@ -39,7 +39,7 @@ int main (int argc, char *argv[]) {
     //uint64_t period_nanoseconds = cpm::cmd_parameter_uint64_t("period_nanoseconds", 250000000, argc, argv);
     bool simulated_time_allowed = true;
     bool simulated_time = cpm::cmd_parameter_bool("simulated_time", false, argc, argv);
-    bool wait_for_start = cpm::cmd_parameter_bool("wait_for_start", true, argc, argv);
+    bool wait_for_start = cpm::cmd_parameter_bool("wait_for_start", false, argc, argv);
 
     //Parameter settings via LCC
     std::cout << "Waiting for parameter 'middleware_period_ms' set by LCC ..." << std::endl;
@@ -145,15 +145,12 @@ int main (int argc, char *argv[]) {
     );
     std::cout << "...done." << std::endl;
 
-    //Wait for HLC program to send ready signal
-    std::cout << "Waiting for HLC..." << std::endl;
-    communication->wait_for_hlc_ready_msg(unsigned_vehicle_ids);
-    std::cout << "...done." << std::endl;
-
     //Wait for start signal (done by the timer after start)
     //Start the communication with the HLC
     using namespace std::placeholders;
     timer->start_async([&](uint64_t t_now) {
+        communication->check_hlcs_online();
+
         communication->update_period_t_now(t_now);
         std::vector<VehicleState> states = communication->getLatestVehicleMessages(t_now);
         std::vector<VehicleObservation> observations = communication->getLatestVehicleObservationMessages(t_now);

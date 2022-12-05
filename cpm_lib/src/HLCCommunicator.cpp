@@ -59,8 +59,11 @@ void HLCCommunicator::start(){
     writeInfoMessage();
     sendReadyMessage(); 
  
-    // Run this until we get a SystemTrigger to stop
+    // Wait for the first system trigger
     bool stop = false;
+    waitForSystemTrigger(stop);
+    
+    // Run this until we get a SystemTrigger to stop
     while(!stop) {
         auto state_samples = reader_vehicleStateList.take();
         for(auto sample : state_samples) {
@@ -141,6 +144,23 @@ bool HLCCommunicator::stopSignalReceived(){
         }
     }
     return false;
+}
+
+void HLCCommunicator::waitForSystemTrigger(bool &stop){
+    bool receivedMessage = false;
+    while (!receivedMessage)
+    {
+        auto systemTrigger_samples = reader_systemTrigger.take();
+        for (auto sample : systemTrigger_samples) {
+            receivedMessage = true;
+            if (sample.next_start().nanoseconds() == trigger_stop) {
+                stop = true;
+                return; // stop has priority over start
+            }
+        }
+        // Slow down the loop a bit
+        usleep(20*1000);
+    }
 }
 
 void HLCCommunicator::stop(int vehicle_id){

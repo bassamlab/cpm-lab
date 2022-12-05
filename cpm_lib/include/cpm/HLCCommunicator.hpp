@@ -122,6 +122,13 @@ class HLCCommunicator{
     bool stopSignalReceived();
 
     /**
+     * \brief Check for the start signal or the stop signal if the experiment is aborted
+     * Check if we have received a SystemTrigger. If it hast the maximum value of a uint64
+     * in the next_start field, we need to stop. Else, we can start.
+     */
+    void waitForSystemTrigger(bool &stop);
+
+    /**
      * \brief Writes a short summary of the setup to Logging
      * Includes vehicle_id, and which callbacks are defined or not defined
      */
