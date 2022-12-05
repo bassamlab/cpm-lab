@@ -102,10 +102,11 @@ TEST_CASE( "GoalToHLCCommunication" ) {
     hlc_ready_status_writer.write(hlc_ready);
 
     //Wait for the HLC ready msgs as the middleware does; GoalStates received by the middleware before the ready messages are now sent to the HLC
-    communication.wait_for_hlc_ready_msg({0});
-
-    //Now the HLC should have received these messages; wait a bit to make sure this happened
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    bool all_hlc_online = false;
+    while (!all_hlc_online) {
+        all_hlc_online = communication.check_hlcs_online();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
     std::vector<int32_t> received_ids;
     for (auto& sample : hlc_goal_state_reader.take())
     {
