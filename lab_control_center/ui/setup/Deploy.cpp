@@ -358,10 +358,7 @@ void Deploy::deploy_sim_vehicle(unsigned int id, bool use_simulated_time)
         << "\"cd " << software_folder_path << "/mid_level_controller/build_x64_sim;./vehicle_rpi_firmware "
         << "--simulated_time=" << sim_time_string
         << " --vehicle_id=" << id
-        << " --dds_domain=" << cmd_domain_id
-        << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
-        << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
-        << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+        << " --dds_domain=" << cmd_domain_id;
     if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
     {
         command
