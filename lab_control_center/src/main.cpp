@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
             && !cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty()
             && cpm::InternalConfiguration::Instance().get_discovery_server_port() >= 0)
         {
-            cpm::Participant server_participant = cpm::Participant(cpm::InternalConfiguration::Instance().get_dds_domain(), 
+            static cpm::Participant server_participant = cpm::Participant(cpm::InternalConfiguration::Instance().get_dds_domain(), 
             cpm::Participant::SERVER,
             cpm::InternalConfiguration::Instance().get_discovery_server_id(),
             cpm::InternalConfiguration::Instance().get_discovery_server_ip(),
