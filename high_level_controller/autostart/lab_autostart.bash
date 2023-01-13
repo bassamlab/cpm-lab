@@ -6,8 +6,17 @@ export NDDSHOME=/opt/rti_connext_dds-6.0.0
 export RASPBIAN_TOOLCHAIN=/opt/cross-pi-gcc
 export RTI_LICENSE_FILE=/opt/rti_connext_dds-6.0.0/rti_license.dat
 
-export DDS_INITIAL_PEER=rtps@udpv4://192.168.1.249:25598
-
+# Set discovery server settings, read them if the config file is present
+if test -f"./software/middleware/build"; then
+	declare -a discovery_server
+	while read -r; do
+		discovery_server+=( "$REPLY" )
+	done <./software/middleware/build/DISCOVERY_SERVER
+elif
+	export DISCOVERY_SERVER_IP=192.168.1.249
+	export DISCOVERYSERVER_PORT=11811
+	export DISCOVERYSERVER_ID=44.53.00.5f.45.50.52.4f.53.49.4d.41
+fi
 # --------------------------------- WAIT FOR TIME SYNC --------------------------------------------------------
 # Wait for clock sync before doing anything else, because starting any program before a clock sync would cause problems
 # The clock sync is performed in rc.local of the sudo user
@@ -49,7 +58,7 @@ out=$(wget http://192.168.1.249/nuc/cpm_library_package.tar.gz)
 if [ $? -ne 0 ]; then
 	#Behaviour in case the package is missing
 	#Start some software here that sends this info to the LCC - the script blocks here (indefinitely)
-	/home/guest/autostart/download_error_logger --dds_domain=21 --dds_initial_peer=$DDS_INITIAL_PEER
+	/home/guest/autostart/download_error_logger --dds_domain=21 --discovery_server_ip=${discovery_server[0]} --discovery_server_port=${discovery_server[1]} --discovery_server_id=${discovery_server[2]}
 fi
 tar -xzvf cpm_library_package.tar.gz
 
@@ -69,7 +78,7 @@ out=$(wget http://192.168.1.249/nuc/autostart_package.tar.gz)
 if [ $? -ne 0 ]; then
 	#Behaviour in case the package is missing
 	#Start some software here that sends this info to the LCC - the script blocks here (indefinitely)
-	/home/guest/autostart/download_error_logger --dds_domain=21 --dds_initial_peer=$DDS_INITIAL_PEER
+	/home/guest/autostart/download_error_logger --dds_domain=21 --discovery_server_ip=${discovery_server[0]} --discovery_server_port=${discovery_server[1]} --discovery_server_id=${discovery_server[2]}
 fi
 tar -xzvf autostart_package.tar.gz
 
@@ -84,7 +93,7 @@ out=$(wget http://192.168.1.249/nuc/middleware_package.tar.gz)
 if [ $? -ne 0 ]; then
 	#Behaviour in case the package is missing
 	#Start some software here that sends this info to the LCC - the script blocks here (indefinitely)
-	/home/guest/autostart/download_error_logger --dds_domain=21 --dds_initial_peer=$DDS_INITIAL_PEER
+	/home/guest/autostart/download_error_logger --dds_domain=21 --discovery_server_ip=${discovery_server[0]} --discovery_server_port=${discovery_server[1]} --discovery_server_id=${discovery_server[2]}
 fi
 tar -xzvf middleware_package.tar.gz
 
@@ -107,7 +116,7 @@ out=$(wget http://192.168.1.249/nuc/matlab_package.tar.gz)
 if [ $? -ne 0 ]; then
 	#Behaviour in case the package is missing
 	#Start some software here that sends this info to the LCC - the script blocks here (indefinitely)
-	/home/guest/autostart/download_error_logger --dds_domain=21 --dds_initial_peer=$DDS_INITIAL_PEER
+	/home/guest/autostart/download_error_logger --dds_domain=21 --discovery_server_ip=${discovery_server[0]} --discovery_server_port=${discovery_server[1]} --discovery_server_id=${discovery_server[2]}
 fi
 tar -xzvf matlab_package.tar.gz
 # Get Matlab scripts for eProsima
@@ -116,7 +125,7 @@ out=$(wget http://192.168.1.249/nuc/eprosima_matlab_package.tar.gz)
 if [ $? -ne 0 ]; then
 	#Behaviour in case the package is missing
 	#Start some software here that sends this info to the LCC - the script blocks here (indefinitely)
-	/home/guest/autostart/download_error_logger --dds_domain=21 --dds_initial_peer=$DDS_INITIAL_PEER
+	/home/guest/autostart/download_error_logger --dds_domain=21 --discovery_server_ip=${discovery_server[0]} --discovery_server_port=${discovery_server[1]} --discovery_server_id=${discovery_server[2]}
 fi
 tar -xzvf eprosima_matlab_package.tar.gz
 # Make folder accessible to guest user
@@ -142,4 +151,4 @@ cp -a /tmp/software/eprosima_matlab_package/. ./
 cd ~
 
 # Default domain is 21, just like the vehicle default domain (-> domain for real lab tests)
-/tmp/software/autostart_package/autostart --dds_domain=21 --dds_initial_peer=$DDS_INITIAL_PEER  &> ~/autostart/log.log 
+/tmp/software/autostart_package/autostart --dds_domain=21 --discovery_server_ip=${discovery_server[0]} --discovery_server_port=${discovery_server[1]} --discovery_server_id=${discovery_server[2]}  &> ~/autostart/log.log 
