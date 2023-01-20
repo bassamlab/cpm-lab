@@ -283,20 +283,11 @@ void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream& v
         xml_qos_str = buffer.str();
     }
 
-    // extract IP of current machine from cmd_dds_initial_peer
-    std::smatch ip_matched;
-    std::regex ip_regex ("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
-    std::string ip_string;
-    bool is_ip_contained = std::regex_search (cmd_dds_initial_peer,ip_matched,ip_regex);
-    /*if (!is_ip_contained)
-    {
-        throw std::runtime_error("Could not extract IP address.");
-    }*/
-    ip_string = ip_matched.str(0);
+    // Get IP of current machine from discover_server_ip
     xml_qos_str = std::regex_replace(
         xml_qos_str,
         std::regex("TEMPLATE_IP"),
-        ip_string
+        cpm::InternalConfiguration::Instance().get_discovery_server_ip()
     );
     // Write middleware QOS
     {
