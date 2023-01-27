@@ -44,7 +44,7 @@ template<class MessageType> class TypedCommunication {
         cpm::Writer<MessageType> vehicleWriter;
 
         //! DDS writres to send commands received by the HLC to the vehicles on their corresponding topic
-        std::vector<std::unique_ptr<cpm::Writer<MessageType>>> vehicleWriters;
+        std::unordered_map<uint8_t, std::unique_ptr<cpm::Writer<MessageType>>> vehicleWriters;
 
         //! For access to get_time (in simulated time, only the timer instance knows the current simulated time)
         std::shared_ptr<cpm::Timer> timer;
@@ -150,54 +150,47 @@ template<class MessageType> class TypedCommunication {
 
         #pragma GCC diagnostic pop
 
-        
     public:
-        /**
-         * \brief Constructor
-         * \param hlcParticipant DDS participant instance for the communication with the HLC script
-         * \param vehicleCommandTopicName Topic name for the selected message type
-         * \param _timer To get the current time for real and simulated timing
-         * \param _vehicle_ids List of IDs the Middleware and HLC are responsible for
-         */
-        TypedCommunication(
-            cpm::Participant& hlcParticipant,
-            std::string vehicleCommandTopicName,
-            std::shared_ptr<cpm::Timer> _timer,
-            std::vector<uint8_t> _vehicle_ids
-        )
-        :
-        hlcCommandReader(std::bind(&TypedCommunication::handler, this, _1), hlcParticipant, vehicleCommandTopicName)
-        ,vehicleWriter(vehicleCommandTopicName)
-        ,timer(_timer)
-        ,lastHLCResponseTimes()
-        ,vehicle_ids(_vehicle_ids)
-        {
-
-            std::string topic_name = "";
-            // TODO define MAX_NUM_VEHICLES or sth
-            for (size_t vehicle_id = 1; vehicle_id < 30; vehicle_id++)
-            {
-                topic_name = "vehicle/" + std::to_string(vehicle_id) + "/" + vehicleCommandTopicName;
-                vehicleWriters.push_back(
-                    std::make_unique<cpm::Writer<MessageType>>(topic_name)
-                    //std::unique_ptr(
-                    //    new cpm::Writer<MessageType>(topic_name)
-                    //)
-                );
-            }
-            
+    /**
+     * \brief Constructor
+     * \param hlcParticipant DDS participant instance for the communication
+     * with the HLC script \param vehicleCommandTopicName Topic name for the
+     * selected message type \param _timer To get the current time for real
+     * and simulated timing \param _vehicle_ids List of IDs the Middleware
+     * and HLC are responsible for
+     */
+    TypedCommunication(cpm::Participant& hlcParticipant,
+                        std::string vehicleCommandTopicName,
+                        std::shared_ptr<cpm::Timer> _timer,
+                        std::vector<uint8_t> _vehicle_ids)
+        : hlcCommandReader(
+                std::bind(&TypedCommunication::handler, this, _1),
+                hlcParticipant, vehicleCommandTopicName),
+            vehicleWriter(vehicleCommandTopicName),
+            timer(_timer),
+            lastHLCResponseTimes(),
+            vehicle_ids(_vehicle_ids) {
+        std::string topic_name = "";
+        for (auto& vehicle_id : vehicle_ids) {
+        topic_name = "vehicle/" + std::to_string(vehicle_id) + "/" +
+                        vehicleCommandTopicName;
+        vehicleWriters.try_emplace(
+            vehicle_id,
+            std::make_unique<cpm::Writer<MessageType>>(topic_name));
         }
+    }
 
-        /**
-         * \brief Returns latest HLC response time (for the last received vehicle command) or an empty optional if no entry could be found
-         * \param id ID of the HLC to get the response time of
-         */
-        std::optional<uint64_t> getLatestHLCResponseTime(uint8_t id) {
-            std::lock_guard<std::mutex> lock(map_mutex);
-            if (lastHLCResponseTimes.find(id) != lastHLCResponseTimes.end())
-                return std::optional<uint64_t>(lastHLCResponseTimes[id]);
-            
-            return std::nullopt;
+    /**
+     * \brief Returns latest HLC response time (for the last received
+     * vehicle command) or an empty optional if no entry could be found
+     * \param id ID of the HLC to get the response time of
+     */
+    std::optional<uint64_t> getLatestHLCResponseTime(uint8_t id) {
+       std::lock_guard<std::mutex> lock(map_mutex);
+       if (lastHLCResponseTimes.find(id) != lastHLCResponseTimes.end())
+         return std::optional<uint64_t>(lastHLCResponseTimes[id]);
+
+       return std::nullopt;
         }
 
         /**
@@ -209,33 +202,37 @@ template<class MessageType> class TypedCommunication {
             return lastHLCResponseTimes;
         }
 
-        /**
-         * \brief Send a command to a vehicle
-         * \param message The command to send
-         */
-        void sendToVehicle(typename MessageType::type& message) {
-            constexpr bool has_vehicle_id = requires(const MessageType& message) {
-                message.vehicle_id();
-            };
-
-            if constexpr (has_vehicle_id)
-            {
-                vehicleWriters[message.vehicle_id() - 1]->write(message);
-            } else {
-                cpm::Logging::Instance().write(1,
-                "ERROR: The message that was sent contains no vehicle id."
-                "The middleware needs one to forward it on the corresponding topic."
-                "The message will be send on a global topic.");
-                vehicleWriter.write(message);
-            }
+    /**
+     * \brief Send a command to a vehicle
+     * \param message The command to send
+     */
+    void sendToVehicle(typename MessageType::type& message) {
+      if (message.vehicle_id()) {
+        try {
+          vehicleWriters.at(message.vehicle_id())->write(message);
+        } catch (const std::out_of_range& oor) {
+          cpm::Logging::Instance().write(
+              1,
+              "ERROR: Received a message that cannot be forwared. "
+              "vehicleWriters out of range: %s",
+              oor.what());
         }
+      } else {
+        cpm::Logging::Instance().write(
+            1,
+            "ERROR: The message that was sent contains no vehicle id."
+            "The middleware needs one to forward it on the corresponding topic."
+            "The message will be send on a global topic.");
+        vehicleWriter.write(message);
+      }
+    }
 
-        /**
-         * \brief Update the current period start time stored in typed communication for internal checks
-         * \param t_now Current period time, obtained by the cpm timer
-         */
-        void update_period_t_now(uint64_t t_now)
-        {
-            current_period_start.store(t_now);
-        }
+    /**
+     * \brief Update the current period start time stored in typed communication for internal checks
+     * \param t_now Current period time, obtained by the cpm timer
+     */
+    void update_period_t_now(uint64_t t_now)
+    {
+        current_period_start.store(t_now);
+    }
 };

@@ -22,7 +22,7 @@ TrajectoryCommand::TrajectoryCommand()
     std::string command_trajectory_topic = "";
     for (size_t vehicle_id = 1; vehicle_id < MAX_NUM_VEHICLES; vehicle_id++)
     {
-        command_trajectory_topic = "vehicle/" + std::to_string(vehicle_id) + "/CommandTrajectory";
+        command_trajectory_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleCommandTrajectory";
         writers_vehicleCommandTrajectory.push_back(
             std::unique_ptr<cpm::Writer<VehicleCommandTrajectoryPubSubType>>(
                 new cpm::Writer<VehicleCommandTrajectoryPubSubType>(command_trajectory_topic)

@@ -19,7 +19,7 @@ VehicleAutomatedControl::VehicleAutomatedControl()
     std::string command_speed_curvature_topic = "";
     for (size_t vehicle_id = 1; vehicle_id < MAX_NUM_VEHICLES; vehicle_id++)
     {
-        command_speed_curvature_topic = "vehicle/" + std::to_string(vehicle_id) + "/CommandSpeedCurvature";
+        command_speed_curvature_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleCommandSpeedCurvature";
         writers_vehicleCommandSpeedCurvature.push_back(
             std::unique_ptr<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>>(
                 new cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>(command_speed_curvature_topic)

@@ -31,10 +31,10 @@ TimeSeriesAggregator::TimeSeriesAggregator(uint8_t max_vehicle_id)
     {
         vehicle_ids.push_back(i);
     }
-    vehicle_commandTrajectory_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandTrajectoryPubSubType>>("CommandTrajectory",
+    vehicle_commandTrajectory_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandTrajectoryPubSubType>>("vehicleCommandTrajectory",
         vehicle_ids);
     vehicle_commandPathTracking_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandPathTrackingPubSubType>>(
-        "CommandPathTracking",
+        "vehicleCommandPathTracking",
         vehicle_ids
     );
 }
@@ -312,11 +312,11 @@ void TimeSeriesAggregator::reset_all_data()
 
     //Write-locks the readers, so that both shared locks above cannot be acquired until a reset
     std::unique_lock<std::shared_mutex> lock_reader(reset_reader_mutex);
-    vehicle_commandTrajectory_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandTrajectoryPubSubType>>("CommandTrajectory",
+    vehicle_commandTrajectory_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandTrajectoryPubSubType>>("vehicleCommandTrajectory",
         vehicle_ids
     );
     vehicle_commandPathTracking_reader = make_shared<cpm::MultiVehicleReader<VehicleCommandPathTrackingPubSubType>>(
-        "CommandPathTracking",
+        "vehicleCommandPathTracking",
         vehicle_ids
     );
 }

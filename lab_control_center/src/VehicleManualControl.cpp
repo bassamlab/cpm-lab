@@ -51,14 +51,14 @@ VehicleManualControl::VehicleManualControl()
     
     for (size_t vehicle_id = 1; vehicle_id < MAX_NUM_VEHICLES; vehicle_id++)
     {
-        vehicle_command_direct_topic = "vehicle/" + std::to_string(vehicle_id) + "/CommandDirect";
+        vehicle_command_direct_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleCommandDirect";
         writers_vehicleCommandDirect.push_back(
             std::unique_ptr<cpm::Writer<VehicleCommandDirectPubSubType>>(
                 new cpm::Writer<VehicleCommandDirectPubSubType>(vehicle_command_direct_topic)
             )
         );
 
-        vehicle_command_speed_curvature_topic = "vehicle/" + std::to_string(vehicle_id) + "/CommandSpeedCurvature";
+        vehicle_command_speed_curvature_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleCommandSpeedCurvature";
         writers_vehicleCommandSpeedCurvature.push_back(
             std::unique_ptr<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>>(
                 new cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>(vehicle_command_speed_curvature_topic)
