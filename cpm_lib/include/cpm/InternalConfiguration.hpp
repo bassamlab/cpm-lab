@@ -98,7 +98,7 @@ namespace cpm
          * --client_server ("client" or "server" or empty if not used)
          * --discovery_server_id
          * --discovery_server_ip
-         * --get_discovery_server_port
+         * --discovery_server_port
          */
         static void init(int argc, char *argv[]);
 
