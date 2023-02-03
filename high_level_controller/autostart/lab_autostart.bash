@@ -7,15 +7,15 @@ export RASPBIAN_TOOLCHAIN=/opt/cross-pi-gcc
 export RTI_LICENSE_FILE=/opt/rti_connext_dds-6.0.0/rti_license.dat
 
 # Set discovery server settings, read them if the config file is present
-if test -f"./software/middleware/build"; then
-	declare -a discovery_server
+declare -a discovery_server
+if [ -f "/tmp/software/middleware_package/DISOCVERY_SERVER" ]; then
 	while read -r; do
 		discovery_server+=( "$REPLY" )
-	done <./software/middleware/build/DISCOVERY_SERVER
-elif
-	export DISCOVERY_SERVER_IP=192.168.1.249
-	export DISCOVERYSERVER_PORT=11811
-	export DISCOVERYSERVER_ID=44.53.00.5f.45.50.52.4f.53.49.4d.41
+	done </tmp/software/middleware_package/DISCOVERY_SERVER
+else
+	discovery_server+=( "192.168.1.249" )
+	discovery_server+=( "11811" )
+	discovery_server+=( "44.53.00.5f.45.50.52.4f.53.49.4d.41" )
 fi
 # --------------------------------- WAIT FOR TIME SYNC --------------------------------------------------------
 # Wait for clock sync before doing anything else, because starting any program before a clock sync would cause problems
