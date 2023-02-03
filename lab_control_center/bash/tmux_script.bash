@@ -48,5 +48,5 @@ then
     /opt/MATLAB/R2020a/bin/matlab -logfile matlab.log -sd "${PATH_TO_SCRIPT}" -batch "${SCRIPT_NAME}(${SCRIPT_ARGS})"
 else
     #Evaluate the C++ script
-    eval "${PATH_TO_SCRIPT}/${SCRIPT_NAME}(${SCRIPT_ARGS}) &> ~/dev/lcc_script_logs/script.log"
+    eval "${PATH_TO_SCRIPT}/${SCRIPT_NAME} ${SCRIPT_ARGS} &> ~/dev/lcc_script_logs/script.log"
 fi
