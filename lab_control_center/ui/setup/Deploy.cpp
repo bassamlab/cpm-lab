@@ -122,7 +122,7 @@ void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int>
                 if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
                 {
                     command
-                        << " --client_server=client"
+                        << " --discovery_mode=client"
                         << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
                         << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
                         << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
@@ -208,7 +208,7 @@ void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<uns
             if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
             {
                 command
-                    << " --client_server=client"
+                    << " --discovery_mode=client"
                     << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
                     << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
                     << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
@@ -311,7 +311,7 @@ void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream& v
     if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
     {
         middleware_command
-            << " --client_server=client"
+            << " --discovery_mode=client"
             << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
             << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
             << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
@@ -353,7 +353,7 @@ void Deploy::deploy_sim_vehicle(unsigned int id, bool use_simulated_time)
     if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
     {
         command
-            << " --client_server=client"
+            << " --discovery_mode=client"
             << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
             << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
             << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
@@ -569,7 +569,7 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
         if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
         {
             script_argument_stream
-                << " --client_server=client"
+                << " --discovery_mode=client"
                 << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
                 << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
                 << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
@@ -585,7 +585,7 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
     if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
         {
             middleware_argument_stream
-                << " --client_server=client"
+                << " --discovery_mode=client"
                 << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
                 << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
                 << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
@@ -641,7 +641,7 @@ void Deploy::deploy_ips()
     if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
     {
         command_ips
-            << " --client_server=client"
+            << " --discovery_mode=client"
             << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
             << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
             << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
@@ -662,7 +662,7 @@ void Deploy::deploy_ips()
     if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
     {
         command_basler
-            << " --client_server=client"
+            << " --discovery_mode=client"
             << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
             << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
             << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();

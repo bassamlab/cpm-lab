@@ -27,4 +27,4 @@ while read -r; do
 done <DISCOVERY_SERVER
 
 
-LD_LIBRARY_PATH=/tmp/package chrt -r 98 ./vehicle_rpi_firmware --dds_domain=$DDS_DOMAIN --simulated_time=false --client_server=client --discovery_server_ip=${discovery_server[0]} --discovery_server_port=${discovery_server[1]} --discovery_server_id=${discovery_server[2]} --vehicle_id=$VEHICLE_ID --realtime=1 >stdout_$VEHICLE_ID.txt 2>stderr_$VEHICLE_ID.txt
+LD_LIBRARY_PATH=/tmp/package chrt -r 98 ./vehicle_rpi_firmware --dds_domain=$DDS_DOMAIN --simulated_time=false --discovery_mode=client --discovery_server_ip=${discovery_server[0]} --discovery_server_port=${discovery_server[1]} --discovery_server_id=${discovery_server[2]} --vehicle_id=$VEHICLE_ID --realtime=1 >stdout_$VEHICLE_ID.txt 2>stderr_$VEHICLE_ID.txt

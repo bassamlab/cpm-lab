@@ -179,13 +179,13 @@ int main(int argc, char *argv[])
         cpm::RTTTool::Instance().activate("lab_control_center");
 
         // Create a Discovery Server Participant
-        if (    cpm::InternalConfiguration::Instance().get_client_server() == "server"
+        if (    cpm::InternalConfiguration::Instance().get_discovery_mode() == "server"
             && !cpm::InternalConfiguration::Instance().get_discovery_server_id().empty()
             && !cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty()
             && cpm::InternalConfiguration::Instance().get_discovery_server_port() >= 0)
         {
             static cpm::Participant server_participant = cpm::Participant(cpm::InternalConfiguration::Instance().get_dds_domain(), 
-            cpm::Participant::SERVER,
+            cpm::Participant::DiscoveryMode::SERVER ,
             cpm::InternalConfiguration::Instance().get_discovery_server_id(),
             cpm::InternalConfiguration::Instance().get_discovery_server_ip(),
             cpm::InternalConfiguration::Instance().get_discovery_server_port());

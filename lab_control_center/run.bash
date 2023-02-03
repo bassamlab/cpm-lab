@@ -16,4 +16,4 @@ echo "DISCOVERYSERVER_PORT not set at all, standard ${DISCOVERYSERVER_PORT} is u
 fi
 if [ -z "$DISCOVERYSERVER_PORT" ] && [ "${DISCOVERYSERVER_ID+xxx}" = "xxx" ]; then echo "DISCOVERYSERVER_PORT is set but empty, this can lead to unexpected bahaviour"; fi
 
-./build/lab_control_center --dds_domain=$DDS_DOMAIN --client_server=server --discovery_server_id=$DISCOVERYSERVER_ID --discovery_server_ip=$IP_SELF --discovery_server_port=$DISCOVERYSERVER_PORT --number_of_vehicles=20
+./build/lab_control_center --dds_domain=$DDS_DOMAIN --discovery_mode=server --discovery_server_id=$DISCOVERYSERVER_ID --discovery_server_ip=$IP_SELF --discovery_server_port=$DISCOVERYSERVER_PORT --number_of_vehicles=20

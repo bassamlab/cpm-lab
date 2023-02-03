@@ -21,7 +21,7 @@ namespace cpm
         //! ID for log messages, usually program type, e.g. "LCC" or "middleware"
         std::string logging_id = "uninitialized";
         //! Wether this instance provides a discovery server or is a discovery client
-        std::string client_server;
+        std::string discovery_mode;
         //! Discovery server id, has to be unique in the DDS network
         std::string discovery_server_id;
         //! Discovery server ip 
@@ -44,14 +44,14 @@ namespace cpm
         InternalConfiguration(
             int _dds_domain,
             std::string _logging_id,
-            std::string _client_server,
+            std::string _discovery_mode,
             std::string _discovery_server_id,
             std::string _discovery_server_ip,
             int _discovery_server_port
         )
         :dds_domain(_dds_domain)
         ,logging_id(_logging_id)
-        ,client_server(_client_server)
+        ,discovery_mode(_discovery_mode)
         ,discovery_server_id(_discovery_server_id)
         ,discovery_server_ip(_discovery_server_ip)
         ,discovery_server_port(_discovery_server_port)
@@ -70,9 +70,9 @@ namespace cpm
         std::string get_logging_id() { return logging_id; }
 
         /**
-         * \brief Get the status of `client_server
+         * \brief Get the status of discovery_mode
          */
-        std::string get_client_server() { return client_server; }
+        std::string get_discovery_mode() { return discovery_mode; }
 
         /**
          * \brief Get the the discovery server id
@@ -95,7 +95,7 @@ namespace cpm
          * --dds_domain
          * --dds_initial_peer
          * --logging_id
-         * --client_server ("client" or "server" or empty if not used)
+         * --discovery_mode ("client" or "server" for DiscoveryServer or "simple" for simple endpoint discovery)
          * --discovery_server_id
          * --discovery_server_ip
          * --discovery_server_port

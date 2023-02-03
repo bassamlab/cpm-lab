@@ -19,7 +19,7 @@ namespace cpm
 
 
     public:
-        enum discovery_mode {SIMPLE, SERVER, CLIENT};
+        enum DiscoveryMode {SIMPLE, SERVER, CLIENT};
 
         Participant(const Participant&) = delete;
         Participant& operator=(const Participant&) = delete;
@@ -44,12 +44,14 @@ namespace cpm
         /**
          * \brief Constructor for a Server/Client participant 
          * \param domain_number Set the domain ID of the domain within which the communication takes place
-         * \param server_client The type of participant. Either "client" or "server"
+         * \param discovery_mode The type of participant. 
+         *  Use DiscoveryMode::CLIENT or DiscoveryMode::SERVER for Discovery Server mode. 
+         *  Use DiscoveryMode::SIMPLE for simple endpoint discovery.
          * \param discovery_server_id 
          * \param discovery_server_ip
          * \param discovery_server_port
          */
-        Participant(int domain_number, discovery_mode mode, std::string discovery_server_id, std::string discovery_server_ip, int discovery_server_port);
+        Participant(int domain_number, DiscoveryMode discovery_mode, std::string discovery_server_id, std::string discovery_server_ip, int discovery_server_port);
     
         /**
          * \brief Returns a shared_ptr to the encapsulated eProsima domain participant

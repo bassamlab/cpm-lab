@@ -122,10 +122,10 @@ namespace cpm
      * \param domain_number Set the domain ID of the domain within which the communication takes place
      * \param qos_file QoS settings to be imported from an .xml file
      */
-    Participant::Participant(int domain_number, discovery_mode server_client, std::string guid, std::string ip, int port)
+    Participant::Participant(int domain_number, DiscoveryMode discovery_mode, std::string guid, std::string ip, int port)
     {
         DomainParticipantQos pqos;
-        switch (server_client)
+        switch (discovery_mode)
         {
         case SERVER:
             pqos = create_server_qos(guid, ip, port);
