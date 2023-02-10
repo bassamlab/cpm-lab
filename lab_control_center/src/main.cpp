@@ -180,9 +180,7 @@ int main(int argc, char *argv[])
 
         // Create a Discovery Server Participant
         if (    cpm::InternalConfiguration::Instance().get_discovery_mode() == "server"
-            && !cpm::InternalConfiguration::Instance().get_discovery_server_id().empty()
-            && !cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty()
-            && cpm::InternalConfiguration::Instance().get_discovery_server_port() >= 0)
+            && cpm::InternalConfiguration::Instance().is_valid_discovery_server_config())
         {
             static cpm::Participant server_participant = cpm::Participant(cpm::InternalConfiguration::Instance().get_dds_domain(), 
             cpm::Participant::DiscoveryMode::SERVER ,

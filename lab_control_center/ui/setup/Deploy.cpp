@@ -119,13 +119,9 @@ void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int>
                     << " --vehicle_ids=" << vehicle_ids_stream.str()
                     << " --dds_domain=" << cmd_domain_id
                     << " --middleware_domain=" << default_middleware_domain_id;
-                if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+                if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config())
                 {
-                    command
-                        << " --discovery_mode=client"
-                        << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
-                        << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
-                        << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+                    command << command_line_discovery_server_params();
                 }
             command 
                 << " " << script_params << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << hlc_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << hlc_session << ".txt\"";
@@ -205,13 +201,9 @@ void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<uns
                 << " --vehicle_ids=" << std::to_string(vehicle_id)
                 << " --dds_domain=" << cmd_domain_id
                 << " --middleware_domain=" << std::to_string(vehicle_id);
-            if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+            if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config())
             {
-                command
-                    << " --discovery_mode=client"
-                    << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
-                    << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
-                    << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+                command << command_line_discovery_server_params();
             }
             command
                 << " " << script_params << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << hlc_session << ""
@@ -308,13 +300,9 @@ void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream& v
         << " --vehicle_ids=" << vehicle_ids_stream.str()
         << " --dds_domain=" << cmd_domain_id
         << " --middleware_domain=" << middleware_domain_id;
-    if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+    if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config())
     {
-        middleware_command
-            << " --discovery_mode=client"
-            << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
-            << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
-            << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+        middleware_command << command_line_discovery_server_params();
     }
     middleware_command
         << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << middleware_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << middleware_session << ".txt\"";
@@ -350,13 +338,9 @@ void Deploy::deploy_sim_vehicle(unsigned int id, bool use_simulated_time)
         << "--simulated_time=" << sim_time_string
         << " --vehicle_id=" << id
         << " --dds_domain=" << cmd_domain_id;
-    if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+    if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config())
     {
-        command
-            << " --discovery_mode=client"
-            << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
-            << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
-            << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+        command << command_line_discovery_server_params();
     }
     command
         << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << vehicle_session << id << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << vehicle_session << id << ".txt\"";
@@ -566,13 +550,9 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
             << " --vehicle_ids=" << vehicle_ids
             << " --dds_domain=" << cmd_domain_id
             << " --middleware_domain=" << default_middleware_domain_id;
-        if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+        if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config())
         {
-            script_argument_stream
-                << " --discovery_mode=client"
-                << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
-                << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
-                << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+            script_argument_stream << command_line_discovery_server_params();
         }
     }
     //Settings for Middleware
@@ -582,13 +562,9 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
         << " --vehicle_ids=" << vehicle_ids
         << " --dds_domain=" << cmd_domain_id
         << " --middleware_domain=" << default_middleware_domain_id;
-    if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+    if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config())
         {
-            middleware_argument_stream
-                << " --discovery_mode=client"
-                << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
-                << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
-                << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+            middleware_argument_stream << command_line_discovery_server_params();
         }
     middleware_argument_stream 
             << " " << script_params;
@@ -638,13 +614,9 @@ void Deploy::deploy_ips()
         << "-s \"" << ips_session << "\" "
         << "\"cd " << software_folder_path << "/indoor_positioning_system/;./build/ips_pipeline "
         << " --dds_domain=" << cmd_domain_id;
-    if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+    if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config())
     {
-        command_ips
-            << " --discovery_mode=client"
-            << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
-            << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
-            << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+        command_ips << command_line_discovery_server_params();
     }
     command_ips 
         << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << ips_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << ips_session << ".txt\"";
@@ -659,13 +631,9 @@ void Deploy::deploy_ips()
         << "-s \"" << basler_session << "\" "
         << "\"cd " << software_folder_path << "/indoor_positioning_system/;./build/BaslerLedDetection "
         << " --dds_domain=" << cmd_domain_id;
-    if (!cpm::InternalConfiguration::Instance().get_discovery_server_ip().empty())
+    if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config())
     {
-        command_basler
-            << " --discovery_mode=client"
-            << " --discovery_server_id=" << cpm::InternalConfiguration::Instance().get_discovery_server_id()
-            << " --discovery_server_ip=" << cpm::InternalConfiguration::Instance().get_discovery_server_ip()
-            << " --discovery_server_port=" << cpm::InternalConfiguration::Instance().get_discovery_server_port();
+        command_basler << command_line_discovery_server_params();
     }
     command_basler 
         << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << basler_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << basler_session << ".txt\"";
@@ -968,4 +936,11 @@ void Deploy::delete_old_logs(std::string folder_name)
     {
         std::experimental::filesystem::remove(file.c_str());
     }
+}
+
+std::string Deploy::command_line_discovery_server_params() {
+  return std::string(" --discovery_mode=client") +
+         std::string(" --discovery_server_id=") + cpm::InternalConfiguration::Instance().get_discovery_server_id() +
+         std::string(" --discovery_server_ip=") + cpm::InternalConfiguration::Instance().get_discovery_server_ip() +
+         std::string(" --discovery_server_port=") +std::to_string(cpm::InternalConfiguration::Instance().get_discovery_server_port());
 }

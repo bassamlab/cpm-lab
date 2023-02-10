@@ -46,16 +46,15 @@ namespace cpm
 {
     eprosima::fastdds::dds::DomainParticipantQos ParticipantSingleton::CreateQos()
     {
+        if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config() )
+        {
+            return Participant::create_client_qos(
+                cpm::InternalConfiguration::Instance().get_discovery_server_id(),
+                cpm::InternalConfiguration::Instance().get_discovery_server_ip(),
+                cpm::InternalConfiguration::Instance().get_discovery_server_port());
+        }
         DomainParticipantQos participant_qos = eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT;
         participant_qos.name("ParticipantSingleton");
-
-        const std::string server_id = cpm::InternalConfiguration::Instance().get_discovery_server_id();
-        const std::string server_ip = cpm::InternalConfiguration::Instance().get_discovery_server_ip();
-        const int server_port = cpm::InternalConfiguration::Instance().get_discovery_server_port();
-        if (!server_id.empty() && !server_ip.empty() && server_port >= 0)
-        {
-            participant_qos = Participant::create_client_qos(server_id, server_ip, server_port);
-        }
         return participant_qos;
     }
 

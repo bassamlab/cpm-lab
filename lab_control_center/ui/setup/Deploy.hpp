@@ -211,6 +211,12 @@ public:
      */
     std::vector<std::string> check_for_crashes(bool script_started, bool deploy_distributed, bool has_local_hlc, bool lab_mode_on, bool check_for_recording);
 
+    /**
+     * \brief Generates a string that contains the discovery server command line parameters based on the own InternalConfiguration.
+     * discovery_mode of these is always set to client.
+     * \return A string containing the command line parameters
+     */
+    std::string command_line_discovery_server_params();
 private:
     /**
      * \enum PROCESS_STATE

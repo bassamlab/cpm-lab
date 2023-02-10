@@ -45,6 +45,23 @@ namespace cpm
         InternalConfiguration::init(argc, argv);
     }
 
+    bool InternalConfiguration::is_valid_discovery_server_config()
+    {
+        if (discovery_mode.empty()|| (discovery_mode != "client" && discovery_mode != "server"))
+            return false;
+
+        eprosima::fastrtps::rtps::Locator_t locator;
+        if (!eprosima::fastrtps::rtps::IPLocator::setIPv4(locator, discovery_server_ip))
+            return false;
+
+        if (discovery_server_port == -1)
+            return false;
+
+        if (discovery_server_id.empty())
+            return false;
+
+        return true;
+    }
 
     void InternalConfiguration::init(int argc, char *argv[])
     {

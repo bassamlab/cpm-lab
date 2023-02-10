@@ -106,5 +106,10 @@ namespace cpm
          * \brief Get access to the internal configuration Singleton, should mostly / only be used internally for constructing other parts of the library
          */
         static InternalConfiguration& Instance() {return the_instance;}
+
+        /**
+         * \brief Checks whether the provided parameters can be used to derive a valid discovery server QOS configuration
+        */
+       bool is_valid_discovery_server_config();
     };
 }
