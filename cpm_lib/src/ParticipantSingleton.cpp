@@ -44,26 +44,26 @@ using namespace eprosima::fastdds::dds;
  */
 namespace cpm 
 {
-    std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> ParticipantSingleton::Instance() {
-
-        //This part is not clean yet
-        DomainParticipantQos participant_qos = PARTICIPANT_QOS_DEFAULT;
-
+    eprosima::fastdds::dds::DomainParticipantQos ParticipantSingleton::CreateQos()
+    {
+        DomainParticipantQos participant_qos = eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT;
         participant_qos.name("ParticipantSingleton");
 
-        auto server_id = cpm::InternalConfiguration::Instance().get_discovery_server_id();
-        auto server_ip = cpm::InternalConfiguration::Instance().get_discovery_server_ip();
-        auto server_port = cpm::InternalConfiguration::Instance().get_discovery_server_port();
-        if(!server_id.empty() && !server_ip.empty() && server_port >= 0)
+        const std::string server_id = cpm::InternalConfiguration::Instance().get_discovery_server_id();
+        const std::string server_ip = cpm::InternalConfiguration::Instance().get_discovery_server_ip();
+        const int server_port = cpm::InternalConfiguration::Instance().get_discovery_server_port();
+        if (!server_id.empty() && !server_ip.empty() && server_port >= 0)
         {
             participant_qos = Participant::create_client_qos(server_id, server_ip, server_port);
         }
+        return participant_qos;
+    }
 
-        //This is thread-safe - the former version was not and actually lead to a segfault after quit
+    std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> ParticipantSingleton::Instance() {
         static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> instance_(
             eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
                 eprosima::fastdds::dds::DomainId_t(cpm::InternalConfiguration::Instance().get_dds_domain()), 
-                participant_qos
+                ParticipantSingleton::CreateQos()
             ),
             [] (eprosima::fastdds::dds::DomainParticipant* instance_) {
                 if (instance_ != nullptr)
