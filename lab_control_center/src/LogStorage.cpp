@@ -6,13 +6,17 @@
  */
 
 using namespace std::placeholders;
-LogStorage::LogStorage() :
-    /*Set up communication*/
-    log_reader(std::bind(&LogStorage::log_callback, this, _1), "log", true)
-{    
-    file.open(filename, std::ofstream::out | std::ofstream::trunc);
-    file << "ID,Timestamp,Content" << std::endl;
+LogStorage::LogStorage(std::string _filename)
+  : filename(_filename)
+  , log_reader(std::bind(&LogStorage::log_callback, this, _1), "log", true)
+{
+  file.open(filename, std::ofstream::out | std::ofstream::trunc);
+  file << "ID,Timestamp,Content" << std::endl;
 }
+
+LogStorage::LogStorage()
+  : LogStorage("all_received_logs.csv")
+{}
 
 LogStorage::~LogStorage()
 {

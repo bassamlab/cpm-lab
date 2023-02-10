@@ -4,6 +4,7 @@
 #include <array>
 #include <cassert>
 #include <chrono>       //For time measurements (timeout for remote deployment)
+#include <cstdint>
 #include <cstdio>       //For popen
 #include <experimental/filesystem> //Used instead of std::filesystem, because some compilers still seem to be outdated
 #include <functional>
@@ -224,11 +225,20 @@ private:
      */
     enum PROCESS_STATE {DONE, RUNNING, ERROR};
 
+    //! Types of logging paths
+    enum struct LogType {SIM_VEHICLE, LOCAL_HLC, IPS, MIDDLEWARE, ALL_RECEIVED, FROM_PI, REMOTE_COPY, REMOTE_KILL, KILL_SESSION, RECORDING, LABCAM, HLC_REBOOT, BASLER};
+
     //! Contains the path to the software folder of the repo, from which paths to all relevant contained programs can be constructed (e.g. to vehicles, IPS etc.)
     std::string software_folder_path;
 
     //! Path above software folder, for lcc_script_logs folder
     std::string software_top_folder_path;
+
+    //! Current per session log folder
+    std::string session_log_folder;
+
+    //! Per experiment log folder
+    std::string experiment_log_folder;
 
     //! DDS Domain ID. This value is set once at startup (as command line parameters).
     unsigned int cmd_domain_id; 
@@ -273,6 +283,18 @@ private:
      * \return String version of the boolean (true -> "true", false -> "false")
      */
     std::string bool_to_string(bool var);
+
+    /**
+     * \brief Get the current date time as a string
+     * Used for the log folders 
+    */
+   std::string datetime_log_folder();
+
+    /**
+     * \brief 
+     * 
+    */
+    std::string get_logging_suffix(Deploy::LogType type, std::string id="");
 
     // Session name for recording service
     const std::string recording_session = "dds_record";

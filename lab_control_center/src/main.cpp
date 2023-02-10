@@ -191,7 +191,8 @@ int main(int argc, char *argv[])
         }
         
         //To receive logs as early as possible, and for Logging in main
-        auto logStorage = make_shared<LogStorage>();
+        std::string logging_path = "/tmp/logs/"
+        auto logStorage = make_shared<LogStorage>(logging_path);
 
         //Create regular and irregular (interrupt) exit handlers
         //Disallow interrupts (Strg + C), as they could lead to memory issues

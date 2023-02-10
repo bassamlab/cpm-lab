@@ -56,7 +56,7 @@ private:
     //! File for logging, to write all received logs to
     std::ofstream file;
     //! Filename for the logfile of all received logs
-    std::string filename = "all_received_logs.csv"; 
+    std::string filename; 
     //! Mutex s.t. only one thread has access to the log file
     std::mutex file_mutex;
 
@@ -83,6 +83,10 @@ public:
      * \brief Constructor
      */
     LogStorage();
+     /**
+     * \brief Constructor
+     */
+    LogStorage(std::string _filename);
     /**
      * \brief Destructor
      */
