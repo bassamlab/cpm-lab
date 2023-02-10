@@ -45,19 +45,13 @@
 
 #include <fastrtps/utils/IPLocator.h>
 
-using namespace eprosima::fastrtps;
-using namespace eprosima::fastrtps::rtps;
-
-using namespace eprosima::fastdds;
-using namespace eprosima::fastdds::dds;
-using namespace eprosima::fastdds::rtps;
 namespace cpm
 {
 
     Participant::Participant(int domain_number, bool use_shared_memory)
     { 
         //Create new QoS
-        eprosima::fastdds::dds::DomainParticipantQos qos;
+        eprosima::fastdds::dds::DomainParticipantQos participant_qos;
 
         if (use_shared_memory)
         {
@@ -67,17 +61,17 @@ namespace cpm
             auto shm_transport = std::make_shared<eprosima::fastdds::rtps::SharedMemTransportDescriptor>();
             
             //Try to set to shared memory transport only
-            qos.transport().use_builtin_transports = false;
-            qos.transport().user_transports.push_back(shm_transport);
+            participant_qos.transport().use_builtin_transports = false;
+            participant_qos.transport().user_transports.push_back(shm_transport);
         }
         else
         {
             //Else use default QoS
-            qos = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_default_participant_qos();
+            participant_qos = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->get_default_participant_qos();
         }
 
         participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
-            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, qos),
+            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, participant_qos),
             [] (eprosima::fastdds::dds::DomainParticipant* participant) {
                 if (participant != nullptr)
                     eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
@@ -124,22 +118,22 @@ namespace cpm
      */
     Participant::Participant(int domain_number, DiscoveryMode discovery_mode, std::string guid, std::string ip, int port)
     {
-        DomainParticipantQos pqos;
+        eprosima::fastdds::dds::DomainParticipantQos participant_qos;
         switch (discovery_mode)
         {
         case SERVER:
-            pqos = create_server_qos(guid, ip, port);
+            participant_qos = create_server_qos(guid, ip, port);
             break;
         case CLIENT:
-            pqos = create_client_qos(guid, ip, port);
+            participant_qos = create_client_qos(guid, ip, port);
             break;
         default:
-            pqos = PARTICIPANT_QOS_DEFAULT;
+            participant_qos = eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT;
             break;
         }
 
         participant = std::shared_ptr<eprosima::fastdds::dds::DomainParticipant>(
-            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, pqos),
+            eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(domain_number, participant_qos),
             [] (eprosima::fastdds::dds::DomainParticipant* participant) {
                 if (participant != nullptr)
                     eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
@@ -153,26 +147,26 @@ namespace cpm
         return participant;
     }
 
-    DomainParticipantQos Participant::create_client_qos(std::string guid, std::string ip, uint32_t port)
+    eprosima::fastdds::dds::DomainParticipantQos Participant::create_client_qos(std::string guid, std::string ip, uint32_t port)
     {
         // Get default participant QoS
-        DomainParticipantQos client_qos = PARTICIPANT_QOS_DEFAULT;
+        eprosima::fastdds::dds::DomainParticipantQos client_qos = eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT;
 
         // disable all multicast
-        Locator_t default_unicast_locator;
+        eprosima::fastrtps::rtps::Locator_t default_unicast_locator;
         client_qos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(default_unicast_locator);
 
         // Set participant as CLIENT
         client_qos.wire_protocol().builtin.discovery_config.discoveryProtocol =
-                DiscoveryProtocol_t::CLIENT;
+                eprosima::fastrtps::rtps::DiscoveryProtocol_t::CLIENT;
 
         // Set SERVER's GUID prefix
-        RemoteServerAttributes remote_server_att;
+        eprosima::fastrtps::rtps::RemoteServerAttributes remote_server_att;
         remote_server_att.ReadguidPrefix(guid.c_str());
 
         // Set SERVER's listening locator for PDP
-        Locator_t locator;
-        IPLocator::setIPv4(locator, ip);
+        eprosima::fastrtps::rtps::Locator_t locator;
+        eprosima::fastrtps::rtps::IPLocator::setIPv4(locator, ip);
         locator.port = port;
         remote_server_att.metatrafficUnicastLocatorList.push_back(locator);
 
@@ -186,20 +180,20 @@ namespace cpm
         return client_qos;
     }
 
-    DomainParticipantQos Participant::create_server_qos(std::string guid, std::string ip, uint32_t port)
+    eprosima::fastdds::dds::DomainParticipantQos Participant::create_server_qos(std::string guid, std::string ip, uint32_t port)
     {
-        DomainParticipantQos server_qos = PARTICIPANT_QOS_DEFAULT;
+        eprosima::fastdds::dds::DomainParticipantQos server_qos = eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT;
 
         // Set participant as SERVER
         server_qos.wire_protocol().builtin.discovery_config.discoveryProtocol =
-                DiscoveryProtocol_t::SERVER;
+                eprosima::fastrtps::rtps::DiscoveryProtocol_t::SERVER;
 
         // Set SERVER's GUID prefix
         std::istringstream(guid) >> server_qos.wire_protocol().prefix;
 
         // Set SERVER's listening locator for PDP
-        Locator_t locator;
-        IPLocator::setIPv4(locator, ip);
+        eprosima::fastrtps::rtps::Locator_t locator;
+        eprosima::fastrtps::rtps::IPLocator::setIPv4(locator, ip);
         locator.port = port;
         server_qos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(locator);
 
