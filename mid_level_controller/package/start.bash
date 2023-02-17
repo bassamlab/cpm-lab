@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo arp -f ~/arp_table
+sudo arp -f /tmp/package/arp_table
 export IP_SELF="$(hostname -I)"
 
 echo IP_SELF
