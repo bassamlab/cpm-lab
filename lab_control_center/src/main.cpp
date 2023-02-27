@@ -29,6 +29,7 @@
 #include "cpm/CommandLineReader.hpp"
 #include "TimerTrigger.hpp"
 #include "cpm/init.hpp"
+#include "cpm/InternalConfiguration.hpp"
 
 #include "commonroad_classes/CommonRoadScenario.hpp"
 
@@ -177,6 +178,17 @@ int main(int argc, char *argv[])
         cpm::Logging::Instance().set_id("lab_control_center");
         cpm::RTTTool::Instance().activate("lab_control_center");
 
+        // Create a Discovery Server Participant
+        if (    cpm::InternalConfiguration::Instance().get_discovery_mode() == "server"
+            && cpm::InternalConfiguration::Instance().is_valid_discovery_server_config())
+        {
+            static cpm::Participant server_participant = cpm::Participant(cpm::InternalConfiguration::Instance().get_dds_domain(), 
+            cpm::Participant::DiscoveryMode::SERVER ,
+            cpm::InternalConfiguration::Instance().get_discovery_server_id(),
+            cpm::InternalConfiguration::Instance().get_discovery_server_ip(),
+            cpm::InternalConfiguration::Instance().get_discovery_server_port());
+        }
+        
         //To receive logs as early as possible, and for Logging in main
         auto logStorage = make_shared<LogStorage>();
 

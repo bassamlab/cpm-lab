@@ -56,8 +56,21 @@ if [ -z $SIMULATION ]; then
     
     
     export IP_SELF=$(ip route get 8.8.8.8 | awk -F"src " 'NR==1{split($2,a," ");print a[1]}')
-    export DDS_INITIAL_PEER=rtps@udpv4://$IP_SELF:25598
     
-    rm -f /var/www/html/raspberry/DDS_INITIAL_PEER
-    echo $DDS_INITIAL_PEER >/var/www/html/raspberry/DDS_INITIAL_PEER
+    if [ -z "${DISCOVERYSERVER_ID+xxx}" ]; then 
+        export DISCOVERYSERVER_ID=44.53.00.5f.45.50.52.4f.53.49.4d.41
+        echo "DISCOVERYSERVER_ID not set, using standard ${DISCOVERYSERVER_ID}"; 
+    fi
+    if [ -z "$DISCOVERYSERVER_ID" ] && [ "${DISCOVERYSERVER_ID+xxx}" = "xxx" ]; then echo "DISCOVERYSERVER_ID is set but empty, this can lead to unexpected bahaviour"; fi
+    if [ -z "${DISCOVERYSERVER_PORT+xxx}" ]; then 
+        export DISCOVERYSERVER_PORT=11811
+        echo "DISCOVERYSERVER_PORT not set, using standard ${DISCOVERYSERVER_PORT}"; 
+    fi
+    if [ -z "$DISCOVERYSERVER_PORT" ] && [ "${DISCOVERYSERVER_ID+xxx}" = "xxx" ]; then echo "DISCOVERYSERVER_PORT is set but empty, this can lead to unexpected bahaviour"; fi
+
+
+    rm -f /var/www/html/raspberry/DISCOVERY_SERVER
+    echo $IP_SELF > /var/www/html/raspberry/DISCOVERY_SERVER
+    echo $DISCOVERYSERVER_PORT >> /var/www/html/raspberry/DISCOVERY_SERVER
+    echo $DISCOVERYSERVER_ID >> /var/www/html/raspberry/DISCOVERY_SERVER
 fi

@@ -21,6 +21,8 @@ namespace cpm
      */
     class ParticipantSingleton
     {
+    private:
+        static eprosima::fastdds::dds::DomainParticipantQos CreateQos();
     public:
         ParticipantSingleton() = delete;
         ParticipantSingleton(ParticipantSingleton const&) = delete;

@@ -28,6 +28,22 @@ if [ -z $SIMULATION ]; then
     mkdir middleware_package
     cp ${BASH_DIR}/build/middleware ./middleware_package
     cp ${BASH_DIR}/QOS_LOCAL_COMMUNICATION.xml.template ./middleware_package
+    
+    if [ -z "${DISCOVERYSERVER_ID+xxx}" ]; then 
+        DISCOVERYSERVER_ID=44.53.00.5f.45.50.52.4f.53.49.4d.41
+        echo "DISCOVERYSERVER_ID not set, using standard ${DISCOVERYSERVER_ID}"; 
+    fi
+    if [ -z "$DISCOVERYSERVER_ID" ] && [ "${DISCOVERYSERVER_ID+xxx}" = "xxx" ]; then echo "DISCOVERYSERVER_ID is set but empty, this can lead to unexpected bahaviour"; fi
+    if [ -z "${DISCOVERYSERVER_PORT+xxx}" ]; then 
+        export DISCOVERYSERVER_PORT=11811
+        echo "DISCOVERYSERVER_PORT not set, using standard ${DISCOVERYSERVER_PORT}"; 
+    fi
+    if [ -z "$DISCOVERYSERVER_PORT" ] && [ "${DISCOVERYSERVER_ID+xxx}" = "xxx" ]; then echo "DISCOVERYSERVER_PORT is set but empty, this can lead to unexpected bahaviour"; fi
+
+    echo $IP_SELF > ./middleware_package/DISCOVERY_SERVER
+    echo $DISCOVERYSERVER_PORT >> ./middleware_package/DISCOVERY_SERVER
+    echo $DISCOVERYSERVER_ID >> ./middleware_package/DISCOVERY_SERVER
+
     tar -czf middleware_package.tar.gz middleware_package
     rm -f /var/www/html/nuc/middleware_package.tar.gz
     cp ./middleware_package.tar.gz /var/www/html/nuc

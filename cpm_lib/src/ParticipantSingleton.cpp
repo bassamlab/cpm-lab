@@ -25,9 +25,18 @@
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 #include "cpm/ParticipantSingleton.hpp"
+#include "cpm/Participant.hpp"
 #include "cpm/InternalConfiguration.hpp"
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <memory>
+#include <random>
+#include <fastdds/rtps/transport/TCPv4TransportDescriptor.h>
+#include <fastrtps/utils/IPLocator.h>
+
+using namespace eprosima::fastdds;
+using namespace eprosima::fastrtps::rtps;
+using namespace eprosima::fastdds::rtps;
+using namespace eprosima::fastdds::dds;
 
 /**
  * \file ParticipantSingleton.cpp
@@ -35,17 +44,25 @@
  */
 namespace cpm 
 {
+    eprosima::fastdds::dds::DomainParticipantQos ParticipantSingleton::CreateQos()
+    {
+        if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config() )
+        {
+            return Participant::create_client_qos(
+                cpm::InternalConfiguration::Instance().get_discovery_server_id(),
+                cpm::InternalConfiguration::Instance().get_discovery_server_ip(),
+                cpm::InternalConfiguration::Instance().get_discovery_server_port());
+        }
+        DomainParticipantQos participant_qos = eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT;
+        participant_qos.name("ParticipantSingleton");
+        return participant_qos;
+    }
+
     std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> ParticipantSingleton::Instance() {
-
-        //This part is not clean yet
-        eprosima::fastdds::dds::DomainParticipantQos pqos;
-        pqos.name("ParticipantSingleton");
-
-        //This is thread-safe - the former version was not and actually lead to a segfault after quit
         static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> instance_(
             eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
                 eprosima::fastdds::dds::DomainId_t(cpm::InternalConfiguration::Instance().get_dds_domain()), 
-                pqos
+                ParticipantSingleton::CreateQos()
             ),
             [] (eprosima::fastdds::dds::DomainParticipant* instance_) {
                 if (instance_ != nullptr)

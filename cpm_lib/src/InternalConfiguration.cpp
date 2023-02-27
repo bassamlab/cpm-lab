@@ -45,13 +45,33 @@ namespace cpm
         InternalConfiguration::init(argc, argv);
     }
 
+    bool InternalConfiguration::is_valid_discovery_server_config()
+    {
+        if (discovery_mode.empty()|| (discovery_mode != "client" && discovery_mode != "server"))
+            return false;
+
+        eprosima::fastrtps::rtps::Locator_t locator;
+        if (!eprosima::fastrtps::rtps::IPLocator::setIPv4(locator, discovery_server_ip))
+            return false;
+
+        if (discovery_server_port == -1)
+            return false;
+
+        if (discovery_server_id.empty())
+            return false;
+
+        return true;
+    }
 
     void InternalConfiguration::init(int argc, char *argv[])
     {
         InternalConfiguration::the_instance = InternalConfiguration(
             cmd_parameter_int("dds_domain", 0, argc, argv),
             cmd_parameter_string("logging_id", "uninitialized", argc, argv),
-            cmd_parameter_string("dds_initial_peer", "", argc, argv)
+            cmd_parameter_string("discovery_mode", "", argc, argv),
+            cmd_parameter_string("discovery_server_id", "", argc, argv),
+            cmd_parameter_string("discovery_server_ip", "", argc, argv),
+            cmd_parameter_int("discovery_server_port", -1, argc, argv)
         );
 
         // TODO reverse access, i.e. access the config from the logging

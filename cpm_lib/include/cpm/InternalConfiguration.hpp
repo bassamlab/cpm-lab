@@ -20,8 +20,15 @@ namespace cpm
         int dds_domain = 0;
         //! ID for log messages, usually program type, e.g. "LCC" or "middleware"
         std::string logging_id = "uninitialized";
-        //! Initial DDS peer, usually the LCC main computer (network performance reasons)
-        std::string dds_initial_peer = "";
+        //! Wether this instance provides a discovery server or is a discovery client
+        std::string discovery_mode;
+        //! Discovery server id, has to be unique in the DDS network
+        std::string discovery_server_id;
+        //! Discovery server ip 
+        std::string discovery_server_ip;
+        //! //! Discovery server port
+        int discovery_server_port;
+       
 
         /**
          * \brief Empty default constructor, private, can / should not be used
@@ -37,11 +44,17 @@ namespace cpm
         InternalConfiguration(
             int _dds_domain,
             std::string _logging_id,
-            std::string _dds_initial_peer
+            std::string _discovery_mode,
+            std::string _discovery_server_id,
+            std::string _discovery_server_ip,
+            int _discovery_server_port
         )
         :dds_domain(_dds_domain)
         ,logging_id(_logging_id)
-        ,dds_initial_peer(_dds_initial_peer)
+        ,discovery_mode(_discovery_mode)
+        ,discovery_server_id(_discovery_server_id)
+        ,discovery_server_ip(_discovery_server_ip)
+        ,discovery_server_port(_discovery_server_port)
         {}
 
     public:
@@ -57,16 +70,35 @@ namespace cpm
         std::string get_logging_id() { return logging_id; }
 
         /**
-         * \brief Get the set initial DDS peers
+         * \brief Get the status of discovery_mode
          */
-        std::string get_dds_initial_peer() { return dds_initial_peer; }
+        std::string get_discovery_mode() { return discovery_mode; }
 
+        /**
+         * \brief Get the the discovery server id
+         */
+        std::string get_discovery_server_id() { return discovery_server_id; }
+
+        /**
+         * \brief Get the the discovery server locator (IP)
+         */
+        std::string get_discovery_server_ip() { return discovery_server_ip; }
+
+        /**
+         * \brief Get the the discovery server port
+         */
+        int get_discovery_server_port() { return discovery_server_port; }
+        
         /**
          * \brief Init function that should be called at the start of every program that uses the cpm lib
          * Initializes the Singleton and values used by other parts of the library, which are read from the command line:
          * --dds_domain
          * --dds_initial_peer
          * --logging_id
+         * --discovery_mode ("client" or "server" for DiscoveryServer or "simple" for simple endpoint discovery)
+         * --discovery_server_id
+         * --discovery_server_ip
+         * --discovery_server_port
          */
         static void init(int argc, char *argv[]);
 
@@ -74,5 +106,10 @@ namespace cpm
          * \brief Get access to the internal configuration Singleton, should mostly / only be used internally for constructing other parts of the library
          */
         static InternalConfiguration& Instance() {return the_instance;}
+
+        /**
+         * \brief Checks whether the provided parameters can be used to derive a valid discovery server QOS configuration
+        */
+       bool is_valid_discovery_server_config();
     };
 }
