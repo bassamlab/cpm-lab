@@ -227,7 +227,7 @@ private:
     enum PROCESS_STATE {DONE, RUNNING, ERROR};
 
     //! Types of logging paths
-    enum struct LogType {SIM_VEHICLE, LOCAL_HLC, IPS, MIDDLEWARE, ALL_RECEIVED, FROM_PI, REMOTE_COPY, REMOTE_KILL, KILL_SESSION, RECORDING, LABCAM, HLC_REBOOT, BASLER};
+    enum struct LogType {SIM_VEHICLE, LOCAL_HLC, IPS, MIDDLEWARE, ALL_RECEIVED, FROM_PI_NUC, REMOTE_COPY, REMOTE_KILL, KILL_SESSION, RECORDING, LABCAM, HLC_REBOOT, BASLER};
 
     //! Contains the path to the software folder of the repo, from which paths to all relevant contained programs can be constructed (e.g. to vehicles, IPS etc.)
     std::string software_folder_path;

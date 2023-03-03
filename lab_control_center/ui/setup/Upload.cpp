@@ -140,6 +140,8 @@ void Upload::kill_remote()
     //Let the UI dispatcher know that kill-related actions need to be performed after all threads have finished
     kill_called.store(true);
 
+    deploy_functions->download_remote_logs();
+
     //Do not try to kill if no HLCs are online
     if (hlc_ids.size() == 0)
     {

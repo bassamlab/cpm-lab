@@ -517,6 +517,7 @@ void Deploy::join_finished_hlc_reboot_threads()
 
 bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, bool use_simulated_time, std::string script_path, std::string script_params, unsigned int timeout_seconds) 
 {
+    experiment_log_folder = log_storage_functions->next_experiment_log_folder();
     // //TODO: WORK WITH TEMPLATE STRINGS AND PUT LOGIC INTO SEPARATE CLASS
 
     //Get the IP address from the current id
@@ -933,8 +934,13 @@ std::string Deploy::command_line_discovery_server_params() {
 }
 
 
-void Deploy::load_remote_logs(){
-    return;
+void Deploy::download_remote_logs(){
+    std::ostringstream download_logs_command;
+
+    download_logs_command << software_folder_path << "/lab_control_center/bash/download_all_logs.bash "
+        << log_storage_functions->get_session_log_path() << "/" << experiment_log_folder << "/";
+
+    program_executor->execute_command(download_logs_command.str());
 }
 
 std::string Deploy::get_logging_suffix(Deploy::LogType type, std::string id){
@@ -966,7 +972,8 @@ std::string Deploy::get_logging_suffix(Deploy::LogType type, std::string id){
             stdout_path << base_path.str() << "stdout_" << vehicle_session << id << ".txt";
             stderr_path << base_path.str() << "stderr_" << vehicle_session << id << ".txt";
             break;
-        case Deploy::LogType::FROM_PI:
+        case Deploy::LogType::FROM_PI_NUC:
+
         break;
         case Deploy::LogType::REMOTE_COPY:
             stdout_path << base_path.str() << "stdout_" << remote_copy_log_name << ".txt";
