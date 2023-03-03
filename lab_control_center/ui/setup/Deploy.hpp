@@ -6,7 +6,6 @@
 #include <chrono>       //For time measurements (timeout for remote deployment)
 #include <cstdint>
 #include <cstdio>       //For popen
-#include <experimental/filesystem> //Used instead of std::filesystem, because some compilers still seem to be outdated
 #include <functional>
 #include <fstream>
 #include <iomanip>      // put_time
@@ -28,6 +27,7 @@
 #include "cpm/Logging.hpp"
 #include "cpm/InternalConfiguration.hpp"
 #include "ProgramExecutor.hpp"
+#include "LogStorage.hpp"
 
 /**
  * \brief This class is responsible for managing deployment of HLC and vehicle scripts / programs and other participants that are launched from the LCC
@@ -49,7 +49,8 @@ public:
         std::string _cmd_dds_initial_peer, 
         std::function<void(uint8_t)> _stop_vehicle, 
         std::shared_ptr<ProgramExecutor> _program_executor,
-        std::string _absolute_exec_path
+        std::string _absolute_exec_path,
+        std::shared_ptr<LogStorage> log_storage_functions
     );
 
     /**
@@ -166,6 +167,12 @@ public:
      */
     void kill_recording();
 
+    /**
+     * \brief Attempts to download all logs from the online NUCs and vehicles  
+     * 
+     */
+    void download_remote_logs();
+
     //Specific remote deploy functions
     /**
      * \brief Deploy the script + middleware specified in the UI with the given parameters on the HLC with the given ID. 
@@ -186,12 +193,6 @@ public:
      * \return True if the execution (of the bash script) did not have to be aborted and no process-related error occured, false otherwise
      */
     bool kill_remote_hlc(unsigned int hlc_id, unsigned int timeout_seconds);
-
-    /**
-     * \brief Used to create the folder software_top_folder_path(value of variable)/name, in which logs of local tmux sessions started here are stored (for debugging purposes)
-     * \param folder_name Name of the log folder, default is lcc_script_logs (better change the default if you want to change the folder name)
-     */
-    void create_log_folder(std::string folder_name = "lcc_script_logs");
 
     /**
      * \brief Delete logs in the log folder (as in create_log_folder) that are "outdated" (logs of script and middleware)
@@ -250,6 +251,9 @@ private:
 
     //! Provides safer access to deploying functions (uses a child process that was forked before creation of DDS threads etc.)
     std::shared_ptr<ProgramExecutor> program_executor;
+
+    //! Access to logging storage related functions
+    std::shared_ptr<LogStorage> log_storage_functions;
     
     //! In case of distributed / remote deployment, some vehicles might not be matched because not enough HLCs are available. The remaining HLCs are simulated on the local machine, their ID is stored here.
     std::vector<unsigned int> deployed_local_hlcs;
@@ -283,12 +287,6 @@ private:
      * \return String version of the boolean (true -> "true", false -> "false")
      */
     std::string bool_to_string(bool var);
-
-    /**
-     * \brief Get the current date time as a string
-     * Used for the log folders 
-    */
-   std::string datetime_log_folder();
 
     /**
      * \brief 

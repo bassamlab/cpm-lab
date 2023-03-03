@@ -1,4 +1,5 @@
 #include "LogStorage.hpp"
+#include <filesystem>
 
 /**
  * \file LogStorage.cpp
@@ -6,17 +7,21 @@
  */
 
 using namespace std::placeholders;
-LogStorage::LogStorage(std::string _filename)
-  : filename(_filename)
-  , log_reader(std::bind(&LogStorage::log_callback, this, _1), "log", true)
+LogStorage::LogStorage(std::string _log_base_path)
+    : log_base_path(_log_base_path)
+    , log_reader(std::bind(&LogStorage::log_callback, this, _1), "log", true)
 {
-  file.open(filename, std::ofstream::out | std::ofstream::trunc);
-  file << "ID,Timestamp,Content" << std::endl;
+    log_session_path = log_base_path + "/" + datetime_log_folder() + "/";
+    create_log_folder(log_session_path);
+
+    file.open(log_session_path + filename, std::ofstream::out | std::ofstream::trunc);
+    file << "ID,Timestamp,Content" << std::endl;
 }
 
 LogStorage::LogStorage()
-  : LogStorage("all_received_logs.csv")
-{}
+    : LogStorage("/tmp/logs/")
+{
+}
 
 LogStorage::~LogStorage()
 {
@@ -239,3 +244,29 @@ void LogStorage::reset()
     //Reset UI file
     file.clear();
 }
+
+std::string LogStorage::datetime_log_folder(){
+    auto time = std::time(nullptr);
+    auto local_time = *std::localtime(&time);
+    std::ostringstream time_stream; 
+    time_stream << std::put_time(&local_time, "%Y-%m-%d--%H-%M-%S");
+
+    return time_stream.str();
+}
+
+void LogStorage::create_log_folder(std::string folder_path)
+{
+    std::filesystem::create_directories(folder_path);
+}
+
+ std::string LogStorage::get_session_log_path()
+ {
+    return log_session_path;
+ }
+
+ std::string LogStorage::next_experiment_log_folder()
+ {
+    log_experiment_folder = datetime_log_folder();
+    create_log_folder(log_session_path + "/" + log_experiment_folder);
+    return log_experiment_folder;
+ }

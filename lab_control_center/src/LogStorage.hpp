@@ -36,6 +36,15 @@ public:
     enum FilterType {ID, Content, Timestamp, All};
 
 private:
+    //! Base path to logging folder e.g. /tmp/ logs, it gets created if it does not exist
+    std::string log_base_path;
+    //! Per lcc session log folder name, usually datetime of start
+    std::string log_session_path;
+    //! Per experiment log folder name, usually datetime of start
+    std::string log_experiment_folder;
+    //! Filename for DDS received logs
+    std::string filename="all_received_logs.csv";
+
     //Communication objects and callbacks
     /**
      * \brief Callback function for async. received log messages
@@ -55,8 +64,6 @@ private:
 
     //! File for logging, to write all received logs to
     std::ofstream file;
-    //! Filename for the logfile of all received logs
-    std::string filename; 
     //! Mutex s.t. only one thread has access to the log file
     std::mutex file_mutex;
 
@@ -86,7 +93,7 @@ public:
      /**
      * \brief Constructor
      */
-    LogStorage(std::string _filename);
+    LogStorage(std::string log_base_path);
     /**
      * \brief Destructor
      */
@@ -127,4 +134,34 @@ public:
     * \brief Reset all data structures / delete all log data. Is called from the UI element only -> if you want to reset the storage, just call reset on the UI!
     */
     void reset();
+
+    /**
+     * \brief Get the current date time as a string
+     * Used for the log folders 
+    */
+    std::string datetime_log_folder();
+    
+    /**
+     * \brief Used to create the folder software_top_folder_path(value of variable)/name, in which logs of local tmux sessions started here are stored (for debugging purposes)
+     * \param folder_name Name of the log folder, default is lcc_script_logs (better change the default if you want to change the folder name)
+     */
+    void create_log_folder(std::string folder_name);
+    
+    /**
+     * @brief Get the current per session log folder
+     * 
+    */
+    std::string get_session_log_path();
+
+    /**
+     * @brief Get the current per experiment log folder
+     * 
+    */
+    std::string get_experiment_log_path();
+
+    /**
+     * @brief Next experiment log folder creation
+     * @return The path to the next experiment log_folder
+     */
+    std::string next_experiment_log_folder();
 };

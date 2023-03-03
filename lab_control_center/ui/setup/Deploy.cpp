@@ -2,6 +2,7 @@
 #include <array>
 #include <cstdint>
 #include <sstream>
+#include <filesystem>
 
 /**
  * \file Deploy.cpp
@@ -13,12 +14,14 @@ Deploy::Deploy(
     std::string _cmd_dds_initial_peer, 
     std::function<void(uint8_t)> _stop_vehicle, 
     std::shared_ptr<ProgramExecutor> _program_executor,
-    std::string _absolute_exec_path
+    std::string _absolute_exec_path,
+    std::shared_ptr<LogStorage> _log_storage_functions
 ) :
     cmd_domain_id(_cmd_domain_id),
     cmd_dds_initial_peer(_cmd_dds_initial_peer),
     stop_vehicle(_stop_vehicle),
-    program_executor(_program_executor)
+    program_executor(_program_executor),
+    log_storage_functions(_log_storage_functions)
 {
     //Construct the path to the folder by erasing all parts to the executable that are obsolete
     //Executable path: .../software/lab_control_center/build/lab_control_center
@@ -40,11 +43,8 @@ Deploy::Deploy(
         software_top_folder_path = software_top_folder_path.substr(0, last_slash);
     }    
 
-
-
-
-    session_log_folder = datetime_log_folder();
-    create_log_folder(software_top_folder_path + "/lcc_script_logs/" + session_log_folder + "/");
+    session_log_folder = log_storage_functions->datetime_log_folder();
+    log_storage_functions->create_log_folder(software_top_folder_path + "/lcc_script_logs/" + session_log_folder + "/");
 }
 
 Deploy::~Deploy()
@@ -68,8 +68,7 @@ Deploy::~Deploy()
 
 void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int> active_vehicle_ids, std::string script_path, std::string script_params) 
 {
-    experiment_log_folder =  datetime_log_folder();
-    create_log_folder(software_top_folder_path + "/lcc_script_logs/" + session_log_folder + "/" + experiment_log_folder + "/");
+    experiment_log_folder = log_storage_functions->next_experiment_log_folder();
 
     std::string sim_time_string = bool_to_string(use_simulated_time);
 
@@ -876,16 +875,6 @@ std::string Deploy::bool_to_string(bool var)
     }
 }
 
-void Deploy::create_log_folder(std::string folder_path)
-{
-    //Generate command
-    std::stringstream command_folder;
-    command_folder << "mkdir -p " << folder_path;
-
-    //Execute command
-    program_executor->execute_command(command_folder.str());
-}
-
 void Deploy::delete_old_logs(std::string folder_name)
 {
     //Check if the log folder exists
@@ -893,9 +882,9 @@ void Deploy::delete_old_logs(std::string folder_name)
     log_folder.append("/");
     log_folder.append(folder_name);
 
-    if (! std::experimental::filesystem::exists(log_folder.c_str()))
+    if (! std::filesystem::exists(log_folder.c_str()))
     {
-        create_log_folder(folder_name);
+        log_storage_functions->create_log_folder(folder_name);
     }
 
     //Now delete files in that folder that are outdated
@@ -911,7 +900,7 @@ void Deploy::delete_old_logs(std::string folder_name)
 
     //First: Get list of all files to delete
     std::vector<std::string> files_to_delete;
-    for(const auto& element : std::experimental::filesystem::directory_iterator(log_folder.c_str()))
+    for(const auto& element : std::filesystem::directory_iterator(log_folder.c_str()))
     {
         std::string file_path = element.path();
 
@@ -932,7 +921,7 @@ void Deploy::delete_old_logs(std::string folder_name)
     //we should be in control of the content of that folder anyway and it gets re-created w. LCC start)
     for (const auto& file : files_to_delete)
     {
-        std::experimental::filesystem::remove(file.c_str());
+        std::filesystem::remove(file.c_str());
     }
 }
 
@@ -943,24 +932,19 @@ std::string Deploy::command_line_discovery_server_params() {
          std::string(" --discovery_server_port=") +std::to_string(cpm::InternalConfiguration::Instance().get_discovery_server_port());
 }
 
-std::string Deploy::datetime_log_folder(){
-    auto time = std::time(nullptr);
-    auto local_time = *std::localtime(&time);
-    std::ostringstream time_stream; 
-    time_stream << std::put_time(&local_time, "%Y-%m-%d--%H-%M-%S");
 
-    return time_stream.str();
+void Deploy::load_remote_logs(){
+    return;
 }
 
 std::string Deploy::get_logging_suffix(Deploy::LogType type, std::string id){
     const std::string standard_log_folder = "lcc_script_logs";
     std::ostringstream log_command_suffix;
     std::ostringstream base_path;
-    std::ostringstream current_log_path;
     std::ostringstream stdout_path;
     std::ostringstream stderr_path;
 
-    base_path << software_top_folder_path << "/" << standard_log_folder << "/" << session_log_folder << "/";
+    base_path << log_storage_functions->get_session_log_path();
 
     switch (type) {
         case Deploy::LogType::MIDDLEWARE :

@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
         }
         
         //To receive logs as early as possible, and for Logging in main
-        std::string logging_path = "/tmp/logs/"
+        std::string logging_path = "/tmp/logs/";
         auto logStorage = make_shared<LogStorage>(logging_path);
 
         //Create regular and irregular (interrupt) exit handlers
@@ -261,7 +261,8 @@ int main(int argc, char *argv[])
             cmd_dds_initial_peer, 
             [&](uint8_t id){vehicleAutomatedControl->stop_vehicle(id);},
             program_executor,
-            absolute_executable_path
+            absolute_executable_path,
+            logStorage
         );
 
         //UI classes
