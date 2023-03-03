@@ -200,7 +200,7 @@ namespace cpm
         return server_qos;
     }
 
-    eprosima::fastdds::dds::DomainParticipantQos Participant::create_preallocation_qos(DomainParticipantQos participant_qos, size_t participants, size_t readers, size_t writers)
+    eprosima::fastdds::dds::DomainParticipantQos Participant::create_preallocation_qos(eprosima::fastdds::dds::DomainParticipantQos participant_qos, size_t participants, size_t readers, size_t writers)
     {
         participant_qos.allocation().participants =
             eprosima::fastrtps::ResourceLimitedContainerConfig::fixed_size_configuration(participants);
