@@ -199,4 +199,29 @@ namespace cpm
 
         return server_qos;
     }
+
+   void Participant::make_qos_preallocating(eprosima::fastdds::dds::DomainParticipantQos& participant_qos, size_t participants, size_t readers, size_t writers)
+    {
+        participant_qos.allocation().participants =
+            eprosima::fastrtps::ResourceLimitedContainerConfig::fixed_size_configuration(participants);
+    
+        participant_qos.allocation().readers =
+                eprosima::fastrtps::ResourceLimitedContainerConfig::fixed_size_configuration(readers);
+        
+        participant_qos.allocation().writers =
+                eprosima::fastrtps::ResourceLimitedContainerConfig::fixed_size_configuration(writers);
+
+        // We know the maximum size of partition data
+        participant_qos.allocation().data_limits.max_partitions = 256u;
+        // We know the maximum size of user data
+        participant_qos.allocation().data_limits.max_user_data = 256u;
+        // We know the maximum size of properties data
+        participant_qos.allocation().data_limits.max_properties = 512u;
+
+        // Set the preallocated filter expression size to 512 characters
+        participant_qos.allocation().content_filter.expression_initial_size = 512u;
+        // Set the maximum number of expression parameters to 4 and its allocation configuration to fixed size
+        participant_qos.allocation().content_filter.expression_parameters =
+            eprosima::fastrtps::ResourceLimitedContainerConfig::fixed_size_configuration(4u);
+    }
 }

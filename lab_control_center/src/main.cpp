@@ -187,6 +187,7 @@ int main(int argc, char *argv[])
             cpm::InternalConfiguration::Instance().get_discovery_server_id(),
             cpm::InternalConfiguration::Instance().get_discovery_server_ip(),
             cpm::InternalConfiguration::Instance().get_discovery_server_port());
+            std::cout << "Created Server Participant" << std::endl;
         }
         
         //To receive logs as early as possible, and for Logging in main

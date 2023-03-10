@@ -42,6 +42,7 @@
 
 #include "cpm/ParticipantSingleton.hpp"
 #include "cpm/Participant.hpp"
+#include "cpm/InternalConfiguration.hpp"
 
 namespace cpm 
 {
@@ -204,6 +205,14 @@ namespace cpm
                 policy.off();
                 data_reader_qos.data_sharing(policy);
             }
+
+            if (cpm::InternalConfiguration::Instance().get_realtime())
+            {
+                // Fix the size of matched DataWriters
+                data_reader_qos.reader_resource_limits().matched_publisher_allocation =
+                        eprosima::fastrtps::ResourceLimitedContainerConfig::fixed_size_configuration(50u);
+            }
+            
 
             return data_reader_qos;
         }

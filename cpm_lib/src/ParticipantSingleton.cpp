@@ -46,19 +46,27 @@ namespace cpm
 {
     eprosima::fastdds::dds::DomainParticipantQos ParticipantSingleton::CreateQos()
     {
+
+        DomainParticipantQos participant_qos = eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT;
         if (cpm::InternalConfiguration::Instance().is_valid_discovery_server_config() )
         {
-            return Participant::create_client_qos(
+           participant_qos = Participant::create_client_qos(
                 cpm::InternalConfiguration::Instance().get_discovery_server_id(),
                 cpm::InternalConfiguration::Instance().get_discovery_server_ip(),
                 cpm::InternalConfiguration::Instance().get_discovery_server_port());
         }
-        DomainParticipantQos participant_qos = eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT;
+        if (cpm::InternalConfiguration::Instance().get_realtime())
+        {
+            Participant::make_qos_preallocating(participant_qos, 50, 50, 50);
+        }
         participant_qos.name("ParticipantSingleton");
         return participant_qos;
     }
 
     std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> ParticipantSingleton::Instance() {
+
+
+        //This is thread-safe - the former version was not and actually lead to a segfault after quit
         static std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> instance_(
             eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
                 eprosima::fastdds::dds::DomainId_t(cpm::InternalConfiguration::Instance().get_dds_domain()), 

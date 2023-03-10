@@ -8,7 +8,7 @@
 #include <memory>
 
 #include "cpm/ParticipantSingleton.hpp"
-
+#include "cpm/InternalConfiguration.hpp"
 // #include <experimental/filesystem>
 
 namespace cpm
@@ -127,6 +127,17 @@ namespace cpm
                 policy.off();
                 qos.data_sharing(policy);
             }
+
+            if (cpm::InternalConfiguration::Instance().get_realtime())
+            {
+                // Fix the size of matched DataReaders
+                qos.writer_resource_limits().matched_subscriber_allocation =
+                        eprosima::fastrtps::ResourceLimitedContainerConfig::fixed_size_configuration(50u);
+                // Fix the size of writer side content filters
+                qos.writer_resource_limits().reader_filters_allocation =
+                        eprosima::fastrtps::ResourceLimitedContainerConfig::fixed_size_configuration(50u);
+            }
+            
 
             return qos;
         }
