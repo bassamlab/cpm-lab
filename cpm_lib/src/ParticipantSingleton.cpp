@@ -57,7 +57,7 @@ namespace cpm
         }
         if (cpm::InternalConfiguration::Instance().get_realtime())
         {
-            participant_qos = Participant::create_preallocation_qos(participant_qos, 50, 50, 50);
+            Participant::make_qos_preallocating(participant_qos, 50, 50, 50);
         }
         participant_qos.name("ParticipantSingleton");
         return participant_qos;

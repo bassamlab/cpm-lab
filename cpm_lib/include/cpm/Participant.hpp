@@ -71,6 +71,6 @@ namespace cpm
         /**
          * \brief Creates QOS settings for preallocation. Useful for RT behaviour.
          */
-        static eprosima::fastdds::dds::DomainParticipantQos create_preallocation_qos(eprosima::fastdds::dds::DomainParticipantQos participant_qos, size_t participants, size_t readers, size_t writers);
+        static void make_qos_preallocating(eprosima::fastdds::dds::DomainParticipantQos& participant_qos, size_t participants, size_t readers, size_t writers);
     };
 }

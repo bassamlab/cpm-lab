@@ -200,7 +200,7 @@ namespace cpm
         return server_qos;
     }
 
-    eprosima::fastdds::dds::DomainParticipantQos Participant::create_preallocation_qos(eprosima::fastdds::dds::DomainParticipantQos participant_qos, size_t participants, size_t readers, size_t writers)
+   void Participant::make_qos_preallocating(eprosima::fastdds::dds::DomainParticipantQos& participant_qos, size_t participants, size_t readers, size_t writers)
     {
         participant_qos.allocation().participants =
             eprosima::fastrtps::ResourceLimitedContainerConfig::fixed_size_configuration(participants);
@@ -223,7 +223,5 @@ namespace cpm
         // Set the maximum number of expression parameters to 4 and its allocation configuration to fixed size
         participant_qos.allocation().content_filter.expression_parameters =
             eprosima::fastrtps::ResourceLimitedContainerConfig::fixed_size_configuration(4u);
-
-        return participant_qos;
     }
 }
