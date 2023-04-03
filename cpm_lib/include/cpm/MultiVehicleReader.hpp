@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <mutex>
 #include <array>
 #include <vector>
@@ -63,7 +64,6 @@ namespace cpm
             }
         }
 
-        std::shared_ptr<cpm::ReaderParent<T>> reader_parent;
         std::vector<std::shared_ptr<cpm::ReaderParent<T>>> readers_parent;
     public:
         /**
@@ -79,8 +79,6 @@ namespace cpm
             if (!callback){
                 callback = std::bind(&MultiVehicleReader::on_data_available, this, _1);
             }
-            //Create internal reader instance
-            reader_parent = std::make_shared<cpm::ReaderParent<T>>(callback, cpm::ParticipantSingleton::Instance(), topic, false, true, false);
 
             for (size_t vehicle_id = 1; vehicle_id < num_of_vehicles; vehicle_id++)
             {
@@ -113,9 +111,7 @@ namespace cpm
                 callback = std::bind(&MultiVehicleReader::on_data_available, this, _1);
             }
 
-            //Create internal reader instance
-            reader_parent = std::make_shared<cpm::ReaderParent<T>>(callback, cpm::ParticipantSingleton::Instance(), topic, false, true, false);
-
+            //Create internal reader instances
             for (auto vehicle_id : _vehicle_ids)
             {
                 std::string vehicle_topic = "vehicle/" + std::to_string(vehicle_id) + "/" + topic; 
@@ -208,7 +204,11 @@ namespace cpm
          */
         size_t matched_publications_size()
         {
-            return reader_parent->matched_publications_size();
+            size_t matched_publications_size;
+            for (auto& reader : readers_parent) {
+                matched_publications_size += reader->matched_publications_size();
+            }
+            return matched_publications_size;
         }
     };
 }
