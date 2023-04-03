@@ -69,7 +69,7 @@ TEST_CASE( "VehicleToMiddlewareCommunication" ) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         //Send test data from a virtual vehicle - only the round number matters here, which is transmitted using the timestamp value
-        cpm::Writer<VehicleStatePubSubType> vehicleWriter("vehicleState");
+        cpm::Writer<VehicleStatePubSubType> vehicleWriter("vehicle/0/vehicleState");
         for (uint64_t i = 0; i <= max_rounds; ++i) {
             //Send data (first older data, then newer data - only the newer data should be returned by getLatestVehicleMessage) and wait
             VehicleState state_old;
