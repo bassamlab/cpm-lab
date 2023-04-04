@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstddef>
+#include <iostream>
 #include <mutex>
 #include <array>
+#include <string>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -72,7 +74,7 @@ namespace cpm
          * \param num_of_vehicles The number of vehicles to monitor / read from (from 1 to num_vehicles)
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
-        MultiVehicleReader(std::string topic 
+        MultiVehicleReader(std::string topic_base_name
                             , int num_of_vehicles
                             , std::function<void(std::vector<typename T::type>&)> callback = nullptr)
         { 
@@ -82,7 +84,7 @@ namespace cpm
 
             for (size_t vehicle_id = 1; vehicle_id < num_of_vehicles; vehicle_id++)
             {
-                std::string vehicle_topic = "vehicle/" + std::to_string(vehicle_id) + "/" + topic; 
+                std::string vehicle_topic = "vehicle/" + std::to_string(vehicle_id) + "/" + topic_base_name; 
                 readers_parent.push_back(
                     std::make_shared<cpm::ReaderParent<T>>(callback, cpm::ParticipantSingleton::Instance(), vehicle_topic, false, true, false)
                 );
@@ -103,7 +105,7 @@ namespace cpm
          * \param _vehicle_ids List of vehicles to monitor / read from
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
-        MultiVehicleReader(std::string topic
+        MultiVehicleReader(std::string topic_base_name
                         , std::vector<uint8_t> _vehicle_ids
                         , std::function<void(std::vector<typename T::type>&)> callback = nullptr)
         {
@@ -114,7 +116,7 @@ namespace cpm
             //Create internal reader instances
             for (auto vehicle_id : _vehicle_ids)
             {
-                std::string vehicle_topic = "vehicle/" + std::to_string(vehicle_id) + "/" + topic; 
+                std::string vehicle_topic = "vehicle/" + std::to_string(vehicle_id) + "/" + topic_base_name; 
                 readers_parent.push_back(
                     std::make_shared<cpm::ReaderParent<T>>(callback, cpm::ParticipantSingleton::Instance(), vehicle_topic, false, true, false)
                 );

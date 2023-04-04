@@ -43,7 +43,7 @@ template<class MessageType> class TypedCommunication {
         //! DDS writer to send commands received by the HLC to a vehicle
         cpm::Writer<MessageType> vehicleWriter;
 
-        //! DDS writres to send commands received by the HLC to the vehicles on their corresponding topic
+        //! DDS writers to send commands received by the HLC to the vehicles on their corresponding topic
         std::unordered_map<uint8_t, std::unique_ptr<cpm::Writer<MessageType>>> vehicleWriters;
 
         //! For access to get_time (in simulated time, only the timer instance knows the current simulated time)
@@ -162,21 +162,20 @@ template<class MessageType> class TypedCommunication {
     TypedCommunication(cpm::Participant& hlcParticipant,
                         std::string vehicleCommandTopicName,
                         std::shared_ptr<cpm::Timer> _timer,
-                        std::vector<uint8_t> _vehicle_ids)
-        : hlcCommandReader(
-                std::bind(&TypedCommunication::handler, this, _1),
-                hlcParticipant, vehicleCommandTopicName),
-            vehicleWriter(vehicleCommandTopicName),
-            timer(_timer),
-            lastHLCResponseTimes(),
-            vehicle_ids(_vehicle_ids) {
+                        std::vector<uint8_t> _vehicle_ids):
+    hlcCommandReader(std::bind(&TypedCommunication::handler, this, _1),
+                    hlcParticipant, vehicleCommandTopicName),
+    vehicleWriter(vehicleCommandTopicName),
+    timer(_timer),
+    lastHLCResponseTimes(),
+    vehicle_ids(_vehicle_ids) {
         std::string topic_name = "";
         for (auto& vehicle_id : vehicle_ids) {
-        topic_name = "vehicle/" + std::to_string(vehicle_id) + "/" +
-                        vehicleCommandTopicName;
-        vehicleWriters.try_emplace(
-            vehicle_id,
-            std::make_unique<cpm::Writer<MessageType>>(topic_name));
+            topic_name = "vehicle/" + std::to_string(vehicle_id) + "/" +
+                            vehicleCommandTopicName;
+            vehicleWriters.try_emplace(
+                vehicle_id,
+                std::make_unique<cpm::Writer<MessageType>>(topic_name));
         }
     }
 
