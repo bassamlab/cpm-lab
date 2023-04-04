@@ -77,11 +77,9 @@ class TimeSeriesAggregator
     void handle_new_vehicleObservation_samples(std::vector<VehicleObservation>& samples);
 
     //! Async. reader to receive vehicle state data from the vehicles and store them for later access in the LCC
-    //shared_ptr<cpm::AsyncReader<VehicleStatePubSubType>> vehicle_state_reader;
     shared_ptr<cpm::MultiVehicleReader<VehicleStatePubSubType>> vehicle_state_reader;
     
     //! Async. reader to receive vehicle observation data from the IPS and store them for later access in the LCC
-    //shared_ptr<cpm::AsyncReader<VehicleObservationPubSubType>> vehicle_observation_reader;
     shared_ptr<cpm::MultiVehicleReader<VehicleObservationPubSubType>> vehicle_observation_reader;
     
     //! Reader to allow for simple access to newest already valid vehicle trajectories in get_vehicle_trajectory_commands
