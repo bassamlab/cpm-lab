@@ -9,6 +9,7 @@
 #include <mutex>
 #include <thread>
 #include "cpm/Writer.hpp"
+#include "cpm/Constants.hpp"
 
 /**
  * \struct IpsVisualizationInput
@@ -37,12 +38,6 @@ struct IpsVisualizationInput
  */
 class IpsPipeline
 {
-    /**
-    * \brief The maximum number of vehicles to be handled by the IPS pipeline.
-    * \ingroup ips
-    */
-    #define MAX_NUM_VEHICLES 30
-
     //! A vector containing pointers to a observation writer for every vehicle
     std::vector<std::unique_ptr<cpm::Writer<VehicleObservationPubSubType>>> writers_vehicleObservation;
 

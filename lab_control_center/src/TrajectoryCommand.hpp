@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "defaults.hpp"
+#include "cpm/Constants.hpp"
 #include "cpm/dds/Pose2DPubSubTypes.h"
 #include "cpm/dds/VehicleCommandTrajectoryPubSubTypes.h"
 #include "cpm/TimerFD.hpp"

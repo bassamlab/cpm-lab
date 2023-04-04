@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defaults.hpp"
+#include "cpm/Constants.hpp"
 #include "cpm/dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
 #include "cpm/get_time_ns.hpp"
 #include "cpm/stamp_message.hpp"

@@ -4,20 +4,13 @@
  * \file VehicleAutomatedControl.cpp
  * \ingroup lcc
  */
-
-/**
- * \brief Maximum number of vehicles.
- * \ingroup lcc
- */
-const size_t MAX_NUM_VEHICLES = 30;
-
 VehicleAutomatedControl::VehicleAutomatedControl() 
 {
 
     writer_vehicleCommandSpeedCurvature = make_shared<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>>("vehicleCommandSpeedCurvature");
     
     std::string command_speed_curvature_topic = "";
-    for (size_t vehicle_id = 1; vehicle_id < MAX_NUM_VEHICLES; vehicle_id++)
+    for (size_t vehicle_id = 1; vehicle_id < cpm::Constants::MAX_NUM_VEHICLES; vehicle_id++)
     {
         command_speed_curvature_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleCommandSpeedCurvature";
         writers_vehicleCommandSpeedCurvature.push_back(

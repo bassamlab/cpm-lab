@@ -1,7 +1,7 @@
 #include "VehicleManualControl.hpp"
 #include "cpm/stamp_message.hpp"
 #include "cpm/ParticipantSingleton.hpp"
-
+#include "cpm/Constants.hpp"
 
 /**
  * \file VehicleManualControl.cpp
@@ -38,18 +38,12 @@
  */
 #define BUTTON_SPEED_CONST (5)
 
-/**
- * \brief Maximum number of vehicles.
- * \ingroup lcc
- */
-const size_t MAX_NUM_VEHICLES = 30;
-
 VehicleManualControl::VehicleManualControl()
 {
     std::string vehicle_command_direct_topic = "";
     std::string vehicle_command_speed_curvature_topic = "";
     
-    for (size_t vehicle_id = 1; vehicle_id < MAX_NUM_VEHICLES; vehicle_id++)
+    for (size_t vehicle_id = 1; vehicle_id < cpm::Constants::MAX_NUM_VEHICLES; vehicle_id++)
     {
         vehicle_command_direct_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleCommandDirect";
         writers_vehicleCommandDirect.push_back(

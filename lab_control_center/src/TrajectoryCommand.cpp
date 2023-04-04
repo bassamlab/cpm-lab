@@ -11,16 +11,10 @@
  */
 const uint64_t dt_nanos = 100000000ull;
 
-/**
- * \brief Maximum number of vehicles.
- * \ingroup lcc
- */
-const size_t MAX_NUM_VEHICLES = 30;
-
 TrajectoryCommand::TrajectoryCommand()
 {
     std::string command_trajectory_topic = "";
-    for (size_t vehicle_id = 1; vehicle_id < MAX_NUM_VEHICLES; vehicle_id++)
+    for (size_t vehicle_id = 1; vehicle_id < cpm::Constants::MAX_NUM_VEHICLES; vehicle_id++)
     {
         command_trajectory_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleCommandTrajectory";
         writers_vehicleCommandTrajectory.push_back(

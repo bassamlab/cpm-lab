@@ -27,11 +27,9 @@ class VehicleManualControl
     int ref_trajectory_index = 0;
 
     //! TODO
-    shared_ptr<cpm::Writer<VehicleCommandDirectPubSubType>> writer_vehicleCommandDirect = nullptr;
     std::vector<std::unique_ptr<cpm::Writer<VehicleCommandDirectPubSubType>>> writers_vehicleCommandDirect;
     
     //! TODO
-    shared_ptr<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>> writer_vehicleCommandSpeedCurvature = nullptr;
     std::vector<std::unique_ptr<cpm::Writer<VehicleCommandSpeedCurvaturePubSubType>>> writers_vehicleCommandSpeedCurvature;
 
     //! TODO

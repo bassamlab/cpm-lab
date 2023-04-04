@@ -13,7 +13,7 @@ IpsPipeline::IpsPipeline(const bool enable_visualization)
 {
     // Create MAX_NUM_VEHICLES writers
     std::string vehicle_observation_topic = "";
-    for (size_t i = 1; i <= MAX_NUM_VEHICLES; i++)
+    for (size_t i = 1; i <= cpm::Constants::MAX_NUM_VEHICLES; i++)
     {
         vehicle_observation_topic = "vehicle/" + std::to_string(i) + "/vehicleObservation";
         writers_vehicleObservation.push_back(
