@@ -74,14 +74,13 @@ int main(int argc, char *argv[])
     cpm::Logging::Instance().set_id("vehicle_raspberry_" + std::to_string(vehicle_id));
 
     // DDS setup
-    std::string vehicle_state_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleState";
+    const std::string vehicle_state_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleState";
     cpm::Writer<VehicleStatePubSubType> writer_vehicleState(vehicle_state_topic);
     writer_vehicleState.max_blocking(eprosima::fastrtps::Time_t(0,MAX_BLOCKING_NS));
 
     registerVehicleObservationTypes();
-    std::string observation_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleObservation";
-    std::unique_ptr< cpm::Reader<VehicleObservationPubSubType> > reader_vehicleObservation;
-    reader_vehicleObservation = std::unique_ptr<cpm::Reader<VehicleObservationPubSubType>>(new cpm::Reader<VehicleObservationPubSubType>(observation_topic));
+    const std::string observation_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleObservation";
+    auto reader_vehicleObservation = std::make_unique<cpm::Reader<VehicleObservationPubSubType>>(observation_topic);
     reader_vehicleObservation->max_blocking(eprosima::fastrtps::Time_t(0,MAX_BLOCKING_NS));
 
 #ifndef VEHICLE_SIMULATION
