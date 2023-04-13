@@ -9,6 +9,7 @@
 #include <mutex>
 #include <thread>
 #include "cpm/Writer.hpp"
+#include "cpm/Constants.hpp"
 
 /**
  * \struct IpsVisualizationInput
@@ -37,8 +38,8 @@ struct IpsVisualizationInput
  */
 class IpsPipeline
 {
-    //! TODO 
-    cpm::Writer<VehicleObservationPubSubType> writer_vehicleObservation;
+    //! A vector containing pointers to a observation writer for every vehicle
+    std::vector<std::unique_ptr<cpm::Writer<VehicleObservationPubSubType>>> writers_vehicleObservation;
 
     //! TODO
     std::shared_ptr<UndistortPoints> undistortPointsFn;

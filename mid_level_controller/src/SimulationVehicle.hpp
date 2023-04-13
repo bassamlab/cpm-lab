@@ -32,11 +32,6 @@ extern "C" {
  * \ingroup vehicle
  */
 #define INPUT_DELAY 4 
-/**
- * \brief TODO
- * \ingroup vehicle
- */
-#define MAX_NUM_VEHICLES 30
 
 /**
  * \brief TODO

@@ -73,8 +73,8 @@ TEST_CASE( "VehicleCommunication_Read" ) {
     });
 
     //Send random data from two vehicle dummies to the Middleware
-    cpm::Writer<VehicleStatePubSubType> vehicle_0_writer("vehicleState");
-    cpm::Writer<VehicleStatePubSubType> vehicle_1_writer("vehicleState");
+    cpm::Writer<VehicleStatePubSubType> vehicle_0_writer("vehicle/0/vehicleState");
+    cpm::Writer<VehicleStatePubSubType> vehicle_1_writer("vehicle/1/vehicleState");
 
     for (int stamp_number = 0; stamp_number <= testMessagesAmount; ++stamp_number) {
         //Create random variable

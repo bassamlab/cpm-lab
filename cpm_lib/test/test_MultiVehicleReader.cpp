@@ -9,6 +9,7 @@
 #include "cpm/Writer.hpp"
 
 
+#include <cstdint>
 #include <map>
 #include <vector>
 
@@ -20,7 +21,14 @@
  */
 TEST_CASE("MultiVehicleReader") {
     // sender
-    cpm::Writer<VehicleStatePubSubType> writer("asldkjfhslakdj");
+    std::map<uint8_t, cpm::Writer<VehicleStatePubSubType>> writers;
+    writers.emplace(1, "vehicle/1/asldkjfhslakdj");
+    writers.emplace(3, "vehicle/3/asldkjfhslakdj");
+    writers.emplace(7, "vehicle/7/asldkjfhslakdj");
+
+    // writer without matching reader
+    writers.emplace(2, "vehicle/2/asldkjfhslakdj");
+    
 
     // receiver
     std::vector<uint8_t> vehicle_ids{1, 3, 7};
@@ -40,7 +48,7 @@ TEST_CASE("MultiVehicleReader") {
             usleep(10000); //Wait 10ms
             std::cout << "." << std::flush;
 
-            if (writer.matched_subscriptions_size() > 0)
+            if (writers.begin()->second.matched_subscriptions_size() > 0)
                 wait = false;
         }
         std::cout << std::endl;
@@ -51,23 +59,23 @@ TEST_CASE("MultiVehicleReader") {
         vehicleState.odometer_distance((t_now - t0) / second);
         vehicleState.vehicle_id(1);
         cpm::stamp_message(vehicleState, t_now, expected_delay);
-        writer.write(vehicleState);
+        writers.at(1).write(vehicleState);
 
         vehicleState.odometer_distance((t_now - t0) / second + 1);
         vehicleState.vehicle_id(3);
         cpm::stamp_message(vehicleState, t_now, expected_delay);
-        writer.write(vehicleState);
+        writers.at(3).write(vehicleState);
 
         vehicleState.odometer_distance((t_now - t0) / second + 2);
         vehicleState.vehicle_id(7);
         cpm::stamp_message(vehicleState, t_now, expected_delay);
-        writer.write(vehicleState);
+        writers.at(7).write(vehicleState);
 
         // Should be ignored
         vehicleState.odometer_distance((t_now - t0) / second + 2);
         vehicleState.vehicle_id(2);
         cpm::stamp_message(vehicleState, t_now, expected_delay);
-        writer.write(vehicleState);
+        writers.at(2).write(vehicleState);
 
         usleep(10000);
     }

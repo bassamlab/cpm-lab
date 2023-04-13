@@ -12,9 +12,18 @@
 const uint64_t dt_nanos = 100000000ull;
 
 TrajectoryCommand::TrajectoryCommand()
-: 
-    writer_vehicleCommandTrajectory("vehicleCommandTrajectory")
 {
+    std::string command_trajectory_topic = "";
+    for (size_t vehicle_id = 1; vehicle_id < cpm::Constants::MAX_NUM_VEHICLES; vehicle_id++)
+    {
+        command_trajectory_topic = "vehicle/" + std::to_string(vehicle_id) + "/vehicleCommandTrajectory";
+        writers_vehicleCommandTrajectory.push_back(
+            std::unique_ptr<cpm::Writer<VehicleCommandTrajectoryPubSubType>>(
+                new cpm::Writer<VehicleCommandTrajectoryPubSubType>(command_trajectory_topic)
+            )
+        );
+    }
+    
     timer = std::make_shared<cpm::TimerFD>("LabControlCenter_TrajectoryCommand", dt_nanos, 0, false);
 
     timer->start_async([this](uint64_t t_now){
@@ -241,7 +250,7 @@ void TrajectoryCommand::send_trajectory(uint64_t t_now)
             command.trajectory_points(std::vector<TrajectoryPoint>(trajectory_points));
             command.header().create_stamp().nanoseconds(t_now);
             command.header().valid_after_stamp().nanoseconds(t_valid_nanos);
-            writer_vehicleCommandTrajectory.write(command);
+            writers_vehicleCommandTrajectory[command.vehicle_id() - 1]->write(command);
         }
     }
 }

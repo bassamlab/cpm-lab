@@ -1,7 +1,10 @@
 #pragma once
 
+#include <cstddef>
+#include <iostream>
 #include <mutex>
 #include <array>
+#include <string>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -63,9 +66,7 @@ namespace cpm
             }
         }
 
-        //! Internal Reader class that takes care of must of the eProsima initialization. Some issues arised when using inheritance w.r.t. destruction order, although they should be fixed now.
-        std::shared_ptr<cpm::ReaderParent<T>> reader_parent;
-
+        std::vector<std::shared_ptr<cpm::ReaderParent<T>>> readers_parent;
     public:
         /**
          * \brief Constructor
@@ -73,11 +74,22 @@ namespace cpm
          * \param num_of_vehicles The number of vehicles to monitor / read from (from 1 to num_vehicles)
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
-        MultiVehicleReader(std::string topic, int num_of_vehicles)
+        MultiVehicleReader(std::string topic_base_name
+                            , int num_of_vehicles
+                            , std::function<void(std::vector<typename T::type>&)> callback = nullptr)
         { 
-            //Create internal reader instance
-            reader_parent = std::make_shared<cpm::ReaderParent<T>>(std::bind(&MultiVehicleReader::on_data_available, this, _1), cpm::ParticipantSingleton::Instance(), topic, false, true, false);
+            if (!callback){
+                callback = std::bind(&MultiVehicleReader::on_data_available, this, _1);
+            }
 
+            for (size_t vehicle_id = 1; vehicle_id < num_of_vehicles; vehicle_id++)
+            {
+                std::string vehicle_topic = "vehicle/" + std::to_string(vehicle_id) + "/" + topic_base_name; 
+                readers_parent.push_back(
+                    std::make_shared<cpm::ReaderParent<T>>(callback, cpm::ParticipantSingleton::Instance(), vehicle_topic, false, true, false)
+                );
+            }
+            
             //Set size for buffers
             vehicle_buffers.resize(num_of_vehicles);
 
@@ -93,10 +105,22 @@ namespace cpm
          * \param _vehicle_ids List of vehicles to monitor / read from
          * \return The MultiVehicleReader, which only keeps the last 2000 msgs for better efficiency (might need to be tweaked)
          */
-        MultiVehicleReader(std::string topic, std::vector<uint8_t> _vehicle_ids)
+        MultiVehicleReader(std::string topic_base_name
+                        , std::vector<uint8_t> _vehicle_ids
+                        , std::function<void(std::vector<typename T::type>&)> callback = nullptr)
         {
-            //Create internal reader instance
-            reader_parent = std::make_shared<cpm::ReaderParent<T>>(std::bind(&MultiVehicleReader::on_data_available, this, _1), cpm::ParticipantSingleton::Instance(), topic, false, true, false);
+            if (!callback){
+                callback = std::bind(&MultiVehicleReader::on_data_available, this, _1);
+            }
+
+            //Create internal reader instances
+            for (auto vehicle_id : _vehicle_ids)
+            {
+                std::string vehicle_topic = "vehicle/" + std::to_string(vehicle_id) + "/" + topic_base_name; 
+                readers_parent.push_back(
+                    std::make_shared<cpm::ReaderParent<T>>(callback, cpm::ParticipantSingleton::Instance(), vehicle_topic, false, true, false)
+                );
+            }
 
             //Set size for buffers
             int num_of_vehicles = _vehicle_ids.size();
@@ -182,7 +206,11 @@ namespace cpm
          */
         size_t matched_publications_size()
         {
-            return reader_parent->matched_publications_size();
+            size_t matched_publications_size;
+            for (auto& reader : readers_parent) {
+                matched_publications_size += reader->matched_publications_size();
+            }
+            return matched_publications_size;
         }
     };
 }

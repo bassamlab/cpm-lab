@@ -1,4 +1,5 @@
 #include "SimulationVehicle.hpp"
+#include "cpm/Constants.hpp"
 #include <string.h>
 #include <math.h>
 #include <iostream>
@@ -14,7 +15,7 @@ extern "C" {
 
 SimulationVehicle::SimulationVehicle(SimulationIPS& _simulationIPS, uint8_t vehicle_id, vector<double> starting_position)
 :writer_vehiclePoseSimulated("vehiclePoseSimulated")
-,reader_vehiclePoseSimulated("vehiclePoseSimulated",MAX_NUM_VEHICLES)
+,reader_vehiclePoseSimulated("vehiclePoseSimulated",cpm::Constants::MAX_NUM_VEHICLES)
 ,simulationIPS(_simulationIPS)
 {
     // select a starting position on the "map2" layout

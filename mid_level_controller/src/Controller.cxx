@@ -17,10 +17,15 @@ Controller::Controller(uint8_t _vehicle_id, std::function<uint64_t()> _get_time)
 ,m_get_time(_get_time)
 ,vehicle_id(_vehicle_id)
 {
-    reader_CommandDirect = std::unique_ptr<cpm::Reader<VehicleCommandDirectPubSubType>>(new cpm::Reader<VehicleCommandDirectPubSubType>("vehicleCommandDirect", _vehicle_id));
-    reader_CommandSpeedCurvature = std::unique_ptr<cpm::Reader<VehicleCommandSpeedCurvaturePubSubType>>(new cpm::Reader<VehicleCommandSpeedCurvaturePubSubType>("vehicleCommandSpeedCurvature", _vehicle_id));
-    reader_CommandTrajectory = std::unique_ptr<cpm::Reader<VehicleCommandTrajectoryPubSubType>>(new cpm::Reader<VehicleCommandTrajectoryPubSubType>("vehicleCommandTrajectory", _vehicle_id));
-    reader_CommandPathTracking = std::unique_ptr<cpm::Reader<VehicleCommandPathTrackingPubSubType>>(new cpm::Reader<VehicleCommandPathTrackingPubSubType>("vehicleCommandPathTracking", _vehicle_id));
+    std::string str_vehicle_id = std::to_string(vehicle_id);
+    std::string command_direct_topic = "vehicle/" + str_vehicle_id + "/vehicleCommandDirect";
+    std::string command_speed_curvature_topic = "vehicle/" + str_vehicle_id + "/vehicleCommandSpeedCurvature";
+    std::string command_trajectory_topic = "vehicle/" + str_vehicle_id + "/vehicleCommandTrajectory";
+    std::string command_path_tracking_topic = "vehicle/" + str_vehicle_id + "/vehicleCommandPathTracking";
+    reader_CommandDirect = std::unique_ptr<cpm::Reader<VehicleCommandDirectPubSubType>>(new cpm::Reader<VehicleCommandDirectPubSubType>(command_direct_topic));
+    reader_CommandSpeedCurvature = std::unique_ptr<cpm::Reader<VehicleCommandSpeedCurvaturePubSubType>>(new cpm::Reader<VehicleCommandSpeedCurvaturePubSubType>(command_speed_curvature_topic));
+    reader_CommandTrajectory = std::unique_ptr<cpm::Reader<VehicleCommandTrajectoryPubSubType>>(new cpm::Reader<VehicleCommandTrajectoryPubSubType>(command_trajectory_topic));
+    reader_CommandPathTracking = std::unique_ptr<cpm::Reader<VehicleCommandPathTrackingPubSubType>>(new cpm::Reader<VehicleCommandPathTrackingPubSubType>(command_path_tracking_topic));
 }
 
 

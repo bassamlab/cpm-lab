@@ -9,19 +9,21 @@
 
 TimeSeriesAggregator::TimeSeriesAggregator(uint8_t max_vehicle_id)
 {
-    vehicle_state_reader = make_shared<cpm::AsyncReader<VehicleStatePubSubType>>(
+    vehicle_state_reader = make_shared<cpm::MultiVehicleReader<VehicleStatePubSubType>>(
+        "vehicleState",
+        max_vehicle_id,
         [this](std::vector<VehicleState>& samples){
             handle_new_vehicleState_samples(samples);
-        },
-        "vehicleState"
+        }
     );
 
 
-    vehicle_observation_reader = make_shared<cpm::AsyncReader<VehicleObservationPubSubType>>(
+    vehicle_observation_reader = make_shared<cpm::MultiVehicleReader<VehicleObservationPubSubType>>(
+        "vehicleObservation",
+        max_vehicle_id,
         [this](std::vector<VehicleObservation>& samples){
             handle_new_vehicleObservation_samples(samples);
-        },
-        "vehicleObservation"
+        }
     );
 
     //Set vehicle IDs to listen to in the aggregator
