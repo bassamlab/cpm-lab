@@ -144,6 +144,24 @@ sudo apt install kitware-archive-keyring -y
 # 1.1.4 Install cmake
 sudo apt install cmake -y
 
+### 1.2 gcc 10 and g++ 10 #######################################################
+# Installs gcc-10 and g++10 from an extra repository as Ubuntu 18 LTS repositories 
+# do not provide them
+
+# 1.2.1 Add toolchain test repository https://wiki.ubuntu.com/ToolChain 
+sudo apt-get install software-properties-common -y
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt update
+
+# 1.2.2 Install
+sudo apt install gcc-10 -y
+sudo apt install g++-10 -y
+
+# 1.2.3 Update the default version used
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 30
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 30
+sudo update-alternatives --config gcc
+sudo update-alternatives --config g++
 
 ### 2. Joystick / Gamepad ######################################################
 #With a Joystick or a Gamepad you can drive vehicles manually in the Lab Control Center (LCC)
