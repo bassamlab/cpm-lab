@@ -19,7 +19,7 @@ LogStorage::LogStorage(std::string _log_base_path)
 }
 
 LogStorage::LogStorage()
-    : LogStorage("/tmp/lab_software_logs/")
+    : LogStorage("/tmp/cpm_lab_recordings/logs/")
 {
 }
 

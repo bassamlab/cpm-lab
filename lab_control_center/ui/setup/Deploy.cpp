@@ -44,7 +44,6 @@ Deploy::Deploy(
     }    
 
     session_log_folder = log_storage->datetime_log_folder();
-    log_storage->create_log_folder(software_top_folder_path + "/lcc_script_logs/" + session_log_folder + "/");
 }
 
 Deploy::~Deploy()

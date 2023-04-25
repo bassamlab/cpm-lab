@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     //Second: Create path to cpm lib
     cpm_lib_path += "/cpm_lib/build/libcpm.so";
     auto ld_preload = cpm_lib_path;
-    ld_preload += ":/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/usr/local/lib/libfastcdr.so:/usr/local/lib/libfastrtps.so";
+    ld_preload += ":/usr/local/lib/libfastcdr.so:/usr/local/lib/libfastrtps.so";
     setenv("LD_PRELOAD", 
         ld_preload.c_str(), 
         1
@@ -191,8 +191,7 @@ int main(int argc, char *argv[])
         }
         
         //To receive logs as early as possible, and for Logging in main
-        std::string logging_path = "/tmp/lab_software_logs/";
-        auto logStorage = make_shared<LogStorage>(logging_path);
+        auto logStorage = make_shared<LogStorage>();
 
         //Create regular and irregular (interrupt) exit handlers
         //Disallow interrupts (Strg + C), as they could lead to memory issues
