@@ -1,4 +1,6 @@
 #include "cpm/Logging.hpp"
+#include <filesystem>
+#include <string>
 
 /**
  * \file Logging.cpp
@@ -7,7 +9,10 @@
 
 namespace cpm {
 
-    Logging::Logging() :
+    Logging::Logging(std::string _id, std::filesystem::path _logfile_path) :
+    //Logging::Logging() :
+        id(_id),
+        logfile_path(_logfile_path),
         logger("log", true), log_level_reader(cpm::AsyncReader<LogLevelPubSubType>(
             [this](std::vector<LogLevel>& samples){
                 for(auto& data : samples)
@@ -38,15 +43,24 @@ namespace cpm {
         filename = "Log_";
         filename += time_format_buffer;
         filename += ".csv";
-
-        file.open(filename, std::ofstream::out | std::ofstream::trunc);
+        std::filesystem::create_directories(logfile_path);
+        logfile_path.append(filename);
+        file.open(logfile_path, std::ofstream::out | std::ofstream::trunc);
         file << "ID,Level,Timestamp,Content" << std::endl;
         file.close();
     }
 
+    Logging& Logging::InstanceImpl(std::string _id, std::filesystem::path _logfile_path) {
+        static Logging instance{_id, _logfile_path};
+        return instance;
+    }
+
     Logging& Logging::Instance() {
-      static Logging instance;
-      return instance;
+      return Logging::InstanceImpl();
+    }
+
+    void Logging::init(std::string _id, std::filesystem::path _logfile_path){
+        Logging::InstanceImpl(_id, _logfile_path);
     }
 
     uint64_t Logging::get_time() {
@@ -62,6 +76,10 @@ namespace cpm {
 
     std::string Logging::get_filename() {
         return filename;
+    }
+
+    std::filesystem::path Logging::get_logfile_path() {
+        return logfile_path;
     }
 
     void Logging::check_id() {

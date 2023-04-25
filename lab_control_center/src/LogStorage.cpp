@@ -1,4 +1,5 @@
 #include "LogStorage.hpp"
+#include <cpm/Constants.hpp>
 #include <filesystem>
 
 /**
@@ -19,7 +20,7 @@ LogStorage::LogStorage(std::string _log_base_path)
 }
 
 LogStorage::LogStorage()
-    : LogStorage("/tmp/cpm_lab_recordings/logs/")
+    : LogStorage( cpm::Constants::CPM_LOG_PATH / "logs/")
 {
 }
 

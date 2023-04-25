@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -18,6 +19,7 @@
 #include "cpm/get_time_ns.hpp"
 #include "cpm/Parameter.hpp"
 #include "cpm/Writer.hpp"
+#include "cpm/Constants.hpp"
 
 namespace cpm {
     /**
@@ -34,8 +36,12 @@ namespace cpm {
             std::ofstream file;
             //! Filename for logging
             std::string filename = ""; //Is changed in Instance creation: Current timestamp added
+            //! Subfolder
+            inline static const std::string log_folder = "logs/dds_logging/";
+            //! Path to the logfile
+            std::filesystem::path logfile_path;
             //! Logging identifier, e.g. "middleware", "LCC", ...
-            std::string id = "uninitialized";
+            std::string id;
 
             //! Mutex s.t. only one thread has access to the file and the writer
             std::mutex log_mutex;
@@ -51,8 +57,9 @@ namespace cpm {
 
             /**
              * \brief Private Logging constructor to set up the Logging Singleton
+             * 
              */
-            Logging();
+            Logging(std::string _id, std::filesystem::path _logfile_path);
 
             /**
              * \brief Private function to get the current time in ns, just uses get_time_ns
@@ -63,6 +70,11 @@ namespace cpm {
              * \brief Check if the logging ID of the Logger Instance was set, else report an error and stop the program
              */
             void check_id();
+
+            /**
+             * \brief Internal Singleton constructor 
+            */
+            static Logging& InstanceImpl(std::string id = "uninitialized", std::filesystem::path _logfile_path = cpm::Constants::CPM_LOG_PATH / log_folder);
 
         public:
             Logging(Logging const&) = delete;
@@ -83,6 +95,20 @@ namespace cpm {
              * \param id ID of the Logging program, with which the Logs can be identified (e.g. middleware, hlc, lcc...)
              */
             void set_id(std::string id);
+
+            /**
+             * \brief Function to init the path to the file where the Logs are stored and the id.
+             * Standard behaviour, when no specific path is set, is that the file is put 
+             * relative to the entry point of the program.
+             * The id can be updated later.
+            */
+            static void init(std::string _id, std::filesystem::path _logfile_path);
+
+            /**
+             * \brief Returns the whole path to the logfile
+             * \return Path to logfile
+             */
+            std::filesystem::path get_logfile_path();
 
             /**
              * \brief Get the file name of the Logging file
@@ -125,7 +151,7 @@ namespace cpm {
                     std::lock_guard<std::mutex> lock(log_mutex);
 
                     //Add the message to the log file - cast for log level is necessary to not create garbage symbols
-                    file.open(filename, std::ios::app);
+                    file.open(logfile_path, std::ios::app);
                     file << id << "," << static_cast<int>(message_log_level) << "," << time_now << "," << log_string << std::endl;
                     file.close();
 
