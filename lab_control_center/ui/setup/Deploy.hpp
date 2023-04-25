@@ -50,7 +50,7 @@ public:
         std::function<void(uint8_t)> _stop_vehicle, 
         std::shared_ptr<ProgramExecutor> _program_executor,
         std::string _absolute_exec_path,
-        std::shared_ptr<LogStorage> log_storage_functions
+        std::shared_ptr<LogStorage> log_storage
     );
 
     /**
@@ -253,7 +253,7 @@ private:
     std::shared_ptr<ProgramExecutor> program_executor;
 
     //! Access to logging storage related functions
-    std::shared_ptr<LogStorage> log_storage_functions;
+    std::shared_ptr<LogStorage> log_storage;
     
     //! In case of distributed / remote deployment, some vehicles might not be matched because not enough HLCs are available. The remaining HLCs are simulated on the local machine, their ID is stored here.
     std::vector<unsigned int> deployed_local_hlcs;

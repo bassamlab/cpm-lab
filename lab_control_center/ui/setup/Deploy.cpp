@@ -15,13 +15,13 @@ Deploy::Deploy(
     std::function<void(uint8_t)> _stop_vehicle, 
     std::shared_ptr<ProgramExecutor> _program_executor,
     std::string _absolute_exec_path,
-    std::shared_ptr<LogStorage> _log_storage_functions
+    std::shared_ptr<LogStorage> _log_storage
 ) :
     cmd_domain_id(_cmd_domain_id),
     cmd_dds_initial_peer(_cmd_dds_initial_peer),
     stop_vehicle(_stop_vehicle),
     program_executor(_program_executor),
-    log_storage_functions(_log_storage_functions)
+    log_storage(_log_storage)
 {
     //Construct the path to the folder by erasing all parts to the executable that are obsolete
     //Executable path: .../software/lab_control_center/build/lab_control_center
@@ -43,8 +43,8 @@ Deploy::Deploy(
         software_top_folder_path = software_top_folder_path.substr(0, last_slash);
     }    
 
-    session_log_folder = log_storage_functions->datetime_log_folder();
-    log_storage_functions->create_log_folder(software_top_folder_path + "/lcc_script_logs/" + session_log_folder + "/");
+    session_log_folder = log_storage->datetime_log_folder();
+    log_storage->create_log_folder(software_top_folder_path + "/lcc_script_logs/" + session_log_folder + "/");
 }
 
 Deploy::~Deploy()
@@ -68,7 +68,7 @@ Deploy::~Deploy()
 
 void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int> active_vehicle_ids, std::string script_path, std::string script_params) 
 {
-    experiment_log_folder = log_storage_functions->next_experiment_log_folder();
+    experiment_log_folder = log_storage->next_experiment_log_folder();
 
     std::string sim_time_string = bool_to_string(use_simulated_time);
 
@@ -517,7 +517,7 @@ void Deploy::join_finished_hlc_reboot_threads()
 
 bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, bool use_simulated_time, std::string script_path, std::string script_params, unsigned int timeout_seconds) 
 {
-    experiment_log_folder = log_storage_functions->next_experiment_log_folder();
+    experiment_log_folder = log_storage->next_experiment_log_folder();
     // //TODO: WORK WITH TEMPLATE STRINGS AND PUT LOGIC INTO SEPARATE CLASS
 
     //Get the IP address from the current id
@@ -885,7 +885,7 @@ void Deploy::delete_old_logs(std::string folder_name)
 
     if (! std::filesystem::exists(log_folder.c_str()))
     {
-        log_storage_functions->create_log_folder(folder_name);
+        log_storage->create_log_folder(folder_name);
     }
 
     //Now delete files in that folder that are outdated
@@ -938,7 +938,7 @@ void Deploy::download_remote_logs(){
     std::ostringstream download_logs_command;
 
     download_logs_command << software_folder_path << "/lab_control_center/bash/download_all_logs.bash "
-        << log_storage_functions->get_session_log_path() << "/" << experiment_log_folder << "/";
+        << log_storage->get_session_log_path() << "/" << experiment_log_folder << "/";
 
     program_executor->execute_command(download_logs_command.str());
 }
@@ -950,7 +950,7 @@ std::string Deploy::get_logging_suffix(Deploy::LogType type, std::string id){
     std::ostringstream stdout_path;
     std::ostringstream stderr_path;
 
-    base_path << log_storage_functions->get_session_log_path();
+    base_path << log_storage->get_session_log_path();
 
     switch (type) {
         case Deploy::LogType::MIDDLEWARE :
