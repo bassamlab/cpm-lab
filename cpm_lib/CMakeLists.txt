@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(cpmlib)
 option(BUILD_ARM OFF)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 add_definitions(-Wall -Wextra -Werror=return-type -O2)
 include_directories(src)
 include_directories(include)
