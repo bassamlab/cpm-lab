@@ -171,7 +171,7 @@ public:
      * \brief Attempts to download all logs from the online NUCs and vehicles  
      * 
      */
-    void download_remote_logs();
+    void gather_experiment_logs();
 
     //Specific remote deploy functions
     /**

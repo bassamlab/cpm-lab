@@ -933,7 +933,7 @@ std::string Deploy::command_line_discovery_server_params() {
 }
 
 
-void Deploy::download_remote_logs(){
+void Deploy::gather_experiment_logs(){
     std::ostringstream download_logs_command;
 
     download_logs_command << software_folder_path << "/lab_control_center/bash/download_all_logs.bash "
