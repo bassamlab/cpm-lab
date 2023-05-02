@@ -1,10 +1,8 @@
 #pragma once
 
 #include <atomic>
-#include <array>
 #include <cassert>
 #include <chrono>       //For time measurements (timeout for remote deployment)
-#include <cstdint>
 #include <cstdio>       //For popen
 #include <functional>
 #include <fstream>
@@ -15,7 +13,6 @@
 #include <regex>        // to replace file contents
 #include <stdexcept>
 #include <string>
-#include <sstream>
 #include <thread>
 #include <vector>
 
