@@ -458,7 +458,7 @@ void Deploy::reboot_hlcs(std::vector<uint8_t> hlc_ids, unsigned int timeout_seco
                     std::stringstream command_reboot_hlc;
                     command_reboot_hlc 
                         << "sshpass ssh -o ConnectTimeout=" << (timeout_seconds + 10) << " -t guest@" << ip << " \"sudo reboot\""
-                        << this->get_logging_suffix(Deploy::LogType::HLC_REBOOT, std::to_string(hlc_id));
+                        << this->get_logging_suffix(Deploy::LogType::NUC_REBOOT, std::to_string(hlc_id));
                     bool msg_success = program_executor->execute_command(command_reboot_hlc.str().c_str(), timeout_seconds);
 
                     if(!msg_success)
@@ -574,7 +574,7 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
         << " --script_path=" << script_path 
         << " --script_arguments='" << script_argument_stream.str() << "'"
         << " --middleware_arguments='" << middleware_argument_stream.str() << "'"
-        << get_logging_suffix(Deploy::LogType::REMOTE_COPY);
+        << get_logging_suffix(Deploy::LogType::NUC_HLC_COPY);
         //
 
     //Spawn and manage new process
@@ -595,7 +595,7 @@ bool Deploy::kill_remote_hlc(unsigned int hlc_id, unsigned int timeout_seconds)
     //Kill the middleware and script tmux sessions running on the remote system
     std::stringstream kill_command;
     kill_command << software_folder_path << "/lab_control_center/bash/remote_kill.bash --ip=" << ip_stream.str()
-        << get_logging_suffix(Deploy::LogType::KILL_SESSION);
+        << get_logging_suffix(Deploy::LogType::KILL_TMUX_SESSION);
         
     //Spawn and manage new process
     return program_executor->execute_command(kill_command.str().c_str(), timeout_seconds);
@@ -659,7 +659,7 @@ void Deploy::deploy_labcam(std::string path, std::string file_name){
         << "\"cd " << software_folder_path << "/lab_control_center/build/labcam;./labcam_recorder "
         << " --path=" << path
         << " --file_name=" << file_name
-        << get_logging_suffix(Deploy::LogType::LABCAM)
+        << get_logging_suffix(Deploy::LogType::CAMERA_RECORDING)
         << "\"";
 
     //Execute command
@@ -742,7 +742,7 @@ void Deploy::deploy_recording(std::string recording_folder)
         << "rtirecordingservice "
         << "-cfgFile " << config_path_out << " "
         << "-cfgName cpm_recorder" << " "
-        << get_logging_suffix(Deploy::LogType::RECORDING) << "\"";
+        << get_logging_suffix(Deploy::LogType::DDS_RECORDING) << "\"";
 
     //std::cout << command.str() << std::endl;
     //Execute command
@@ -842,7 +842,7 @@ void Deploy::kill_session(std::string session_id, float delay) // delay default 
 
         command
             << "tmux kill-session -t \"" << session_id << "\""
-            << get_logging_suffix(Deploy::LogType::KILL_SESSION);
+            << get_logging_suffix(Deploy::LogType::KILL_TMUX_SESSION);
             
         //Execute command
         program_executor->execute_command(command.str());
@@ -943,7 +943,6 @@ void Deploy::gather_experiment_logs(){
 }
 
 std::string Deploy::get_logging_suffix(Deploy::LogType type, std::string id){
-    const std::string standard_log_folder = "lcc_script_logs";
     std::ostringstream log_command_suffix;
     std::ostringstream base_path;
     std::ostringstream stdout_path;
@@ -955,9 +954,6 @@ std::string Deploy::get_logging_suffix(Deploy::LogType type, std::string id){
         case Deploy::LogType::MIDDLEWARE :
             stdout_path << base_path.str() << experiment_log_folder << "/" << "stdout_" << middleware_session  << ".txt";
             stderr_path << base_path.str() << experiment_log_folder << "/" << "stderr_" << middleware_session << ".txt";
-            break;
-        case Deploy::LogType::ALL_RECEIVED:
-
         break;
         case Deploy::LogType::LOCAL_HLC :
             stdout_path << base_path.str() << experiment_log_folder << "/" << "stdout_" << hlc_session << ".txt";
@@ -970,31 +966,28 @@ std::string Deploy::get_logging_suffix(Deploy::LogType type, std::string id){
         case Deploy::LogType::SIM_VEHICLE:
             stdout_path << base_path.str() << "stdout_" << vehicle_session << id << ".txt";
             stderr_path << base_path.str() << "stderr_" << vehicle_session << id << ".txt";
-            break;
-        case Deploy::LogType::FROM_PI_NUC:
-
         break;
-        case Deploy::LogType::REMOTE_COPY:
+        case Deploy::LogType::NUC_HLC_COPY:
             stdout_path << base_path.str() << "stdout_" << remote_copy_log_name << ".txt";
             stderr_path << base_path.str() << "stderr_" << remote_copy_log_name << ".txt";
         break;
-        case Deploy::LogType::KILL_SESSION:
+        case Deploy::LogType::KILL_TMUX_SESSION:
             stdout_path << base_path.str() << "stdout_tmux_kill.txt";
             stderr_path << base_path.str() << "stderr_tmux_kill.txt";
         break;
-        case Deploy::LogType::RECORDING:
+        case Deploy::LogType::DDS_RECORDING:
             stdout_path << base_path.str() << "stdout_recording.txt";
             stderr_path << base_path.str() << "stderr_recording.txt";
         break;
-        case Deploy::LogType::LABCAM:
+        case Deploy::LogType::CAMERA_RECORDING:
             stdout_path << base_path.str() << "stdout_" << labcam_session << ".txt";
             stderr_path << base_path.str() << "stderr_" << labcam_session << ".txt";
         break;
-        case Deploy::LogType::HLC_REBOOT:
+        case Deploy::LogType::NUC_REBOOT:
             stdout_path << base_path.str() << "stdout_hlc_reboot.txt";
             stderr_path << base_path.str() << "stderr_hlc_reboot.txt";
         break;
-        case Deploy::LogType::REMOTE_KILL:
+        case Deploy::LogType::NUC_HLC_KILL:
             stdout_path << base_path.str() << "stdout_" << remote_kill_log_name << ".txt";
             stderr_path << base_path.str() << "stderr_" << remote_kill_log_name << ".txt";
         break;
