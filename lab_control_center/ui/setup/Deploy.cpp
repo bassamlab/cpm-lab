@@ -159,6 +159,7 @@ void Deploy::kill_local_hlc()
 
 void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<unsigned int> active_vehicle_ids, std::string script_path, std::string script_params) 
 {
+    experiment_log_folder = log_storage->next_experiment_log_folder();
     std::string sim_time_string = bool_to_string(use_simulated_time);
 
     //Check if old session already exists - if so, kill it
