@@ -1,4 +1,5 @@
 #include "SetupViewUI.hpp"
+#include <cpm/Constants.hpp>
 #include <cstdlib>
 #include <chrono>
 
@@ -473,7 +474,7 @@ void SetupViewUI::deploy_applications() {
 
 
     std::ostringstream recording_folder_ss;
-    recording_folder_ss << "/tmp/cpm_lab_recordings/";
+    recording_folder_ss << cpm::Constants::CPM_LOG_PATH.c_str();
     auto timenow = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()); 
     recording_folder_ss << std::put_time(std::localtime(&timenow), "%Y_%m_%d_%H_%M_%S");
     std::string recording_folder = recording_folder_ss.str();
