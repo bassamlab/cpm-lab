@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
         );
 
         //Create deploy class
-        std::shared_ptr<Deploy> deploy_functions = std::make_shared<Deploy>(
+        std::shared_ptr<Deploy> deploy = std::make_shared<Deploy>(
             cmd_domain_id, 
             cmd_dds_initial_peer, 
             [&](uint8_t id){vehicleAutomatedControl->stop_vehicle(id);},
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
         );
         auto rtt_aggregator = make_shared<RTTAggregator>();
         auto monitoringUi = make_shared<MonitoringUi>(
-            deploy_functions, 
+            deploy, 
             [&](){return timeSeriesAggregator->get_vehicle_data();}, 
             [&](){return hlcReadyAggregator->get_hlc_ids_uint8_t();},
             [&](){return timeSeriesAggregator->get_vehicle_trajectory_commands();},
@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
         auto writer_planning_problems = std::make_shared<cpm::Writer<CommonroadDDSGoalStatePubSubType>>("commonroad_dds_goal_states", true, true, true);
 
         setupViewUi = make_shared<SetupViewUI>(
-            deploy_functions,
+            deploy,
             vehicleAutomatedControl, 
             hlcReadyAggregator, 
             goToPlanner,
