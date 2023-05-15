@@ -147,13 +147,19 @@ end
 
 function [Table, Header, t_start_nanos] = jsonDeconstruct(JSONData)
 %% Parse {JSON} formatted sample into structs for further processing.
-DataRaw = cellfun(@jsondecode, JSONData);
+if verLessThan('matlab', '9.12')
+    DataRaw = cellfun(@jsondecode, JSONData);
+else
+    DataRaw = rowfun(@jsondecode, JSONData);
+    DataRaw = [DataRaw.Var1];
+end
 
 %% Create tables from decoded structs to enable filtering by logical operation and vectorized access of nested fields.
 Table = struct2table(DataRaw);
 
 % Create tables from nested struct field 'header'.
 Header = struct2table([DataRaw.header]);
+
 
 %% Find timepoint zero, i.e. smallest timestamp in recording
 t_start_nanos = min([Header.create_stamp.nanoseconds]);
