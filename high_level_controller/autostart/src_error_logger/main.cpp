@@ -1,4 +1,4 @@
-#include <experimental/filesystem>
+#include "cpm/Filesystem.hpp"
 #include <functional>
 #include <memory>
 #include <sstream>
@@ -25,7 +25,7 @@
  */
 bool file_exists(const std::string &filename)
 {
-    return std::experimental::filesystem::exists(filename.c_str());
+    return std::filesystem::exists(filename.c_str());
 }
 
 /**
@@ -99,7 +99,7 @@ int main (int argc, char *argv[]) {
 
     timer->start([&](uint64_t t_now) {
         // Matlab RTI DDS
-        if (!std::experimental::filesystem::is_directory("/home/guest/dev/software/cpm_lib/dds_idl_matlab"))
+        if (!std::filesystem::is_directory("/home/guest/dev/software/cpm_lib/dds_idl_matlab"))
         {
             cpm::Logging::Instance().write(
                 1,
@@ -109,7 +109,7 @@ int main (int argc, char *argv[]) {
         }
 
         // Matlab eProsima
-        if (!std::experimental::filesystem::is_directory("/home/guest/dev/software/cpm_lib/matlab_mex_bindings"))
+        if (!std::filesystem::is_directory("/home/guest/dev/software/cpm_lib/matlab_mex_bindings"))
         {
             cpm::Logging::Instance().write(
                 1,
