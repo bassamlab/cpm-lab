@@ -55,6 +55,27 @@ HLCCommunicator::HLCCommunicator(std::vector<uint8_t> _vehicle_ids, int middlewa
 
 void HLCCommunicator::start(){
     writeInfoMessage();
+    
+    // If before_control_loop is defined, call it now before we send the ready message
+    if( before_control_loop.target_type() != typeid(void) ){
+        cpm::Logging::Instance().write(1,
+                        "%s",
+                        "HLCComm will call before_control_loop"
+                        );
+
+        while(!new_vehicleStateList) {
+            auto state_samples = reader_vehicleStateList.take();
+            for(auto sample : state_samples) {
+                // We received a StateList
+                new_vehicleStateList = true;
+                vehicle_state_list = sample;
+            }
+        }
+        before_control_loop(vehicle_state_list);
+        new_vehicleStateList = false;
+    }
+    
+
     sendReadyMessage(); 
  
     // Wait for the first system trigger
@@ -70,7 +91,7 @@ void HLCCommunicator::start(){
             new_vehicleStateList = true;
             vehicle_state_list = sample;
         }
- 
+
         if(new_vehicleStateList){
             runTimestep();
             new_vehicleStateList = false;
@@ -174,6 +195,12 @@ void HLCCommunicator::stop(int vehicle_id){
 void HLCCommunicator::writeInfoMessage(){
     std::stringstream set_callbacks;
     std::stringstream unset_callbacks;
+
+    if( before_control_loop.target_type() == typeid(void)) { 
+        unset_callbacks << "before_control_loop ";
+    } else {
+        set_callbacks << "before_control_loop ";
+    }
 
     if( on_first_timestep.target_type() == typeid(void)) { 
         unset_callbacks << "on_first_timestep ";

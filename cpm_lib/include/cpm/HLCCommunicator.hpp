@@ -86,6 +86,8 @@ class HLCCommunicator{
     //! Reader to read SystemTrigger messages from Middleware (for stop signal)
     cpm::ReaderAbstract<SystemTriggerPubSubType>      reader_systemTrigger;
 
+    //! Callback function for before the first timestep
+    std::function<void(VehicleStateList)>   before_control_loop;
     //! Callback function for when we need to take on the first timestep
     std::function<void(VehicleStateList)>   on_first_timestep;
     //! Callback function for when we need to take every timestep (including the first one)
@@ -164,6 +166,15 @@ public:
     std::shared_ptr<cpm::Participant> getLocalParticipant(){ return p_local_comms_participant; };
 
     /**
+     * \brief Additional steps that need to be taken before the HLC is ready for the first timestep
+     * \param callback Callback function (e.g. a lambda or a std::function), that takes a VehicleStateList
+     * as a parameter. This function will get called once before the ready message is sent.
+     *
+     * Used for initial setup, that couldn't be done earlier.
+     */
+    void beforeControlLoop(std::function<void(VehicleStateList)> callback) { before_control_loop = callback; };
+    
+    /**
      * \brief Additional steps that need to be taken on the first timestep
      * \param callback Callback function (e.g. a lambda or a std::function), that takes a VehicleStateList
      * as a parameter. This function will get called once before the first timestep.
@@ -212,7 +223,7 @@ public:
      * e.g. if someone pressed the stop or kill button in the LCC.
      */
     void start();
-
+    bool msg_received = false;
     /**
      * \brief Communicate to the middleware that we have to stop planning
      * \param vehicle_id Which vehicle id is requesting the stop
