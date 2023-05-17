@@ -58,11 +58,6 @@ void HLCCommunicator::start(){
     
     // If before_control_loop is defined, call it now before we send the ready message
     if( before_control_loop.target_type() != typeid(void) ){
-        cpm::Logging::Instance().write(1,
-                        "%s",
-                        "HLCComm will call before_control_loop"
-                        );
-
         while(!new_vehicleStateList) {
             auto state_samples = reader_vehicleStateList.take();
             for(auto sample : state_samples) {
@@ -71,6 +66,7 @@ void HLCCommunicator::start(){
                 vehicle_state_list = sample;
             }
         }
+
         before_control_loop(vehicle_state_list);
         new_vehicleStateList = false;
     }
@@ -84,14 +80,6 @@ void HLCCommunicator::start(){
     
     // Run this until we get a SystemTrigger to stop
     while(!stop) {
-        auto state_samples = reader_vehicleStateList.take();
-        for(auto sample : state_samples) {
-            // We received a StateList, which is our timing signal
-            // to send commands to vehicle
-            new_vehicleStateList = true;
-            vehicle_state_list = sample;
-        }
-
         if(new_vehicleStateList){
             runTimestep();
             new_vehicleStateList = false;
@@ -101,6 +89,14 @@ void HLCCommunicator::start(){
 
         // Slow down the loop a bit
         usleep(10);
+
+        auto state_samples = reader_vehicleStateList.take();
+        for(auto sample : state_samples) {
+            // We received a StateList, which is our timing signal
+            // to send commands to vehicle
+            new_vehicleStateList = true;
+            vehicle_state_list = sample;
+        }
     }
  
     // If on_stop is defined, call it now before we finish
@@ -110,12 +106,6 @@ void HLCCommunicator::start(){
 }
 
 void HLCCommunicator::runTimestep(){
-    // If this is the first timestep and the respective callback is defined, call it now
-    if( first_timestep && on_first_timestep.target_type() != typeid(void) ){
-        on_first_timestep(vehicle_state_list);
-        first_timestep = false;
-    }
-
     if( planning_future.valid() ){
         std::future_status future_status = planning_future.wait_for(std::chrono::milliseconds(1));
         if( future_status != std::future_status::ready ) {
@@ -200,12 +190,6 @@ void HLCCommunicator::writeInfoMessage(){
         unset_callbacks << "before_control_loop ";
     } else {
         set_callbacks << "before_control_loop ";
-    }
-
-    if( on_first_timestep.target_type() == typeid(void)) { 
-        unset_callbacks << "on_first_timestep ";
-    } else {
-        set_callbacks << "on_first_timestep ";
     }
 
     if( on_each_timestep.target_type() == typeid(void)) { 

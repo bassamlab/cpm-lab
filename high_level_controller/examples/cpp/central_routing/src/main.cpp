@@ -95,13 +95,6 @@ int main(int argc, char *argv[])
 
     /////////////////////////////////Trajectory planner//////////////////////////////////////////
     hlc_communicator.beforeControlLoop([&](VehicleStateList vehicle_state_list) {
-        cpm::Logging::Instance().write(
-                    1,
-                    "central routing's beforeControlLoop successfully called"
-                );
-    });
-
-    hlc_communicator.onFirstTimestep([&](VehicleStateList vehicle_state_list) {
             // reset planner object
             planner = std::unique_ptr<MultiVehicleTrajectoryPlanner>(new MultiVehicleTrajectoryPlanner(dt_nanos));
             planner->set_real_time(vehicle_state_list.t_now());
@@ -172,6 +165,7 @@ int main(int argc, char *argv[])
                 throw std::runtime_error("Couldn't find all vehicles' positions");
             }
     });
+
     hlc_communicator.onEachTimestep([&](VehicleStateList vehicle_state_list) {
             // Do not start if middleware period is not 400ms
             // because it's required by this planner
