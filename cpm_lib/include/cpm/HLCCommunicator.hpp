@@ -69,9 +69,6 @@ class HLCCommunicator{
     //! SystemTrigger value that means "stop" (as defined in SystemTrigger.idl)
     const uint64_t trigger_stop = std::numeric_limits<uint64_t>::max();
 
-    //! Is only true on the first timestep
-    bool first_timestep = true;
-
     //! Wether we've received a new VehicleStateList, so we only read it once
     bool new_vehicleStateList = false;
 
@@ -87,10 +84,8 @@ class HLCCommunicator{
     //! Reader to read SystemTrigger messages from Middleware (for stop signal)
     cpm::ReaderAbstract<SystemTrigger>      reader_systemTrigger;
 
-    //! Callback function for before the first timestep
+    //! Callback function for setup before the first timestep
     std::function<void(VehicleStateList)>   before_control_loop;
-    //! Callback function for when we need to take on the first timestep
-    std::function<void(VehicleStateList)>   on_first_timestep;
     //! Callback function for when we need to take every timestep (including the first one)
     std::function<void(VehicleStateList)>   on_each_timestep;
     //! Callback function for when we need to cancel a planning timestep before it's finished
@@ -180,15 +175,6 @@ public:
      * Used for initial setup, that couldn't be done earlier.
      */
     void beforeControlLoop(std::function<void(VehicleStateList)> callback) { before_control_loop = callback; };
-    
-    /**
-     * \brief Additional steps that need to be taken on the first timestep
-     * \param callback Callback function (e.g. a lambda or a std::function), that takes a VehicleStateList
-     * as a parameter. This function will get called once before the first timestep.
-     *
-     * Used for initial setup, that couldn't be done earlier.
-     */
-    void onFirstTimestep(std::function<void(VehicleStateList)> callback) { on_first_timestep = callback; };
 
     /**
      * \brief What our HLC should do each timestep.

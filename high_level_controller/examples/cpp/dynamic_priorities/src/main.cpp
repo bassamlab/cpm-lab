@@ -266,12 +266,12 @@ int main(int argc, char *argv[]) {
     /*
      * This is additional initial setup of the planner.
      * We cannot do this before we received a VehicleStateList, but we only want to do it once.
-     * We use the 'onFirstTimestep' method of the HLCCommunicator for this.
-     * This will get executed just before 'onEachTimestep' is executed for the first time.
+     * We use the 'beforeControlLoop' method of the HLCCommunicator for this.
+     * This will get executed before 'onEachTimestep' is executed on the first timestep.
      */
-    hlc_communicator.onFirstTimestep([&](VehicleStateList vehicle_state_list){
+    hlc_communicator.beforeControlLoop([&](VehicleStateList vehicle_state_list){
              cpm::Logging::Instance().write(1,
-            "First time step");
+            "Before Control Loop");
             bool matched = false;
             for(auto vehicle_state : vehicle_state_list.state_list())
             {
@@ -320,6 +320,7 @@ int main(int argc, char *argv[]) {
                 }
             }
             });
+
     hlc_communicator.onEachTimestep([&](VehicleStateList vehicle_state_list){
                 try{
                     auto trajectory = planner->plan(vehicle_state_list.t_now(), vehicle_state_list.period_ms()*1e6);
