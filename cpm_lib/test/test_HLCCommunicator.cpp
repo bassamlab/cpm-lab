@@ -91,7 +91,7 @@ TEST_CASE( "HLCCommunicator" ) {
     int timestep_to_test_stop = 10;
     std::atomic_bool abort_timestep(false);
 
-    hlc_communicator.onFirstTimestep([&](VehicleStateList vehicle_state_list){
+    hlc_communicator.beforeControlLoop([&](VehicleStateList vehicle_state_list){
             // Check that we received the right VehicleStateList
             REQUIRE( period_ms == vehicle_state_list.period_ms() );
             });
