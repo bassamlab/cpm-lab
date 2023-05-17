@@ -91,6 +91,13 @@ int main(int argc, char *argv[])
             "vehicleCommandTrajectory");
 
     /////////////////////////////////Trajectory planner//////////////////////////////////////////
+    hlc_communicator.beforeControlLoop([&](VehicleStateList vehicle_state_list) {
+        cpm::Logging::Instance().write(
+                    1,
+                    "central routing's beforeControlLoop successfully called"
+                );
+    });
+
     hlc_communicator.onFirstTimestep([&](VehicleStateList vehicle_state_list) {
             // reset planner object
             planner = std::unique_ptr<MultiVehicleTrajectoryPlanner>(new MultiVehicleTrajectoryPlanner(dt_nanos));
