@@ -40,7 +40,7 @@ fi
 # cpm lib
 pushd cpm_lib
     if [ -z $SIMULATION ]; then
-        bash build_arm.bash  
+        bash build_arm.bash
     fi
     bash build.bash     # checks for $SIMULATION by itself
 popd
@@ -62,22 +62,7 @@ pushd high_level_controller
     pushd examples/cpp/central_routing
         bash build.bash
     popd
-    pushd examples/cpp/distributed_routing
-        bash build.bash
-    popd
     pushd examples/cpp/basic_circle
-        bash build.bash
-    popd
-    pushd examples/cpp/basic_line
-        bash build.bash
-    popd
-    pushd examples/cpp/diagonal_figure_eight
-        bash build.bash
-    popd
-    pushd examples/cpp/two_vehicles_drive
-        bash build.bash
-    popd
-    pushd examples/cpp/eight_zero
         bash build.bash
     popd
     pushd examples/cpp/dynamic_priorities
