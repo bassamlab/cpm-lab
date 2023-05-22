@@ -40,7 +40,7 @@ fi
 # cpm lib
 pushd cpm_lib
     if [ -z $SIMULATION ]; then
-        bash build_arm.bash  
+        bash build_arm.bash
     fi
     bash build.bash     # checks for $SIMULATION by itself
 popd
