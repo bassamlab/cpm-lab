@@ -95,7 +95,7 @@ TEST_CASE("VehicleCommunication_Read")
         header.valid_after_stamp(timestamp);
 
         VehicleState first_vehicle_state;
-        first_vehicle_state.vehicle_id(vehicle_ids.at(0));
+        first_vehicle_state.vehicle_id(active_vehicle_ids.at(0));
         first_vehicle_state.header(header);
 
         Pose2D pose;
@@ -107,7 +107,7 @@ TEST_CASE("VehicleCommunication_Read")
         vehicle_0_writer.write(first_vehicle_state);
 
         VehicleState second_vehicle_state = first_vehicle_state;
-        second_vehicle_state.vehicle_id(vehicle_ids.at(1));
+        second_vehicle_state.vehicle_id(active_vehicle_ids.at(1));
 
         vehicle_1_writer.write(second_vehicle_state);
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<uint64_t>(sensor_period)));
@@ -124,12 +124,6 @@ TEST_CASE("VehicleCommunication_Read")
     {
         CHECK(received_timestamps_vehicle_1.at(i) - received_timestamps_vehicle_1.at(i - 1) <= 2);
     }
-    for (size_t i = 1; i < received_timestamps_vehicle_3.size(); ++i)
-    {
-        CHECK(received_timestamps_vehicle_3.at(i) - received_timestamps_vehicle_3.at(i - 1) <= 2);
-    }
-    // Check that the last message (-> newest message in the last step) was received
     CHECK(received_timestamps_vehicle_0.at(received_timestamps_vehicle_0.size() - 1) == testMessagesAmount);
     CHECK(received_timestamps_vehicle_1.at(received_timestamps_vehicle_1.size() - 1) == testMessagesAmount);
-    CHECK(received_timestamps_vehicle_3.at(received_timestamps_vehicle_3.size() - 1) == testMessagesAmount);
 }

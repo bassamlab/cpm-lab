@@ -128,10 +128,10 @@ public:
                                                                                                                        true, true)
 
           ,
-          vehicleReader("vehicleState", vehicle_ids)
+          vehicleReader("vehicleState", active_vehicle_ids)
 
           ,
-          vehicleObservationReader("vehicleObservation", vehicle_ids)
+          vehicleObservationReader("vehicleObservation", active_vehicle_ids)
 
           ,
           trajectoryCommunication(hlcParticipant, vehicleTrajectoryTopicName, _timer, assigned_vehicle_ids), pathTrackingCommunication(hlcParticipant, vehiclePathTrackingTopicName, _timer, assigned_vehicle_ids), speedCurvatureCommunication(hlcParticipant, vehicleSpeedCurvatureTopicName, _timer, assigned_vehicle_ids), directCommunication(hlcParticipant, vehicleDirectTopicName, _timer, assigned_vehicle_ids)
