@@ -1,17 +1,17 @@
 // MIT License
-// 
+//
 // Copyright (c) 2020 Lehrstuhl Informatik 11 - RWTH Aachen University
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,9 +19,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-// 
+//
 // This file is part of cpm_lab.
-// 
+//
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 // Set to true to get additional information about execution time in stdout
@@ -56,9 +56,9 @@ class HLCCommunicator{
      * \ingroup cpmlib
      */
 
-    //! Vehicle IDs; needed for the ready message 
+    //! Vehicle IDs; needed for the ready message
     std::vector<uint8_t> vehicle_ids;
-    
+
     //! String containing all vehicle ids; used for identification in messages
     std::string vehicle_ids_string;
 
@@ -209,7 +209,6 @@ public:
      * e.g. if someone pressed the stop or kill button in the LCC.
      */
     void start();
-    bool msg_received = false;
     /**
      * \brief Communicate to the middleware that we have to stop planning
      * \param vehicle_id Which vehicle id is requesting the stop

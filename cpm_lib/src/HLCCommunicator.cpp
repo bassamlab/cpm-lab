@@ -1,17 +1,17 @@
 // MIT License
-// 
+//
 // Copyright (c) 2020 Lehrstuhl Informatik 11 - RWTH Aachen University
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,9 +19,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-// 
+//
 // This file is part of cpm_lab.
-// 
+//
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 #include "cpm/HLCCommunicator.hpp"
@@ -55,52 +55,52 @@ HLCCommunicator::HLCCommunicator(std::vector<uint8_t> _vehicle_ids, int middlewa
 
 void HLCCommunicator::start(){
     writeInfoMessage();
-    
+
     // If before_control_loop is defined, call it now before we send the ready message
     if( before_control_loop.target_type() != typeid(void) ){
         while(!new_vehicleStateList) {
             auto state_samples = reader_vehicleStateList.take();
-            for(auto sample : state_samples) {
+            if (!state_samples.empty()){
                 // We received a StateList
                 new_vehicleStateList = true;
-                vehicle_state_list = sample;
+                vehicle_state_list = state_samples.back();
             }
         }
 
         before_control_loop(vehicle_state_list);
         new_vehicleStateList = false;
     }
-    
 
-    sendReadyMessage(); 
- 
+
+    sendReadyMessage();
+
     // Wait for the first system trigger
     bool stop = false;
     waitForSystemTrigger(stop);
-    
+
     // Run this until we get a SystemTrigger to stop
     while(!stop) {
         if(new_vehicleStateList){
             runTimestep();
             new_vehicleStateList = false;
         }
-         
+
         stop = stopSignalReceived();
 
         // Slow down the loop a bit
         usleep(10);
 
         auto state_samples = reader_vehicleStateList.take();
-        for(auto sample : state_samples) {
+        if (!state_samples.empty()){
             // We received a StateList, which is our timing signal
             // to send commands to vehicle
             new_vehicleStateList = true;
-            vehicle_state_list = sample;
+            vehicle_state_list = state_samples.back();
         }
     }
- 
+
     // If on_stop is defined, call it now before we finish
-    if( on_stop.target_type() != typeid(void) ){ 
+    if( on_stop.target_type() != typeid(void) ){
         on_stop();
     }
 }
@@ -186,25 +186,25 @@ void HLCCommunicator::writeInfoMessage(){
     std::stringstream set_callbacks;
     std::stringstream unset_callbacks;
 
-    if( before_control_loop.target_type() == typeid(void)) { 
+    if( before_control_loop.target_type() == typeid(void)) {
         unset_callbacks << "before_control_loop ";
     } else {
         set_callbacks << "before_control_loop ";
     }
 
-    if( on_each_timestep.target_type() == typeid(void)) { 
+    if( on_each_timestep.target_type() == typeid(void)) {
         unset_callbacks << "on_each_timestep ";
     } else {
         set_callbacks << "on_each_timestep ";
     }
 
-    if( on_cancel_timestep.target_type() == typeid(void)) { 
+    if( on_cancel_timestep.target_type() == typeid(void)) {
         unset_callbacks << "on_cancel_timestep ";
     } else {
         set_callbacks << "on_cancel_timestep ";
     }
 
-    if( on_stop.target_type() == typeid(void)) { 
+    if( on_stop.target_type() == typeid(void)) {
         unset_callbacks << "on_stop ";
     } else {
         set_callbacks << "on_stop ";
