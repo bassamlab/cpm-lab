@@ -84,8 +84,9 @@ class HLCCommunicator{
     //! Reader to read SystemTrigger messages from Middleware (for stop signal)
     cpm::ReaderAbstract<SystemTrigger>      reader_systemTrigger;
 
-    //! Callback function for setup before the first timestep
-    std::function<void(VehicleStateList)>   before_control_loop;
+    //! Callback function for setup before the first timestep. Returns true if successful.
+    std::function<bool(VehicleStateList)>   before_control_loop = ([](VehicleStateList){ return true; });
+
     //! Callback function for when we need to take every timestep (including the first one)
     std::function<void(VehicleStateList)>   on_each_timestep;
     //! Callback function for when we need to cancel a planning timestep before it's finished
@@ -174,7 +175,7 @@ public:
      *
      * Used for initial setup, that couldn't be done earlier.
      */
-    void beforeControlLoop(std::function<void(VehicleStateList)> callback) { before_control_loop = callback; };
+    void beforeControlLoop(std::function<bool(VehicleStateList)> callback) { before_control_loop = callback; };
 
     /**
      * \brief What our HLC should do each timestep.

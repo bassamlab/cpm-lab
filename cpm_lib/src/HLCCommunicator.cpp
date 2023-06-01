@@ -59,19 +59,21 @@ void HLCCommunicator::start(){
     writeInfoMessage();
 
     // If before_control_loop is defined, call it now before we send the ready message
-    if( before_control_loop.target_type() != typeid(void) ){
-        while(!new_vehicleStateList) {
-            auto state_samples = reader_vehicleStateList.take();
-            if (!state_samples.empty()){
-                // We received a StateList
-                new_vehicleStateList = true;
-                vehicle_state_list = state_samples.back();
-            }
+    bool hlc_is_ready = false;
+    while(!hlc_is_ready) {
+        auto state_samples = reader_vehicleStateList.take();
+        if (!state_samples.empty()){
+            // We received a StateList
+            new_vehicleStateList = true;
+            // Only use the newest StateList
+            vehicle_state_list = state_samples.back();
+            hlc_is_ready = before_control_loop(vehicle_state_list);
+            new_vehicleStateList = false;
         }
-
-        before_control_loop(vehicle_state_list);
-        new_vehicleStateList = false;
+        // Slow down the loop a bit
+        usleep(20*1000);
     }
+
 
 
     sendReadyMessage();
