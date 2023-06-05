@@ -1,4 +1,5 @@
 #include "SetupViewUI.hpp"
+#include <cpm/Constants.hpp>
 #include <cstdlib>
 #include <chrono>
 
@@ -454,9 +455,6 @@ void SetupViewUI::deploy_applications() {
 
     simulation_running.store(true);
 
-    //Delete old script / HLC / recording... log entries in the log folder lcc_script_logs
-    deploy_functions->delete_old_logs();
-
     //Reset old UI elements etc (call all functions that registered for this callback in main)
     reset_timer(switch_simulated_time->get_active(), false); //We do not need to send a stop signal here (might be falsely received by newly started participants)
     if(on_simulation_start)
@@ -476,7 +474,7 @@ void SetupViewUI::deploy_applications() {
 
 
     std::ostringstream recording_folder_ss;
-    recording_folder_ss << "/tmp/cpm_lab_recordings/";
+    recording_folder_ss << cpm::Constants::CPM_LOG_PATH.c_str();
     auto timenow = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()); 
     recording_folder_ss << std::put_time(std::localtime(&timenow), "%Y_%m_%d_%H_%M_%S");
     std::string recording_folder = recording_folder_ss.str();

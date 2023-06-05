@@ -1,11 +1,9 @@
 #pragma once
 
 #include <atomic>
-#include <array>
 #include <cassert>
 #include <chrono>       //For time measurements (timeout for remote deployment)
 #include <cstdio>       //For popen
-#include <experimental/filesystem> //Used instead of std::filesystem, because some compilers still seem to be outdated
 #include <functional>
 #include <fstream>
 #include <iomanip>      // put_time
@@ -15,7 +13,6 @@
 #include <regex>        // to replace file contents
 #include <stdexcept>
 #include <string>
-#include <sstream>
 #include <thread>
 #include <vector>
 
@@ -27,6 +24,7 @@
 #include "cpm/Logging.hpp"
 #include "cpm/InternalConfiguration.hpp"
 #include "ProgramExecutor.hpp"
+#include "LogStorage.hpp"
 
 /**
  * \brief This class is responsible for managing deployment of HLC and vehicle scripts / programs and other participants that are launched from the LCC
@@ -48,7 +46,8 @@ public:
         std::string _cmd_dds_initial_peer, 
         std::function<void(uint8_t)> _stop_vehicle, 
         std::shared_ptr<ProgramExecutor> _program_executor,
-        std::string _absolute_exec_path
+        std::string _absolute_exec_path,
+        std::shared_ptr<LogStorage> log_storage
     );
 
     /**
@@ -165,6 +164,12 @@ public:
      */
     void kill_recording();
 
+    /**
+     * \brief Attempts to download all logs from the online NUCs and vehicles  
+     * 
+     */
+    void gather_experiment_logs();
+
     //Specific remote deploy functions
     /**
      * \brief Deploy the script + middleware specified in the UI with the given parameters on the HLC with the given ID. 
@@ -185,12 +190,6 @@ public:
      * \return True if the execution (of the bash script) did not have to be aborted and no process-related error occured, false otherwise
      */
     bool kill_remote_hlc(unsigned int hlc_id, unsigned int timeout_seconds);
-
-    /**
-     * \brief Used to create the folder software_top_folder_path(value of variable)/name, in which logs of local tmux sessions started here are stored (for debugging purposes)
-     * \param folder_name Name of the log folder, default is lcc_script_logs (better change the default if you want to change the folder name)
-     */
-    void create_log_folder(std::string folder_name = "lcc_script_logs");
 
     /**
      * \brief Delete logs in the log folder (as in create_log_folder) that are "outdated" (logs of script and middleware)
@@ -224,11 +223,20 @@ private:
      */
     enum PROCESS_STATE {DONE, RUNNING, ERROR};
 
+    //! Types of logging paths
+    enum struct LogType {SIM_VEHICLE, REAL_VEHICLE, LOCAL_HLC, IPS, MIDDLEWARE, LOG_VIA_DDS, FROM_PI_NUC, NUC_HLC_COPY, NUC_HLC_KILL, KILL_TMUX_SESSION, DDS_RECORDING, CAMERA_RECORDING, NUC_REBOOT, BASLER};
+
     //! Contains the path to the software folder of the repo, from which paths to all relevant contained programs can be constructed (e.g. to vehicles, IPS etc.)
     std::string software_folder_path;
 
     //! Path above software folder, for lcc_script_logs folder
     std::string software_top_folder_path;
+
+    //! Current per session log folder
+    std::string session_log_folder;
+
+    //! Per experiment log folder
+    std::string experiment_log_folder;
 
     //! DDS Domain ID. This value is set once at startup (as command line parameters).
     unsigned int cmd_domain_id; 
@@ -240,6 +248,9 @@ private:
 
     //! Provides safer access to deploying functions (uses a child process that was forked before creation of DDS threads etc.)
     std::shared_ptr<ProgramExecutor> program_executor;
+
+    //! Access to logging storage related functions
+    std::shared_ptr<LogStorage> log_storage;
     
     //! In case of distributed / remote deployment, some vehicles might not be matched because not enough HLCs are available. The remaining HLCs are simulated on the local machine, their ID is stored here.
     std::vector<unsigned int> deployed_local_hlcs;
@@ -273,6 +284,12 @@ private:
      * \return String version of the boolean (true -> "true", false -> "false")
      */
     std::string bool_to_string(bool var);
+
+    /**
+     * \brief 
+     * 
+    */
+    std::string get_logging_suffix(Deploy::LogType type, std::string id="");
 
     // Session name for recording service
     const std::string recording_session = "dds_record";

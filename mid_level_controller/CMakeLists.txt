@@ -105,7 +105,7 @@ if(BUILD_SIMULATION)
 endif()
 
 if(BUILD_ARM)
-    target_link_libraries(vehicle_rpi_firmware cpm fastrtps)
+    target_link_libraries(vehicle_rpi_firmware cpm fastrtps stdc++fs)
 else()
     target_link_libraries(vehicle_rpi_firmware cpm fastrtps fastcdr foonathan_memory)
 endif()

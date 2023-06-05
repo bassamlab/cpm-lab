@@ -298,15 +298,12 @@ namespace cpm
 
         // Check if Type is already registered, create type
         auto find_type_ret = participant_->find_type(topic_data_type.getName());
-        std::cout << "Checking if type exists: " << topic_data_type.getName() << std::endl;
         if(find_type_ret.empty()){
-            std::cout << "Type does not exist, creating type" << std::endl;
             auto ret = type_support.register_type(participant_.get());
             assert(ret == eprosima::fastdds::dds::TypeSupport::ReturnCode_t::RETCODE_OK);
         }
 
         assert(participant_->find_type(topic_data_type.getName()).empty() == false);
-        std::cout << "Double check: " << participant_->find_type(topic_data_type.getName()).get_type_name() << std::endl;
 
         // Create Topic
         auto find_topic = participant_->lookup_topicdescription(topic_name);
@@ -377,7 +374,6 @@ namespace cpm
         }
 
         // Create Reader
-        std::cout << "Creating ReaderParent" << std::endl;
         if (vehicle_id_filter > 0)
         {
             reader = std::shared_ptr<eprosima::fastdds::dds::DataReader>(

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 add_definitions(-Wall -Wextra -Werror=return-type)
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 # Fast DDS / eProsima
 if(NOT fastcdr_FOUND)

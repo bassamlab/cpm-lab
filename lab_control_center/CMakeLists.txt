@@ -238,7 +238,7 @@ else()
     target_link_libraries(lab_control_center cpm yaml-cpp stdc++fs ${LibXML++_LIBRARIES} ${GTKMM_LIBRARIES} fastrtps fastcdr foonathan_memory)
 endif()
 
-target_include_directories(lab_control_center PUBLIC ${GTKMM_INCLUDE_DIRS})
+target_include_directories(lab_control_center SYSTEM PUBLIC ${GTKMM_INCLUDE_DIRS})
 if(Matlab_FOUND)
     target_include_directories(
         lab_control_center PRIVATE
