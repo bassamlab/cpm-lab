@@ -283,6 +283,7 @@ int main(int argc, char *argv[]) {
                         cpm::Logging::Instance().write(1,
                             "Couldn't find starting position,\
                             try moving the vehicle.");
+                        return false;
                     } else {
 
                         // This graphs gives the priorities, as well as the order of planning
@@ -317,6 +318,7 @@ int main(int argc, char *argv[]) {
                     }
                 }
             }
+            return true;
             });
 
     hlc_communicator.onEachTimestep([&](VehicleStateList vehicle_state_list){
