@@ -69,9 +69,6 @@ class HLCCommunicator{
     //! SystemTrigger value that means "stop" (as defined in SystemTrigger.idl)
     const uint64_t trigger_stop = std::numeric_limits<uint64_t>::max();
 
-    //! Wether we've received a new VehicleStateList, so we only read it once
-    bool new_vehicleStateList = false;
-
     //! The latest VehicleStateList we have received
     VehicleStateList vehicle_state_list;
 

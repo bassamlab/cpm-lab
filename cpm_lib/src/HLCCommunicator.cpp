@@ -64,11 +64,9 @@ void HLCCommunicator::start(){
         auto state_samples = reader_vehicleStateList.take();
         if (!state_samples.empty()){
             // We received a StateList
-            new_vehicleStateList = true;
             // Only use the newest StateList
             vehicle_state_list = state_samples.back();
             hlc_is_ready = before_control_loop(vehicle_state_list);
-            new_vehicleStateList = false;
         }
         // Slow down the loop a bit
         usleep(20*1000);
@@ -84,23 +82,18 @@ void HLCCommunicator::start(){
 
     // Run this until we get a SystemTrigger to stop
     while(!stop) {
-        if(new_vehicleStateList){
+        auto state_samples = reader_vehicleStateList.take();
+        if (!state_samples.empty()){
+            // We received a StateList, which is our timing signal
+            // to send commands to vehicle
+            vehicle_state_list = state_samples.back();
             runTimestep();
-            new_vehicleStateList = false;
         }
 
         stop = stopSignalReceived();
 
         // Slow down the loop a bit
         usleep(10);
-
-        auto state_samples = reader_vehicleStateList.take();
-        if (!state_samples.empty()){
-            // We received a StateList, which is our timing signal
-            // to send commands to vehicle
-            new_vehicleStateList = true;
-            vehicle_state_list = state_samples.back();
-        }
     }
 
     // If on_stop is defined, call it now before we finish
@@ -185,12 +178,6 @@ void HLCCommunicator::stop(int vehicle_id){
 void HLCCommunicator::writeInfoMessage(){
     std::stringstream set_callbacks;
     std::stringstream unset_callbacks;
-
-    if( before_control_loop.target_type() == typeid(void)) {
-        unset_callbacks << "before_control_loop ";
-    } else {
-        set_callbacks << "before_control_loop ";
-    }
 
     if( on_each_timestep.target_type() == typeid(void)) {
         unset_callbacks << "on_each_timestep ";

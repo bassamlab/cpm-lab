@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
             // because it's required by this planner
             if(vehicle_state_list.period_ms()*1000000 != dt_nanos) {
                 cpm::Logging::Instance().write(1,
+                    "%s",
                     "Please set middleware_period_ms to 400ms"
                 );
                 return false;
@@ -126,7 +127,6 @@ int main(int argc, char *argv[])
                 return false;
             }
 
-            bool all_vehicles_matched = true;
             //match pose of vehicles with pose on map
             for(auto vehicle_state:vehicle_state_list.state_list())
             {
@@ -147,7 +147,6 @@ int main(int argc, char *argv[])
                 }
                 else //Errormessage, if not all vehicles could be matched to the map
                 {
-                    all_vehicles_matched = false;
                     cpm::Logging::Instance().write(
                         1,
                         "Error: Cannot start planning, vehicle %d not matched.",
@@ -156,18 +155,7 @@ int main(int argc, char *argv[])
                     return false;
                 }
             }
-
-            if(all_vehicles_matched)
-            {
-                return true;
-            }
-            else {
-                cpm::Logging::Instance().write(
-                    1,
-                    "Error: Cannot start planning, couldn't find all vehicles' positions"
-                );
-                return false;
-            }
+            return true;
     });
 
     hlc_communicator.onEachTimestep([&](VehicleStateList vehicle_state_list) {
