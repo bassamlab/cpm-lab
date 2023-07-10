@@ -373,8 +373,12 @@ void Controller::get_control_signals(uint64_t t_now, double &out_motor_throttle,
     double motor_throttle = 0;
     double steering_servo = 0;
 
-    if(m_vehicleState.IPS_update_age_nanoseconds() > 3000000000ull 
-        && state == ControllerState::Trajectory)
+    if (m_vehicleState.IPS_update_age_nanoseconds() > 3000000000ull
+        && (
+            state == ControllerState::Trajectory ||
+            state == ControllerState::PathTracking
+        )
+    )
     {
         //Use %s, else we get a warning that this is no string literal (we do not want unnecessary warnings to show up)
         cpm::Logging::Instance().write(
