@@ -1,17 +1,17 @@
 // MIT License
-// 
+//
 // Copyright (c) 2020 Lehrstuhl Informatik 11 - RWTH Aachen University
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,9 +19,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-// 
+//
 // This file is part of cpm_lab.
-// 
+//
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 // Set to true to get additional information about execution time in stdout
@@ -97,7 +97,7 @@ using std::vector;
  * \brief Main method to start a decentral HLC
  * \ingroup decentral_routing
  */
-int main(int argc, char *argv[]) {   
+int main(int argc, char *argv[]) {
 
     //We need to get the path to the executable, and argv[0] is not
     //reliable enough for that (and sometimes also only returns a relative path)
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
     // Initialize everything needed for communication with middleware
     const int middleware_domain = cpm::cmd_parameter_int("middleware_domain", 1, argc, argv);
 
-    /* --------------------------------------------------------------------------------- 
+    /* ---------------------------------------------------------------------------------
      * Create HLCCommunicator and a writer for communication with middleware
      * ---------------------------------------------------------------------------------
      */
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
     cpm::Writer<Visualization> writer_visualization(
             hlc_communicator.getLocalParticipant()->get_participant(),
             "visualization");
-    /* --------------------------------------------------------------------------------- 
+    /* ---------------------------------------------------------------------------------
      * Reader/Writers for direct comms between vehicles
      * ---------------------------------------------------------------------------------
      */
@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
     // Reader to receive planned trajectories of other vehicles
     cpm::ReaderAbstract<Trajectory> reader_trajectory(
             "trajectory");
-    
+
     /* ---------------------------------------------------------------------------------
      * Create planner object
      * ---------------------------------------------------------------------------------
@@ -266,12 +266,10 @@ int main(int argc, char *argv[]) {
     /*
      * This is additional initial setup of the planner.
      * We cannot do this before we received a VehicleStateList, but we only want to do it once.
-     * We use the 'onFirstTimestep' method of the HLCCommunicator for this.
-     * This will get executed just before 'onEachTimestep' is executed for the first time.
+     * We use the 'beforeControlLoop' method of the HLCCommunicator for this.
+     * This will get executed before 'onEachTimestep' is executed on the first timestep.
      */
-    hlc_communicator.onFirstTimestep([&](VehicleStateList vehicle_state_list){
-             cpm::Logging::Instance().write(1,
-            "First time step");
+    hlc_communicator.beforeControlLoop([&](VehicleStateList vehicle_state_list){
             bool matched = false;
             for(auto vehicle_state : vehicle_state_list.state_list())
             {
@@ -285,6 +283,7 @@ int main(int argc, char *argv[]) {
                         cpm::Logging::Instance().write(1,
                             "Couldn't find starting position,\
                             try moving the vehicle.");
+                        return false;
                     } else {
 
                         // This graphs gives the priorities, as well as the order of planning
@@ -319,7 +318,9 @@ int main(int argc, char *argv[]) {
                     }
                 }
             }
+            return true;
             });
+
     hlc_communicator.onEachTimestep([&](VehicleStateList vehicle_state_list){
                 try{
                     auto trajectory = planner->plan(vehicle_state_list.t_now(), vehicle_state_list.period_ms()*1e6);
@@ -340,10 +341,10 @@ int main(int argc, char *argv[]) {
                 }
             });
     hlc_communicator.onCancelTimestep([&]{
-                planner->stop(); 
+                planner->stop();
             });
     hlc_communicator.onStop([&]{
-                planner->stop(); 
+                planner->stop();
             });
 
     hlc_communicator.start();

@@ -87,14 +87,24 @@ int main(int argc, char *argv[])
     ///////////// writer and reader for sending trajectory commands////////////////////////
     //the writer will write data for the trajectory for the position of the vehicle (x,y) and the speed for each direction vecotr (vx,vy) and the vehicle ID
     cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory(
-            hlc_communicator.getLocalParticipant()->get_participant(), 
+            hlc_communicator.getLocalParticipant()->get_participant(),
             "vehicleCommandTrajectory");
 
     /////////////////////////////////Trajectory planner//////////////////////////////////////////
-    hlc_communicator.onFirstTimestep([&](VehicleStateList vehicle_state_list) {
+    hlc_communicator.beforeControlLoop([&](VehicleStateList vehicle_state_list) {
             // reset planner object
             planner = std::unique_ptr<MultiVehicleTrajectoryPlanner>(new MultiVehicleTrajectoryPlanner(dt_nanos));
             planner->set_real_time(vehicle_state_list.t_now());
+
+            // Do not start if middleware period is not 400ms
+            // because it's required by this planner
+            if(vehicle_state_list.period_ms()*1000000 != dt_nanos) {
+                cpm::Logging::Instance().write(1,
+                    "%s",
+                    "Please set middleware_period_ms to 400ms"
+                );
+                return false;
+            }
 
             //check for vehicles if online
             bool all_vehicles_online = true;
@@ -114,10 +124,9 @@ int main(int argc, char *argv[])
                     1,
                     "Error: Cannot start planning, can't find all vehicles in VehicleStateList from middleware"
                 );
-                throw std::runtime_error("Can't find all vehicles in VehicleStateList");
+                return false;
             }
 
-            bool all_vehicles_matched = true;
             //match pose of vehicles with pose on map
             for(auto vehicle_state:vehicle_state_list.state_list())
             {
@@ -138,56 +147,33 @@ int main(int argc, char *argv[])
                 }
                 else //Errormessage, if not all vehicles could be matched to the map
                 {
-                    all_vehicles_matched = false;
                     cpm::Logging::Instance().write(
                         1,
                         "Error: Cannot start planning, vehicle %d not matched.",
                         int(new_id)
                     );
-                    throw std::runtime_error("Couldn't match vehicle, see logs for details");
+                    return false;
                 }
             }
+            return true;
+    });
 
-            if(all_vehicles_matched)
-            {   
+    hlc_communicator.onEachTimestep([&](VehicleStateList vehicle_state_list) {
+            uint64_t t_now = vehicle_state_list.t_now();
+            planner->set_real_time(t_now);
+
+            if(!planner->is_started())//will be set to true after fist activation
+            {
                 //Start the Planner. That includes collision avoidance. In this case we avoid collisions by priority assignment
                 //with the consequence of speed reduction for the lower prioritized vehicle (here: Priority based on descending vehicle ID of the neighbours.)
                 planner->start();
             }
-            else {
-                cpm::Logging::Instance().write(
-                    1,
-                    "Error: Cannot start planning, couldn't find all vehicles' positions"
-                );
-                throw std::runtime_error("Couldn't find all vehicles' positions");
-            }
-    });
-    hlc_communicator.onEachTimestep([&](VehicleStateList vehicle_state_list) {
-            // Do not start if middleware period is not 400ms
-            // because it's required by this planner
-            if(vehicle_state_list.period_ms()*1000000 != dt_nanos) {
-                cpm::Logging::Instance().write(1,
-                    "Please set middleware_period_ms to 400ms"
-                );
-                return;
-            }
+            //get trajectory commands from MultiVehicleTrajectoryPlanner with new points for each vehicle ID
+            auto commands = planner->get_trajectory_commands(t_now);
 
-            uint64_t t_now = vehicle_state_list.t_now();
-            planner->set_real_time(t_now);
-
-            if(planner->is_started())//will be set to true after fist activation
+            for(auto& command:commands)
             {
-                //get trajectory commands from MultiVehicleTrajectoryPlanner with new points for each vehicle ID
-                auto commands = planner->get_trajectory_commands(t_now);
-                
-                for(auto& command:commands)
-                {
-                    writer_vehicleCommandTrajectory.write(command);
-                }
-            }
-            else //prepare to start planner
-            {
-                //Something went wrong
+                writer_vehicleCommandTrajectory.write(command);
             }
     });
 

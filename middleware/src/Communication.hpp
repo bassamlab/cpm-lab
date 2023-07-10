@@ -1,14 +1,15 @@
 #pragma once
 
-#include <string>
-#include <sstream>
-#include <functional>
-#include <memory>
-#include <vector>
-#include <map>
 #include <algorithm>
 #include <atomic>
+#include <functional>
+#include <map>
+#include <memory>
 #include <mutex>
+#include <set>
+#include <string>
+#include <sstream>
+#include <vector>
 
 #include "VehicleState.hpp"
 #include "VehicleStateList.hpp"
@@ -47,11 +48,16 @@ using namespace std::placeholders;
  */
 class Communication {
     private:
+
+        std::set<uint8_t> assigned_vehicle_ids;
+        std::set<uint8_t> hlc_online;
+
         //For HLC - communication
         cpm::Participant hlcParticipant;
         cpm::Writer<VehicleStateList> hlcStateWriter;
         //! DDS reader for getting ready status messages from the HLC (sent when it has finished its initialization)
         cpm::ReaderAbstract<ReadyStatus> hlc_ready_status_reader;
+
         //! Remember if all HLCs are online (checked by main using wait_for_hlc_ready_msg)
         std::atomic_bool all_hlc_online{false};
 
@@ -60,6 +66,7 @@ class Communication {
         cpm::Writer<SystemTrigger> hlc_system_trigger_writer;
         //! DDS async reader to receive timing information from the LCC, which are handled by the Middleware, not the HLC
         cpm::AsyncReader<SystemTrigger> lcc_system_trigger_reader;
+        bool experiment_triggered{false};
 
         //Goal states to HLC
         //! DDS writer to send Commonroad goal state information to the HLC
@@ -110,7 +117,8 @@ class Communication {
             std::vector<uint8_t> assigned_vehicle_ids,
             std::vector<uint8_t> active_vehicle_ids
         ) 
-        :hlcParticipant(hlcDomainNumber, "QOS_LOCAL_COMMUNICATION.xml", "MatlabLibrary::LocalCommunicationProfile")
+        :assigned_vehicle_ids(assigned_vehicle_ids.begin(),assigned_vehicle_ids.end())
+        ,hlcParticipant(hlcDomainNumber, "QOS_LOCAL_COMMUNICATION.xml", "MatlabLibrary::LocalCommunicationProfile")
         ,hlcStateWriter(hlcParticipant.get_participant(), vehicleStateListTopicName)
         ,hlc_ready_status_reader(hlcParticipant.get_participant(), "readyStatus", true, true, true)
 
@@ -118,13 +126,15 @@ class Communication {
         ,lcc_system_trigger_reader(
             std::bind(&Communication::pass_through_system_trigger, this, _1),
             "systemTrigger",
-            true)
+            true
+        )
 
         ,hlc_goal_state_writer(hlcParticipant.get_participant(), "commonroad_dds_goal_states", true, true, true)
         ,lcc_goal_state_reader(
             std::bind(&Communication::pass_through_goal_states, this, _1),
             "commonroad_dds_goal_states",
-            true, true)
+            true, true
+        )
 
         ,vehicleReader(cpm::get_topic<VehicleState>("vehicleState"), active_vehicle_ids)
 
@@ -161,7 +171,7 @@ class Communication {
                     return false;
 
                 //Real time - just log the error, then return
-                cpm::Logging::Instance().write(1, "HLC number %i has not yet sent any data", static_cast<int>(id));
+                cpm::Logging::Instance().write(3, "HLC number %i has not yet sent any data", static_cast<int>(id));
                 return true;
             }
 
@@ -303,6 +313,7 @@ class Communication {
         void pass_through_system_trigger(std::vector<SystemTrigger>& samples) {
             for (auto& sample : samples) {
                 hlc_system_trigger_writer.write(sample);
+                experiment_triggered = true;
             }
         }
 
@@ -329,54 +340,85 @@ class Communication {
         /**
          * \brief The list of vehicles IDs passed to the Middleware shows how many different HLCs the Middleware is connected to.
          * Each of the HLCs needs to send an initial bootup message s.t. the Middleware knows that they are all online.
-         * \param vehicle_ids Registered HLCs for this Middleware / HLCs to wait for
          */
-        void wait_for_hlc_ready_msg(const std::vector<uint8_t>& vehicle_ids) {
+        bool check_hlcs_online()
+        {
+            if (all_hlc_online)
+            {
+                if (!experiment_triggered)
+                {
+                    //Tell other parts of the program that they can now regard the HLCs as being online / able to receive
+                    //Create ready signal
+                    ReadyStatus ready_status;
+                    ready_status.next_start_stamp(TimeStamp(0));
+                    std::stringstream ready_id;
+                    ready_id << "MW for muCars";
+                    for (uint8_t vehicle_id : assigned_vehicle_ids) {
+                        ready_id << " " << static_cast<uint32_t>(vehicle_id) << ",";
+                    }
+                    ready_id.seekp(-1,ready_id.cur);
+                    ready_id << " ready.";
+                    ready_status.source_id(ready_id.str());
+                    //Send ready signal
+                    cpm::Writer<ReadyStatus> hlc_ready_status_writer(
+                        "readyStatus", true, false, true
+                    );
+                    hlc_ready_status_writer.write(ready_status);
+                }
+                return true;
+            }
+
+            std::set<uint8_t> hlc_offline;
+            std::set_difference(
+                assigned_vehicle_ids.begin(), assigned_vehicle_ids.end(),
+                hlc_online.begin(), hlc_online.end(),
+                std::inserter(hlc_offline, hlc_offline.end())
+            );
+
             std::vector<std::string> vehicle_ids_string;
-            for (uint8_t vehicle_id : vehicle_ids) {
+            for (uint8_t vehicle_id : hlc_offline) {
                 std::stringstream stream;
                 stream << "hlc_" << static_cast<uint32_t>(vehicle_id);
                 vehicle_ids_string.push_back(stream.str());
             }
 
+
             //Wait until all vehicle ids have been received at least once
-            //Log if waiting for longer times
-            unsigned int wait_cycles = 0;
-            while(vehicle_ids_string.size() > 0) {
+            if (vehicle_ids_string.size() > 0) {
                 for (auto data : hlc_ready_status_reader.take()) {
                     std::string source_id = data.source_id();
                     auto pos = std::find(vehicle_ids_string.begin(), vehicle_ids_string.end(), source_id);
                     if (pos != vehicle_ids_string.end()) {
                         vehicle_ids_string.erase(pos);
                     }
-                }
-
-                if (wait_cycles > 10)
-                {
-                    wait_cycles = 0;
-                    std::stringstream remaining_ids;
-                    for (auto id : vehicle_ids_string)
+                    try {
+                        uint8_t vehicle_id = std::stoi(source_id.substr(4));
+                        hlc_online.insert(vehicle_id);
+                    } catch (const std::exception& e) // reference to the base of a polymorphic object
                     {
-                        remaining_ids << id << " | ";
+                        cpm::Logging::Instance().write(
+                            1,
+                            "Extracting vehicle ID from HLCReady message failed with: %s",
+                            e.what()
+                        );
                     }
-
-                    cpm::Logging::Instance().write(2, "Still waiting for ready messages from the HLC in the Middleware for IDs: %s", remaining_ids.str().c_str());
                 }
-                
-                usleep(200000);
-                ++wait_cycles;
             }
-
-            //Tell other parts of the program that they can now regard the HLCs as being online / able to receive
-            all_hlc_online.store(true);
-            //Flush data that was received before the HLCs were online that is not periodical and could have been sent before
-            std::cout << "\t... sending buffered goal states to all HLCs" << std::endl; //Additional console log info after "Waiting for HLC..." in main (serves debugging purposes)
-            std::lock_guard<std::mutex> lock(hlc_goal_state_writer_mutex);
-            for (auto& sample : buffered_goal_states)
+            else
             {
-                hlc_goal_state_writer.write(sample);
+                all_hlc_online.store(true);
+                
+                std::cout << "All HLCs online." << std::endl;
+                //Flush data that was received before the HLCs were online that is not periodical and could have been sent before
+                std::cout << "\t... sending buffered goal states to all HLCs" << std::endl; //Additional console log info after "Waiting for HLC..." in main (serves debugging purposes)
+                std::lock_guard<std::mutex> lock(hlc_goal_state_writer_mutex);
+                for (auto& sample : buffered_goal_states)
+                {
+                    hlc_goal_state_writer.write(sample);
+                }
+                buffered_goal_states.clear();
             }
-            buffered_goal_states.clear();
+            return false;
         }
 
         /**
