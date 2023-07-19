@@ -281,7 +281,7 @@ if [ -z $SIMULATION ]; then
     cd /tmp
     sudo -u $real_user git clone https://github.com/opencv/opencv.git
     cd ./opencv
-    sudo -u $real_user git checkout 4.0.0
+    sudo -u $real_user git checkout 4.8.0
     sudo -u $real_user mkdir ./build
     cd ./build
     sudo -u $real_user cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/opt/opencv400 ..
