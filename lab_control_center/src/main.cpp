@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     //Second: Create path to cpm lib
     cpm_lib_path += "/cpm_lib/build/libcpm.so";
     auto ld_preload = cpm_lib_path;
-    ld_preload += ":/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/usr/local/lib/libfastcdr.so:/usr/local/lib/libfastrtps.so";
+    ld_preload += ":/usr/local/lib/libfastcdr.so:/usr/local/lib/libfastrtps.so";
     setenv("LD_PRELOAD", 
         ld_preload.c_str(), 
         1
@@ -255,12 +255,13 @@ int main(int argc, char *argv[])
         );
 
         //Create deploy class
-        std::shared_ptr<Deploy> deploy_functions = std::make_shared<Deploy>(
+        std::shared_ptr<Deploy> deploy = std::make_shared<Deploy>(
             cmd_domain_id, 
             cmd_dds_initial_peer, 
             [&](uint8_t id){vehicleAutomatedControl->stop_vehicle(id);},
             program_executor,
-            absolute_executable_path
+            absolute_executable_path,
+            logStorage
         );
 
         //UI classes
@@ -275,7 +276,7 @@ int main(int argc, char *argv[])
         );
         auto rtt_aggregator = make_shared<RTTAggregator>();
         auto monitoringUi = make_shared<MonitoringUi>(
-            deploy_functions, 
+            deploy, 
             [&](){return timeSeriesAggregator->get_vehicle_data();}, 
             [&](){return hlcReadyAggregator->get_hlc_ids_uint8_t();},
             [&](){return timeSeriesAggregator->get_vehicle_trajectory_commands();},
@@ -298,7 +299,7 @@ int main(int argc, char *argv[])
         auto writer_planning_problems = std::make_shared<cpm::Writer<CommonroadDDSGoalStatePubSubType>>("commonroad_dds_goal_states", true, true, true);
 
         setupViewUi = make_shared<SetupViewUI>(
-            deploy_functions,
+            deploy,
             vehicleAutomatedControl, 
             hlcReadyAggregator, 
             goToPlanner,

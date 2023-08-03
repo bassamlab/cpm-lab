@@ -60,7 +60,7 @@ TEST_CASE("Logging") {
     std::ifstream file;
     std::string str;
     std::stringstream file_content;
-    file.open(cpm::Logging::Instance().get_filename());
+    file.open(cpm::Logging::Instance().get_logfile_path());
     while (std::getline(file, str)) {
         // String to second stringstream
         file_content << str;
@@ -89,7 +89,7 @@ TEST_CASE("Logging") {
     usleep(10000);  // Sleep 10ms to let the Logger access the file first
     str.clear();
     file_content.str(std::string());
-    file.open(cpm::Logging::Instance().get_filename());
+    file.open(cpm::Logging::Instance().get_logfile_path());
     while (std::getline(file, str)) {
         // String to second stringstream
         file_content << str << "\n";

@@ -1,4 +1,5 @@
 #include "Deploy.hpp"
+#include <filesystem>
 
 /**
  * \file Deploy.cpp
@@ -10,13 +11,17 @@ Deploy::Deploy(
     std::string _cmd_dds_initial_peer,
     std::function<void(uint8_t)> _stop_vehicle,
     std::shared_ptr<ProgramExecutor> _program_executor,
-    std::string _absolute_exec_path) : cmd_domain_id(_cmd_domain_id),
-                                       cmd_dds_initial_peer(_cmd_dds_initial_peer),
-                                       stop_vehicle(_stop_vehicle),
-                                       program_executor(_program_executor)
+    std::string _absolute_exec_path,
+    std::shared_ptr<LogStorage> _log_storage
+) :
+    cmd_domain_id(_cmd_domain_id),
+    cmd_dds_initial_peer(_cmd_dds_initial_peer),
+    stop_vehicle(_stop_vehicle),
+    program_executor(_program_executor),
+    log_storage(_log_storage)
 {
-    // Construct the path to the folder by erasing all parts to the executable that are obsolete
-    // Executable path: .../software/lab_control_center/build/lab_control_center
+    //Construct the path to the folder by erasing all parts to the executable that are obsolete
+    //Executable path: .../software/lab_control_center/build/lab_control_center
     //-> Remove everything up to the third-last slash
     software_folder_path = _absolute_exec_path;
     for (int i = 0; i < 3; ++i)
@@ -35,9 +40,7 @@ Deploy::Deploy(
         software_top_folder_path = software_top_folder_path.substr(0, last_slash);
     }
 
-    // Create the log folder for the first time (or delete an outdated version of it)
-    // Some parts get deleted with every deploy in Setup (using delete_old_logs)
-    create_log_folder();
+    session_log_folder = log_storage->datetime_log_folder();
 }
 
 Deploy::~Deploy()
@@ -61,6 +64,8 @@ Deploy::~Deploy()
 
 void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int> active_vehicle_ids, std::string script_path, std::string script_params)
 {
+    experiment_log_folder = log_storage->next_experiment_log_folder();
+
     std::string sim_time_string = bool_to_string(use_simulated_time);
 
     // Check if old session already exists - if so, kill it
@@ -93,16 +98,17 @@ void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int>
             {
                 script_name_string = script_name_string.substr(0, matlab_type_pos);
 
-                // Case: Matlab script
-                command
-                    << "tmux new-session -d "
-                    << "-s \"" << hlc_session << "\" "
-                    << "'. " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;"
-                    << ". " << software_folder_path << "/lab_control_center/bash/matlab_eprosima_preload.bash;"
-                    << "matlab -logfile matlab.log"
-                    << " -sd \"" << script_path_string
-                    << "\" -batch \"" << script_name_string << "(" << script_params << (script_params.size() > 0 ? "," : "") << default_middleware_domain_id << ", " << vehicle_ids_stream.str() << ")\""
-                    << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << hlc_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << hlc_session << ".txt'";
+                //Case: Matlab script
+                command 
+                << "tmux new-session -d "
+                << "-s \"" << hlc_session << "\" "
+                << "'. " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;"
+                << ". " << software_folder_path << "/lab_control_center/bash/matlab_eprosima_preload.bash;"
+                << "matlab -logfile matlab.log"
+                << " -sd \"" << script_path_string
+                << "\" -batch \"" << script_name_string << "(" << script_params << (script_params.size() > 0 ? "," : "") << default_middleware_domain_id << ", " << vehicle_ids_stream.str() << ")\""
+                << get_logging_suffix(Deploy::LogType::LOCAL_HLC)
+                << "\"";
             }
             else if (script_name_string.find(".") == std::string::npos)
             {
@@ -121,8 +127,7 @@ void Deploy::deploy_local_hlc(bool use_simulated_time, std::vector<unsigned int>
                 {
                     command << command_line_discovery_server_params();
                 }
-                command
-                    << " " << script_params << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << hlc_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << hlc_session << ".txt\"";
+                command << get_logging_suffix(Deploy::LogType::LOCAL_HLC) << "\"";
             }
             else
             {
@@ -153,6 +158,7 @@ void Deploy::kill_local_hlc()
 
 void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<unsigned int> active_vehicle_ids, std::string script_path, std::string script_params)
 {
+    experiment_log_folder = log_storage->next_experiment_log_folder();
     std::string sim_time_string = bool_to_string(use_simulated_time);
 
     // Check if old session already exists - if so, kill it
@@ -211,12 +217,7 @@ void Deploy::deploy_separate_local_hlcs(bool use_simulated_time, std::vector<uns
             {
                 command << command_line_discovery_server_params();
             }
-            command
-                << " " << script_params << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << hlc_session << ""
-                << std::to_string(vehicle_id)
-                << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << hlc_session << ""
-                << std::to_string(vehicle_id)
-                << ".txt\"";
+            command << get_logging_suffix(Deploy::LogType::LOCAL_HLC, std::to_string(vehicle_id)) << "\"";
         }
         else
         {
@@ -319,10 +320,8 @@ void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream &v
     {
         middleware_command << command_line_discovery_server_params();
     }
-    middleware_command
-        << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << middleware_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << middleware_session << ".txt\"";
-
-    // Execute command
+    middleware_command << get_logging_suffix(Deploy::LogType::MIDDLEWARE) << "\"";
+    //Execute command
     program_executor->execute_command(middleware_command.str());
 }
 
@@ -357,10 +356,8 @@ void Deploy::deploy_sim_vehicle(unsigned int id, bool use_simulated_time)
     {
         command << command_line_discovery_server_params();
     }
-    command
-        << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << vehicle_session << id << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << vehicle_session << id << ".txt\"";
-
-    // Execute command
+    command << get_logging_suffix(Deploy::LogType::SIM_VEHICLE, std::to_string(id)) << "\"";
+    //Execute command
     auto command_worked = program_executor->execute_command(command.str());
     if (!command_worked)
         std::cout << "ERROR: Program command for vehicle failed!" << std::endl;
@@ -422,7 +419,7 @@ void Deploy::reboot_real_vehicle(unsigned int vehicle_id, unsigned int timeout_s
                 std::stringstream command_kill_real_vehicle;
                 command_kill_real_vehicle
                     << "sshpass -p cpmcpmcpm ssh -o StrictHostKeyChecking=no -o ConnectTimeout=" << (timeout_seconds + 10) << " -t pi@" << ip << " \"sudo reboot now\""
-                    << " >" << software_top_folder_path << "/lcc_script_logs/stdout_vehicle_reboot.txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_vehicle_reboot.txt";
+                    << " >" << software_top_folder_path << "/lcc_script_logs" << session_log_folder << "/stdout_vehicle_reboot.txt 2>" << software_top_folder_path << "/lcc_script_logs/" << session_log_folder << "/stderr_vehicle_reboot.txt";
                 bool msg_success = program_executor->execute_command(command_kill_real_vehicle.str().c_str(), timeout_seconds);
 
                 if (!msg_success)
@@ -475,7 +472,7 @@ void Deploy::reboot_hlcs(std::vector<uint8_t> hlc_ids, unsigned int timeout_seco
                     std::stringstream command_reboot_hlc;
                     command_reboot_hlc
                         << "sshpass ssh -o ConnectTimeout=" << (timeout_seconds + 10) << " -t guest@" << ip << " \"sudo reboot\""
-                        << " >" << software_top_folder_path << "/lcc_script_logs/stdout_hlc_reboot.txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_hlc_reboot.txt";
+                        << this->get_logging_suffix(Deploy::LogType::NUC_REBOOT, std::to_string(hlc_id));
                     bool msg_success = program_executor->execute_command(command_reboot_hlc.str().c_str(), timeout_seconds);
 
                     if (!msg_success)
@@ -531,6 +528,7 @@ void Deploy::join_finished_hlc_reboot_threads()
 
 bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, bool use_simulated_time, std::string script_path, std::string script_params, unsigned int timeout_seconds)
 {
+    experiment_log_folder = log_storage->next_experiment_log_folder();
     // //TODO: WORK WITH TEMPLATE STRINGS AND PUT LOGIC INTO SEPARATE CLASS
 
     // Get the IP address from the current id
@@ -583,14 +581,15 @@ bool Deploy::deploy_remote_hlc(unsigned int hlc_id, std::string vehicle_ids, boo
 
     // Copy all relevant data over to the remote system
     std::stringstream copy_command;
-    // Okay, do this using a template script instead, I think that's better in this case
-    copy_command << software_folder_path << "/lab_control_center/bash/copy_to_remote.bash --ip=" << ip_stream.str()
-                 << " --script_path=" << script_path
-                 << " --script_arguments='" << script_argument_stream.str() << "'"
-                 << " --middleware_arguments='" << middleware_argument_stream.str() << "'"
-                 << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << remote_copy_log_name << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << remote_copy_log_name << ".txt";
+    //Okay, do this using a template script instead, I think that's better in this case
+    copy_command << software_folder_path << "/lab_control_center/bash/copy_to_remote.bash --ip=" << ip_stream.str() 
+        << " --script_path=" << script_path 
+        << " --script_arguments='" << script_argument_stream.str() << "'"
+        << " --middleware_arguments='" << middleware_argument_stream.str() << "'"
+        << get_logging_suffix(Deploy::LogType::NUC_HLC_COPY);
+        //
 
-    // Spawn and manage new process
+    //Spawn and manage new process
     return program_executor->execute_command(copy_command.str().c_str(), timeout_seconds);
 }
 
@@ -608,9 +607,9 @@ bool Deploy::kill_remote_hlc(unsigned int hlc_id, unsigned int timeout_seconds)
     // Kill the middleware and script tmux sessions running on the remote system
     std::stringstream kill_command;
     kill_command << software_folder_path << "/lab_control_center/bash/remote_kill.bash --ip=" << ip_stream.str()
-                 << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << remote_kill_log_name << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << remote_kill_log_name << ".txt";
-
-    // Spawn and manage new process
+        << get_logging_suffix(Deploy::LogType::KILL_TMUX_SESSION);
+        
+    //Spawn and manage new process
     return program_executor->execute_command(kill_command.str().c_str(), timeout_seconds);
 }
 
@@ -630,8 +629,8 @@ void Deploy::deploy_ips()
     {
         command_ips << command_line_discovery_server_params();
     }
-    command_ips
-        << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << ips_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << ips_session << ".txt\"";
+    command_ips 
+        << get_logging_suffix(Deploy::LogType::IPS, ips_session) << "\"";
 
     // Kill previous ips basler session if it still exists
     kill_session(basler_session);
@@ -647,8 +646,7 @@ void Deploy::deploy_ips()
     {
         command_basler << command_line_discovery_server_params();
     }
-    command_basler
-        << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << basler_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << basler_session << ".txt\"";
+    command_basler << get_logging_suffix(Deploy::LogType::BASLER) << "\"";
 
     // Execute command
     program_executor->execute_command(command_ips.str());
@@ -674,9 +672,10 @@ void Deploy::deploy_labcam(std::string path, std::string file_name)
         << "\"cd " << software_folder_path << "/lab_control_center/build/labcam;./labcam_recorder "
         << " --path=" << path
         << " --file_name=" << file_name
-        << " >" << software_top_folder_path << "/lcc_script_logs/stdout_" << labcam_session << ".txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_" << labcam_session << ".txt\"";
+        << get_logging_suffix(Deploy::LogType::CAMERA_RECORDING)
+        << "\"";
 
-    // Execute command
+    //Execute command
     program_executor->execute_command(command.str());
 }
 
@@ -750,12 +749,11 @@ void Deploy::deploy_recording(std::string recording_folder)
         << "-s \"" << recording_session << "\" "
         << "rtirecordingservice "
         << "-cfgFile " << config_path_out << " "
-        << "-cfgName cpm_recorder"
-        << " "
-        << ">" << software_top_folder_path << "/lcc_script_logs/stdout_recording.txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_recording.txt";
+        << "-cfgName cpm_recorder" << " "
+        << get_logging_suffix(Deploy::LogType::DDS_RECORDING) << "\"";
 
-    // std::cout << command.str() << std::endl;
-    // Execute command
+    //std::cout << command.str() << std::endl;
+    //Execute command
     program_executor->execute_command(command.str());
 }
 
@@ -858,9 +856,9 @@ void Deploy::kill_session(std::string session_id, float delay) // delay default 
 
         command
             << "tmux kill-session -t \"" << session_id << "\""
-            << " >" << software_top_folder_path << "/lcc_script_logs/stdout_tmux_kill.txt 2>" << software_top_folder_path << "/lcc_script_logs/stderr_tmux_kill.txt";
-
-        // Execute command
+            << get_logging_suffix(Deploy::LogType::KILL_TMUX_SESSION);
+            
+        //Execute command
         program_executor->execute_command(command.str());
     }
 }
@@ -891,18 +889,6 @@ std::string Deploy::bool_to_string(bool var)
     }
 }
 
-void Deploy::create_log_folder(std::string folder_name)
-{
-    // Generate command
-    std::stringstream command_folder;
-    command_folder
-        << "rm -rf " << software_top_folder_path << "/" << folder_name << ";"
-        << "mkdir -p " << software_top_folder_path << "/" << folder_name;
-
-    // Execute command
-    program_executor->execute_command(command_folder.str());
-}
-
 void Deploy::delete_old_logs(std::string folder_name)
 {
     // Check if the log folder exists
@@ -910,9 +896,9 @@ void Deploy::delete_old_logs(std::string folder_name)
     log_folder.append("/");
     log_folder.append(folder_name);
 
-    if (!std::experimental::filesystem::exists(log_folder.c_str()))
+    if (! std::filesystem::exists(log_folder.c_str()))
     {
-        create_log_folder(folder_name);
+        log_storage->create_log_folder(folder_name);
     }
 
     // Now delete files in that folder that are outdated
@@ -927,7 +913,7 @@ void Deploy::delete_old_logs(std::string folder_name)
 
     // First: Get list of all files to delete
     std::vector<std::string> files_to_delete;
-    for (const auto &element : std::experimental::filesystem::directory_iterator(log_folder.c_str()))
+    for(const auto& element : std::filesystem::directory_iterator(log_folder.c_str()))
     {
         std::string file_path = element.path();
 
@@ -948,14 +934,83 @@ void Deploy::delete_old_logs(std::string folder_name)
     // we should be in control of the content of that folder anyway and it gets re-created w. LCC start)
     for (const auto &file : files_to_delete)
     {
-        std::experimental::filesystem::remove(file.c_str());
+        std::filesystem::remove(file.c_str());
     }
 }
 
-std::string Deploy::command_line_discovery_server_params()
-{
-    return std::string(" --discovery_mode=client") +
-           std::string(" --discovery_server_id=") + cpm::InternalConfiguration::Instance().get_discovery_server_id() +
-           std::string(" --discovery_server_ip=") + cpm::InternalConfiguration::Instance().get_discovery_server_ip() +
-           std::string(" --discovery_server_port=") + std::to_string(cpm::InternalConfiguration::Instance().get_discovery_server_port());
+std::string Deploy::command_line_discovery_server_params() {
+  return std::string(" --discovery_mode=client") +
+         std::string(" --discovery_server_id=") + cpm::InternalConfiguration::Instance().get_discovery_server_id() +
+         std::string(" --discovery_server_ip=") + cpm::InternalConfiguration::Instance().get_discovery_server_ip() +
+         std::string(" --discovery_server_port=") +std::to_string(cpm::InternalConfiguration::Instance().get_discovery_server_port());
+}
+
+
+void Deploy::gather_experiment_logs(){
+    std::ostringstream download_logs_command;
+
+    download_logs_command << software_folder_path << "/lab_control_center/bash/download_all_logs.bash "
+        << log_storage->get_session_log_path() << "/" << experiment_log_folder << "/";
+
+    program_executor->execute_command(download_logs_command.str());
+}
+
+std::string Deploy::get_logging_suffix(Deploy::LogType type, std::string id){
+    std::ostringstream log_command_suffix;
+    std::ostringstream base_path;
+    std::ostringstream stdout_path;
+    std::ostringstream stderr_path;
+
+    base_path << log_storage->get_session_log_path();
+
+    switch (type) {
+        case Deploy::LogType::MIDDLEWARE :
+            stdout_path << base_path.str() << experiment_log_folder << "/" << "stdout_" << middleware_session  << ".txt";
+            stderr_path << base_path.str() << experiment_log_folder << "/" << "stderr_" << middleware_session << ".txt";
+        break;
+        case Deploy::LogType::LOCAL_HLC :
+            stdout_path << base_path.str() << experiment_log_folder << "/" << "stdout_" << hlc_session << ".txt";
+            stderr_path << base_path.str() << experiment_log_folder << "/" << "stderr_" << hlc_session << ".txt";
+        break;
+        case Deploy::LogType::IPS:
+            stdout_path << base_path.str() << "stdout_" << id << ".txt";
+            stderr_path << base_path.str() << "stderr_" << id << ".txt";
+        break;
+        case Deploy::LogType::SIM_VEHICLE:
+            stdout_path << base_path.str() << "stdout_" << vehicle_session << id << ".txt";
+            stderr_path << base_path.str() << "stderr_" << vehicle_session << id << ".txt";
+        break;
+        case Deploy::LogType::NUC_HLC_COPY:
+            stdout_path << base_path.str() << "stdout_" << remote_copy_log_name << ".txt";
+            stderr_path << base_path.str() << "stderr_" << remote_copy_log_name << ".txt";
+        break;
+        case Deploy::LogType::KILL_TMUX_SESSION:
+            stdout_path << base_path.str() << "stdout_tmux_kill.txt";
+            stderr_path << base_path.str() << "stderr_tmux_kill.txt";
+        break;
+        case Deploy::LogType::DDS_RECORDING:
+            stdout_path << base_path.str() << "stdout_recording.txt";
+            stderr_path << base_path.str() << "stderr_recording.txt";
+        break;
+        case Deploy::LogType::CAMERA_RECORDING:
+            stdout_path << base_path.str() << "stdout_" << labcam_session << ".txt";
+            stderr_path << base_path.str() << "stderr_" << labcam_session << ".txt";
+        break;
+        case Deploy::LogType::NUC_REBOOT:
+            stdout_path << base_path.str() << "stdout_hlc_reboot.txt";
+            stderr_path << base_path.str() << "stderr_hlc_reboot.txt";
+        break;
+        case Deploy::LogType::NUC_HLC_KILL:
+            stdout_path << base_path.str() << "stdout_" << remote_kill_log_name << ".txt";
+            stderr_path << base_path.str() << "stderr_" << remote_kill_log_name << ".txt";
+        break;
+        case Deploy::LogType::BASLER:
+            stdout_path << base_path.str() << "stdout_" << basler_session << ".txt";
+            stderr_path << base_path.str() << "stderr_" << basler_session << ".txt";
+        break;
+    }
+
+    log_command_suffix << " >"  << stdout_path.str() << " 2>" << stderr_path.str();
+    //std::cout << log_command_suffix.str() << std::endl; 
+    return log_command_suffix.str();
 }

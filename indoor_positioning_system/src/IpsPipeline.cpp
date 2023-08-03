@@ -76,7 +76,7 @@ void IpsPipeline::apply(LedPoints led_points)
     // Send via DDS
     for(auto &vehicleObservation:vehicleObservations)
     {
-        if(vehicleObservation.vehicle_id() > 0 && vehicleObservation.vehicle_id() < MAX_NUM_VEHICLES)
+        if(vehicleObservation.vehicle_id() > 0 && vehicleObservation.vehicle_id() < cpm::Constants::MAX_NUM_VEHICLES)
         {
             writers_vehicleObservation[vehicleObservation.vehicle_id() - 1]->write(vehicleObservation);
         }

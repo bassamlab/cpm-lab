@@ -152,4 +152,4 @@ cp -a /tmp/software/eprosima_matlab_package/. ./
 cd ~
 
 # Default domain is 21, just like the vehicle default domain (-> domain for real lab tests)
-/tmp/software/autostart_package/autostart --dds_domain=21 --discovery_server_ip=${discovery_server[0]} --discovery_server_port=${discovery_server[1]} --discovery_server_id=${discovery_server[2]}  &> ~/autostart/log.log 
+/tmp/software/autostart_package/autostart --dds_domain=21 --discovery_mode=client --discovery_server_ip=${discovery_server[0]} --discovery_server_port=${discovery_server[1]} --discovery_server_id=${discovery_server[2]}  &> ~/autostart/log.log 
