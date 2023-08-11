@@ -33,6 +33,7 @@
 #include "cpm/dds/VehicleCommandSpeedCurvaturePubSubTypes.h"
 #include "cpm/dds/VehicleCommandDirectPubSubTypes.h"
 #include "cpm/dds/ReadyStatusPubSubTypes.h"
+#include "cpm/dds/TimeStampPubSubTypes.h"
 #include "cpm/dds/SystemTriggerPubSubTypes.h"
 #include "cpm/dds/VehicleObservationPubSubTypes.h"
 
@@ -374,7 +375,6 @@ public:
                     //Tell other parts of the program that they can now regard the HLCs as being online / able to receive
                     //Create ready signal
                     ReadyStatus ready_status;
-                    ready_status.next_start_stamp(TimeStamp(0));
                     std::stringstream ready_id;
                     ready_id << "MW for muCars";
                     for (uint8_t vehicle_id : assigned_vehicle_ids) {
@@ -384,8 +384,8 @@ public:
                     ready_id << " ready.";
                     ready_status.source_id(ready_id.str());
                     //Send ready signal
-                    cpm::Writer<ReadyStatus> hlc_ready_status_writer(
-                        "readyStatus", true, false, true
+                    cpm::Writer<ReadyStatusPubSubType> hlc_ready_status_writer(
+                        hlcParticipant.get_participant(), "readyStatus", true, false, true
                     );
                     hlc_ready_status_writer.write(ready_status);
                 }

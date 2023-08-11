@@ -89,13 +89,8 @@ int main(int argc, char *argv[])
 
     ///////////// writer and reader for sending trajectory commands////////////////////////
     //the writer will write data for the trajectory for the position of the vehicle (x,y) and the speed for each direction vecotr (vx,vy) and the vehicle ID
-<<<<<<< HEAD
     cpm::Writer<VehicleCommandTrajectoryPubSubType> writer_vehicleCommandTrajectory(
             hlc_communicator.getLocalParticipant()->get_participant(), 
-=======
-    cpm::Writer<VehicleCommandTrajectory> writer_vehicleCommandTrajectory(
-            hlc_communicator.getLocalParticipant()->get_participant(),
->>>>>>> have before_control_loop return true if the hlc is ready. adjust central_routing accordingly
             "vehicleCommandTrajectory");
 
     /////////////////////////////////Trajectory planner//////////////////////////////////////////
