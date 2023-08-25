@@ -39,7 +39,7 @@ int main (int argc, char *argv[]) {
     //uint64_t period_nanoseconds = cpm::cmd_parameter_uint64_t("period_nanoseconds", 250000000, argc, argv);
     bool simulated_time_allowed = true;
     bool simulated_time = cpm::cmd_parameter_bool("simulated_time", false, argc, argv);
-    bool wait_for_start = cpm::cmd_parameter_bool("wait_for_start", false, argc, argv);
+    bool wait_for_start = cpm::cmd_parameter_bool("wait_for_start", true, argc, argv);
 
     //Parameter settings via LCC
     std::cout << "Waiting for parameter 'middleware_period_ms' set by LCC ..." << std::endl;

@@ -312,7 +312,6 @@ void Deploy::deploy_middleware(std::string sim_time_string, std::stringstream &v
         << "-s \"" << middleware_session << "_" << middleware_domain_id << "\" "
         << "\". " << software_folder_path << "/lab_control_center/bash/environment_variables_local.bash;cd " << software_folder_path << "/middleware/build/;./middleware"
         << " --node_id=middleware_" << middleware_domain_id
-        << " --wait_for_start=false"
         << " --simulated_time=" << sim_time_string
         << " --vehicle_ids=" << vehicle_ids_stream.str()
         << " --dds_domain=" << cmd_domain_id
