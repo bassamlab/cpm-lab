@@ -61,6 +61,8 @@ private:
     cpm::Writer<VehicleStateListPubSubType> hlcStateWriter;
     //! DDS reader for getting ready status messages from the HLC (sent when it has finished its initialization)
     cpm::ReaderAbstract<ReadyStatusPubSubType> hlc_ready_status_reader;
+    //! DDS writer for writing ready status messages to the LCC (sent when all HLCs are online)
+    cpm::Writer<ReadyStatusPubSubType> lcc_ready_status_writer;
 
     //! Remember if all HLCs are online (checked by main using wait_for_hlc_ready_msg)
     std::atomic_bool all_hlc_online{false};
@@ -122,30 +124,28 @@ public:
         std::vector<uint8_t> assigned_vehicle_ids,
         std::vector<uint8_t> active_vehicle_ids)
         : assigned_vehicle_ids(assigned_vehicle_ids.begin(),assigned_vehicle_ids.end())
-        ,hlcParticipant(hlcDomainNumber, true), hlcStateWriter(hlcParticipant.get_participant(), vehicleStateListTopicName), hlc_ready_status_reader(hlcParticipant.get_participant(), "readyStatus", true, true, true)
-
+        ,hlcParticipant(hlcDomainNumber, true)
+        ,hlcStateWriter(hlcParticipant.get_participant(), vehicleStateListTopicName)
+        ,hlc_ready_status_reader(hlcParticipant.get_participant(), "readyStatus", true, true)
+        ,lcc_ready_status_writer("readyStatus", true)
         ,hlc_system_trigger_writer(hlcParticipant.get_participant(), "systemTrigger", true)
         ,lcc_system_trigger_reader(
             std::bind(&Communication::pass_through_system_trigger, this, _1),
             "systemTrigger",
             true
         )
-
         ,hlc_goal_state_writer(hlcParticipant.get_participant(), "commonroad_dds_goal_states", true, true, true)
         ,lcc_goal_state_reader(
             std::bind(&Communication::pass_through_goal_states, this, _1),
             "commonroad_dds_goal_states",
             true, true
         )
-
-          ,
-          vehicleReader("vehicleState", active_vehicle_ids)
-
-          ,
-          vehicleObservationReader("vehicleObservation", active_vehicle_ids)
-
-          ,
-          trajectoryCommunication(hlcParticipant, vehicleTrajectoryTopicName, _timer, assigned_vehicle_ids), pathTrackingCommunication(hlcParticipant, vehiclePathTrackingTopicName, _timer, assigned_vehicle_ids), speedCurvatureCommunication(hlcParticipant, vehicleSpeedCurvatureTopicName, _timer, assigned_vehicle_ids), directCommunication(hlcParticipant, vehicleDirectTopicName, _timer, assigned_vehicle_ids)
+        ,vehicleReader("vehicleState", active_vehicle_ids)
+        ,vehicleObservationReader("vehicleObservation", active_vehicle_ids)
+        ,trajectoryCommunication(hlcParticipant, vehicleTrajectoryTopicName, _timer, assigned_vehicle_ids)
+        ,pathTrackingCommunication(hlcParticipant, vehiclePathTrackingTopicName, _timer, assigned_vehicle_ids)
+        ,speedCurvatureCommunication(hlcParticipant, vehicleSpeedCurvatureTopicName, _timer, assigned_vehicle_ids)
+        ,directCommunication(hlcParticipant, vehicleDirectTopicName, _timer, assigned_vehicle_ids)
     {
     }
 
@@ -169,13 +169,12 @@ public:
         if (!(latest_response_trajectory.has_value() || latest_response_curvature.has_value() || latest_response_direct.has_value() || latest_response_path_tracking.has_value()))
         {
             // Simulated time - we have not yet received any msg
-            if (period_nanoseconds == 0)
-                return false;
+            if (period_nanoseconds == 0) return false;
 
-                // Real time - just log the error, then return
-                cpm::Logging::Instance().write(3, "HLC number %i has not yet sent any data", static_cast<int>(id));
-                return true;
-            }
+            // Real time - just log the error, then return
+            cpm::Logging::Instance().write(3, "HLC number %i has not yet sent any data", static_cast<int>(id));
+            return true;
+        }
 
         //  (Get highest of all values)
         auto max_latest_response = latest_response_trajectory.value_or(0);
@@ -384,10 +383,7 @@ public:
                     ready_id << " ready.";
                     ready_status.source_id(ready_id.str());
                     //Send ready signal
-                    cpm::Writer<ReadyStatusPubSubType> hlc_ready_status_writer(
-                        hlcParticipant.get_participant(), "readyStatus", true, false, true
-                    );
-                    hlc_ready_status_writer.write(ready_status);
+                    lcc_ready_status_writer.write(ready_status);
                 }
                 return true;
             }

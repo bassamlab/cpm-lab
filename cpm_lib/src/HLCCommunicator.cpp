@@ -35,8 +35,6 @@ HLCCommunicator::HLCCommunicator(std::vector<uint8_t> _vehicle_ids, int middlewa
     writer_readyStatus(
             p_local_comms_participant->get_participant(),
             "readyStatus",
-            true,
-            true,
             true),
     writer_stopRequest("stopRequest"),
     reader_vehicleStateList(
