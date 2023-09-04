@@ -1,17 +1,17 @@
 // MIT License
-// 
+//
 // Copyright (c) 2020 Lehrstuhl Informatik 11 - RWTH Aachen University
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,9 +19,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-// 
+//
 // This file is part of cpm_lab.
-// 
+//
 // Author: i11 - Embedded Software, RWTH Aachen University
 
 // Set to true to get additional information about execution time in stdout
@@ -56,9 +56,9 @@ class HLCCommunicator{
      * \ingroup cpmlib
      */
 
-    //! Vehicle IDs; needed for the ready message 
+    //! Vehicle IDs; needed for the ready message
     std::vector<uint8_t> vehicle_ids;
-    
+
     //! String containing all vehicle ids; used for identification in messages
     std::string vehicle_ids_string;
 
@@ -67,12 +67,6 @@ class HLCCommunicator{
 
     //! SystemTrigger value that means "stop" (as defined in SystemTrigger.idl)
     const uint64_t trigger_stop = std::numeric_limits<uint64_t>::max();
-
-    //! Is only true on the first timestep
-    bool first_timestep = true;
-
-    //! Wether we've received a new VehicleStateList, so we only read it once
-    bool new_vehicleStateList = false;
 
     //! The latest VehicleStateList we have received
     VehicleStateList vehicle_state_list;
@@ -86,8 +80,9 @@ class HLCCommunicator{
     //! Reader to read SystemTrigger messages from Middleware (for stop signal)
     cpm::ReaderAbstract<SystemTriggerPubSubType>      reader_systemTrigger;
 
-    //! Callback function for when we need to take on the first timestep
-    std::function<void(VehicleStateList)>   on_first_timestep;
+    //! Callback function for setup before the first timestep. Returns true if successful.
+    std::function<bool(VehicleStateList)>   before_control_loop = ([](VehicleStateList){ return true; });
+
     //! Callback function for when we need to take every timestep (including the first one)
     std::function<void(VehicleStateList)>   on_each_timestep;
     //! Callback function for when we need to cancel a planning timestep before it's finished
@@ -119,6 +114,13 @@ class HLCCommunicator{
      * in the next_start field. That means we need to stop.
      */
     bool stopSignalReceived();
+
+    /**
+     * \brief Check for the start signal or the stop signal if the experiment is aborted
+     * Check if we have received a SystemTrigger. If it hast the maximum value of a uint64
+     * in the next_start field, we need to stop. Else, we can start.
+     */
+    void waitForSystemTrigger(bool &stop);
 
     /**
      * \brief Writes a short summary of the setup to Logging
@@ -157,13 +159,13 @@ public:
     std::shared_ptr<cpm::Participant> getLocalParticipant(){ return p_local_comms_participant; };
 
     /**
-     * \brief Additional steps that need to be taken on the first timestep
+     * \brief Additional steps that need to be taken before the HLC is ready for the first timestep
      * \param callback Callback function (e.g. a lambda or a std::function), that takes a VehicleStateList
-     * as a parameter. This function will get called once before the first timestep.
+     * as a parameter. This function will get called once before the ready message is sent.
      *
      * Used for initial setup, that couldn't be done earlier.
      */
-    void onFirstTimestep(std::function<void(VehicleStateList)> callback) { on_first_timestep = callback; };
+    void beforeControlLoop(std::function<bool(VehicleStateList)> callback) { before_control_loop = callback; };
 
     /**
      * \brief What our HLC should do each timestep.
@@ -205,7 +207,6 @@ public:
      * e.g. if someone pressed the stop or kill button in the LCC.
      */
     void start();
-
     /**
      * \brief Communicate to the middleware that we have to stop planning
      * \param vehicle_id Which vehicle id is requesting the stop
