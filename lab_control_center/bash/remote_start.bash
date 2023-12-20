@@ -1,6 +1,6 @@
 #!/bin/bash
 # This file is used on the remote system (NUC)
-# DESCRIPTION: Kill previous sessions of the middleware and the selected script, then launch the currently selected script + middleware in a new tmux session (using tmux_....bash scripts)
+# DESCRIPTION: Kill previous sessions of the middleware and the selected hlc, then launch the currently selected hlc + middleware in a new tmux session (using tmux_....bash scripts)
 #Get command line arguments
 for i in "$@"
 do
@@ -25,7 +25,7 @@ done
 
 # Kill potential previous sessions
 tmux kill-session -t "middleware"
-tmux kill-session -t "script"
+tmux kill-session -t "hlc"
 
 
 # Kill potential previous sessions - DO NOT change these session names, unless you intend to change them in the whole software repo
@@ -34,5 +34,5 @@ rm -rf ~/dev/lcc_script_logs;mkdir -p ~/dev/lcc_script_logs
 # Start middleware
 tmux new-session -d -s "middleware" "cd /tmp/scripts/;bash tmux_middleware.bash --middleware_arguments='${MIDDLEWARE_ARGS}' &> ~/dev/lcc_script_logs/tmux_middleware.txt"
 
-# Start script
-tmux new-session -d -s "script" "cd /tmp/scripts/;bash tmux_script.bash --script_path=${SCRIPT_PATH} --script_arguments='${SCRIPT_ARGS}' &> ~/dev/lcc_script_logs/tmux_script.txt"
+# Start hlc
+tmux new-session -d -s "hlc" "cd /tmp/scripts/;bash tmux_script.bash --script_path=${SCRIPT_PATH} --script_arguments='${SCRIPT_ARGS}' &> ~/dev/lcc_script_logs/tmux_script.txt"
