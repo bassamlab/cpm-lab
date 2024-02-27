@@ -500,7 +500,7 @@ bool CInstantCameraAppSrc::retrieve_image()
             cv::FONT_HERSHEY_SIMPLEX,
             1,
             cv::Scalar(255,255,255),
-            1
+            2
         );
 
 		// create a gst buffer wrapping the openCv image container's buffer

@@ -219,7 +219,7 @@ if [ -z $SIMULATION ]; then
 
     ## 4.2 Basler Pylon 5
     cd "$DIR/tmp"
-    sudo -u $real_user wget https://www.baslerweb.com/fp-1523350893/media/downloads/software/pylon_software/pylon_5.0.12.11829-deb0_amd64.deb
+    sudo -u $real_user wget https://www2.baslerweb.com/media/downloads/software/pylon_software/pylon_5.0.12.11829-deb0_amd64.deb
     dpkg -i pylon*.deb
 fi
 
