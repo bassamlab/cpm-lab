@@ -25,4 +25,4 @@ The [documentation](https://cpm.lrt.unibw.de/doc/) describes how to set up the s
 https://youtu.be/PfM0qdzorCc \
 https://cpm.lrt.unibw.de/architecture/ 
 
-For a full list of publications related to the CPM Lab see https://cpm.lrt.unibw.de/publications
+For a full list of publications related to the CPM Lab see https://cpm.lrt.unibw.de/publications.
