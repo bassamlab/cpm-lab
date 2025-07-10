@@ -1,5 +1,5 @@
 # CPM Lab
-This repository contains source code for the Cyber-Physical Mobility Lab ([CPM Lab](https://cpm.lrt.unibw.de)).
+This repository contains source code for the  [Cyber-Physical Mobility Lab (CPM Lab)](https://cpm.lrt.unibw.de).
 The CPM Lab is an open-source, remotely accessible testbed for Connected and Automated Vehicles (CAVs), with a focus on multi-agent decision-making. It integrates a digital twin with 20 physical small-scale vehicles (µCars), enabling seamless testing and validation of algorithms across simulation and real-world experiments without code changes. The CPM Lab architecture relies on a Data Distribution Service (DDS)-based middleware that synchronizes all entities via a logical execution time approach, supporting reproducibility of experiments.
 
 As one of the pioneering testbeds for CAVs, the CPM Lab has been rebuilt at other universities and continues to serve as a valuable platform for research, education, and training the next generation of engineers in intelligent transportation systems. For more details, please refer to our publication [1], which we kindly ask you to cite if you find the CPM Lab helpful for your work.
