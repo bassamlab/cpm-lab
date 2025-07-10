@@ -1,6 +1,6 @@
 # CPM Lab
-This repository contains source code for the [CPM Lab](https://cpm.lrt.unibw.de), an open source platform for networked and autonomous vehicles. 
-The CPM Lab provides a simulation environment and 20 model-scale vehicles for experiments. The software architecture enables the seamless transfer of algorithms tested in simulation to real experiments without any adaptions. Experiments with the 20 vehicles can be extended by unlimited additional simulated vehicles. A Data Distribution Service (DDS) based middleware is responsible for synchronizing all entities and establishes a logical execution time approach. It further allows to change the number of vehicles during experiments. \
+This repository contains source code for the [CPM Lab](https://cpm.lrt.unibw.de), an open source testbed for connected and automated vehicles. 
+The CPM Lab provides a simulation environment and 20 scale-model vehicles for experiments. The software architecture enables the seamless transfer of algorithms tested in simulation to real experiments without any adaptions. Experiments with the 20 vehicles can be extended by unlimited additional simulated vehicles. A Data Distribution Service (DDS) based middleware is responsible for synchronizing all entities and establishes a logical execution time approach. It further allows to change the number of vehicles during experiments. \
 The CPM Lab lets researchers as well as students from different disciplines see their ideas develop into reality.
 More information is provided in our publication [1], which we kindly ask you to consider citing if you find the CPM Lab helpful for your work.
 
